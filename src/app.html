@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
+
+
+
+<style>
+	*, *::before, *::after {
+		box-sizing: border-box;
+		padding: 0;
+		margin: 0;
+	}
+
+	:root {
+	}
+
+	body {
+		width: 100dvw;
+		height: 100dvh;
+	}
+	
+	button:not([disabled]) {
+		cursor: pointer;
+	}
+
+	img {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain;
+		display: block;
+	}
+	p img, span img { display: inline-block; }
+
+    .removed {
+        display: none !important;
+    }
+
+	.sheer {
+		background: #7771;
+		padding: 0;
+		border: 1px solid #7771;
+	}
+
+	.shadow {
+		filter: drop-shadow(0px 1px 1px #0005);
+	}
+	.shadowText {
+		text-shadow: 0 1px 3px #0003;
+	}
+</style>
