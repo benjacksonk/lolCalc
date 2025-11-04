@@ -30,8 +30,10 @@
             {#if champConfig.champ != null}
             <input class="levelControl abilityLevelControl" 
             type="number" min="0" max="5" step="1" defaultValue="0"
-            bind:value={champConfig.abilityRanks[i]} 
-            >
+            bind:value={
+            () => champConfig.abilityRanks.get(ability),
+            (v) => champConfig.abilityRanks.set(ability, v)
+            }>
             {/if}
         </div>
         {/each}

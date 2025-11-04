@@ -1,10 +1,12 @@
 <script lang="ts">
-    import { Item, type ItemConfig } from "$lib/types.svelte";
+    import type { Entity } from "$lib/types.svelte";
 
     let {
-        itemConfig = $bindable()
+        chosenEntity = $bindable(),
+        entities = []
     } : {
-        itemConfig: ItemConfig
+        chosenEntity: any,
+        entities: Entity[]
     } = $props();
 
     let removePopup: boolean = $state(true);
@@ -14,26 +16,25 @@
         removePopup = !removePopup;
     }
 
-    function handleOnClickItem(event: MouseEvent, newItem: Item|null) {
+    function handleOnClickItem(event: MouseEvent, newChoice: any) {
         event.preventDefault();
-        itemConfig.item = newItem;
+        chosenEntity = newChoice;
     }
 </script>
 
 
 
-<div class="ItemSlotUI">
+<div class="EntitySlotUI">
     <button class="sheer slotBtn" onmousedown={handleOnClickSlot}>
-        <img class="itemIcon" alt="" src={itemConfig.item?.iconURL ?? ""}>
+        <img class="entityIcon" alt="" src={chosenEntity?.iconURL ?? ""}>
     </button>
 
     <div class="sheer popup" class:removed={removePopup}>
-        {#each [null, ...Item.all] as otherItem, i}
-        <button class="sheer itemBtn"
-        onmousedown={(event) => handleOnClickItem(event, otherItem)}
+        {#each entities as entity, i}
+        <button class="sheer entityBtn"
+        onmousedown={(event) => handleOnClickItem(event, entity)}
         >
-            <img class="itemIcon" alt={otherItem?.name ?? ""} src={otherItem?.iconURL ?? ""}>
-            <!-- <span class="itemName shadowText">{otherItem?.name ?? ""}</span> -->
+            <img class="entityIcon" alt={entity.name} src={entity.iconURL}>
         </button>
         {/each}
     </div>
@@ -42,13 +43,13 @@
 
 
 <style>
-    .ItemSlotUI {
+    .EntitySlotUI {
         height: max-content;
         position: relative;
         display: block;
     }
     
-    img.itemIcon {
+    img.entityIcon {
         width: 60px;
         height: 60px;
     }
@@ -74,14 +75,10 @@
 	    grid-template-columns: repeat(4, minmax(0,1fr));
     }
 
-    button.itemBtn {
+    button.entityBtn {
         /* padding: 0.5em; */
         display: grid;
 
         justify-items: center;
-    }
-    
-    .itemName {
-        width: min-content;
     }
 </style>

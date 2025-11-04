@@ -1,4 +1,4 @@
-import { SvelteMap } from "svelte/reactivity";
+import { SvelteMap, SvelteSet } from "svelte/reactivity";
 
 export enum AbilityType { P="P", Q="Q", W="W", E="E", R="R" }
 
@@ -29,9 +29,6 @@ export enum StatType {
     MoveSpeedFlat           = "Move Speed",
     MoveSpeedRatio          = "Move Speed Ratio",
 }
-
-export type AbilityRankSet 
-= number[];
 
 export class DefiniteNumberSvelteMap<K> extends SvelteMap<K, number> {
     constructor(entries: [K, number][] = []) {
@@ -64,21 +61,21 @@ export class Stats extends DefiniteNumberSvelteMap<StatType> {
 export class Effect {
     trigger: () => boolean;
     // implementation/application/execution/process
-    implementation: (gameConfig: GameConfig, ...params: any[]) => GameConfig;
+    implement: (gameConfig: GameConfig, ...params: any[]) => GameConfig;
     aftereffects: Effect[];
 
     constructor(
         trigger: typeof this.trigger,
-        implementation: typeof this.implementation,
+        implementation: typeof this.implement,
         ...aftereffects: typeof this.aftereffects
     ) {
         this.trigger = $state(trigger);
-        this.implementation = $state(implementation);
+        this.implement = $state(implementation);
         this.aftereffects = $state(aftereffects);
     }
 
     static processEffects(gameConfig: GameConfig, effects: Effect[]): GameConfig {
-        effects?.forEach(effect => gameConfig = effect.implementation(gameConfig));
+        effects.forEach(effect => gameConfig = effect.implement(gameConfig));
         return gameConfig;
     }
 }
@@ -211,7 +208,12 @@ export class Damage extends DefiniteNumberSvelteMap<DamageType> {
     }
 }
 
-export abstract class Affector {
+export interface Entity {
+    name: string;
+    iconURL: string;
+}
+
+export abstract class Affector implements Entity {
     name: string;
     iconURL: string;
     stats: Stats;
@@ -461,7 +463,7 @@ export class Item extends Affector {
     } as const;
 }
 
-export class Champion {
+export class Champion implements Entity {
     readonly name: string;
     readonly iconURL: string;
     readonly abilities: Ability[];
@@ -595,7 +597,7 @@ export class GameConfig implements Config {
     }
 
     get netDamageDealt(): Damage {
-        return Damage.sumPerKey(this.recentDamageDealt, this.previousGameConfig?.recentDamageDealt ?? new Damage(0,0,0));
+        return Damage.sumPerKey(this.recentDamageDealt, this.previousGameConfig?.netDamageDealt ?? new Damage(0,0,0));
     }
 
     get netDamageDealtSum(): number {
@@ -605,20 +607,20 @@ export class GameConfig implements Config {
 
 export class ChampConfig implements Config {
     champ: Champion;
-    abilityRanks: AbilityRankSet;
+    abilityRanks: DefiniteNumberSvelteMap<Ability>;
 
     constructor(
         champion: typeof this.champ,
-        abilityRanks: typeof this.abilityRanks = []
+        abilityRanks: [Ability, number][] = []
     ) {
         this.champ = $state(champion);
-        this.abilityRanks = $state(abilityRanks);
+        this.abilityRanks = new DefiniteNumberSvelteMap<Ability>(abilityRanks);
     }
 
     duplicate(): ChampConfig {
         return new ChampConfig(
             this.champ,
-            [...this.abilityRanks],
+            this.abilityRanks.entries().toArray(),
         );
     }
 };
@@ -626,6 +628,7 @@ export class ChampConfig implements Config {
 export class BuildConfig implements Config {
     itemConfigs: ItemConfigSet;
     // runes: RuneSet;
+    affectorSequence: Affector[];
     
     constructor(
         items: typeof this.itemConfigs = [
@@ -637,14 +640,22 @@ export class BuildConfig implements Config {
             new ItemConfig()
         ],
         // runes: typeof this.runes,
+        affectorSequence: typeof this.affectorSequence = []
     ) {
         this.itemConfigs = $state(items);
         // this.runes = $state(runes);
+        this.affectorSequence = $state(affectorSequence);
     }
 
     duplicate(): BuildConfig {
         return new BuildConfig(
-            [...(this.itemConfigs.map(itemConfig => itemConfig.duplicate()))] as ItemConfigSet);
+            [...(this.itemConfigs.map(itemConfig => itemConfig.duplicate()))] as ItemConfigSet,
+            [...this.affectorSequence]
+        );
+    }
+
+    get items(): Item[] {
+        return this.itemConfigs.map(itemConfig => itemConfig.item).filter(item => item != null);
     }
 
     get totalCost(): number {
