@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Ability, ChampConfig, Champion, BuildConfig, Effect, GameConfig, Stats, DefiniteNumberSvelteMap, Item } from "$lib/types.svelte";
+    import { Ability, ChampConfig, Champion, BuildConfig, GameConfig, Stats, DefiniteNumberSvelteMap } from "$lib/types.svelte";
     import { SvelteMap } from "svelte/reactivity";
     import BuildSpecUI from "../BuildSpecUI.svelte";
     import ChampSpecUI from "../ChampSpecUI.svelte";
@@ -15,133 +15,84 @@
     let targetBaseStats: Stats
     = $state(new Stats());
 
-    let damageBuildless_perAbility: DefiniteNumberSvelteMap<Ability>
-    = $derived.by(() => {
-        let buildlessGameConfig = new GameConfig(null, champConfig, new BuildConfig(), targetBaseStats);
-        
-        return new DefiniteNumberSvelteMap<Ability>(
-            buildlessGameConfig.champConfig.champ.abilities.map((ability, i): [Ability, number] => {
-                let effects = ability.effectsPerRank[Math.max(0, buildlessGameConfig.champConfig.abilityRanks.get(ability) - 1)];
-                let endGameConfig = Effect.processEffects(buildlessGameConfig, effects);
-                return [ability, endGameConfig.netDamageDealtSum];
-            })
-        );
-    });
 
-    let damageAddedPerGold_perBuild_perAbility: SvelteMap<Ability, DefiniteNumberSvelteMap<BuildConfig>>
-    = $derived.by(() => {
-        let initialGameConfig_PerBuildConfig_map 
-        = new SvelteMap(
-            buildConfigs.map(buildConfig => [
-                buildConfig, 
-                new GameConfig(null, champConfig, buildConfig, targetBaseStats)
-            ])
-        );
-        
-        return new SvelteMap(champConfig.champ.abilities.map(
-            (ability, aIndex): [Ability, DefiniteNumberSvelteMap<BuildConfig>] => {
 
-                let build_gameConfigChange_map
-                = new DefiniteNumberSvelteMap(buildConfigs.map(
-                    (buildConfig, bIndex): [BuildConfig, number] => {
+    let damageDiffVsUnbuilt_perBuild_perAbility
+    = $derived(new SvelteMap(champConfig.champ.abilities.map((ability) => {
 
-                        let effects: Effect[]
-                        = ability.effectsPerRank[Math.max(0, champConfig.abilityRanks.get(ability) - 1)];
+        let damageDiffVsUnbuilt
+        = new SvelteMap(buildConfigs.map((buildConfig) => {
 
-                        let endGameConfig: GameConfig 
-                        = Effect.processEffects(initialGameConfig_PerBuildConfig_map.get(buildConfig)!, effects);
+            let gameConfig = new GameConfig(
+                null, 
+                champConfig, 
+                buildConfig.duplicate(), 
+                targetBaseStats
+            );
+            gameConfig.buildConfig.affectorSequence = [ability];
 
-                        let damageAdded: number
-                        = endGameConfig.netDamageDealtSum - damageBuildless_perAbility.get(ability);
+            return [buildConfig, gameConfig.evaluateSequencedDamageDiffVsUnbuilt()];
+        }));
 
-                        let damageAddedPerGold: number 
-                        = damageAdded / Math.max(1, endGameConfig.buildConfig.totalCost);
+        return [ability, damageDiffVsUnbuilt];
+    })));
 
-                        return [buildConfig, damageAddedPerGold];
-                    }
-                ));
+    let zeroOrMinDamageDiffsVsUnbuilt_perAbility
+    : Map<Ability, ReturnType<typeof GameConfig.evaluateSequencedDamageDiffVsUnbuilt>>
+    = $derived(new SvelteMap(
+        champConfig.champ.abilities.map(
+            (ability) => {
+                let nonzeroMinTotalDamages = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.totalDamage).filter(value => value > 0).toArray();
+                let minTotalDamage = nonzeroMinTotalDamages.length > 0 ? Math.min(...nonzeroMinTotalDamages) : 0;
 
-                return [ability, build_gameConfigChange_map];
+                let nonzeroMinTotalDamagesPerGold = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.totalDamagePerGold).filter(value => value > 0).toArray();
+                let minTotalDamagePerGold = nonzeroMinTotalDamagesPerGold.length > 0 ? Math.min(...nonzeroMinTotalDamagesPerGold) : 0;
+
+                let nonzeroMinAddedDamages = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.addedDamage).filter(value => value > 0).toArray();
+                let minAddedDamage = nonzeroMinAddedDamages.length > 0 ? Math.min(...nonzeroMinAddedDamages) : 0;
+
+                let nonzeroMinAddedDamagesPerGold = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.addedDamagePerGold).filter(value => value > 0).toArray();
+                let minAddedDamagePerGold = nonzeroMinAddedDamagesPerGold.length > 0 ? Math.min(...nonzeroMinAddedDamagesPerGold) : 0;
+
+                return [ability, {
+                    totalDamage: minTotalDamage,
+                    totalDamagePerGold: minTotalDamagePerGold,
+                    addedDamage: minAddedDamage,
+                    addedDamagePerGold: minAddedDamagePerGold
+                }];
             }
-        ));
-    });
-
-    let zeroORminNonZeroDamageAddedPerGoldPerBuild_perAbility: DefiniteNumberSvelteMap<Ability>
-    = $derived(new DefiniteNumberSvelteMap<Ability>(
-        damageAddedPerGold_perBuild_perAbility.entries()
-        .map((entry): [Ability,number] => {
-            let nonZeroValues = entry[1].values().filter(value => value > 0).toArray();
-            let min = nonZeroValues.length > 0 ? Math.min(...nonZeroValues) : 0;
-            return [entry[0], min];
-        }).toArray()
+        )
     ));
 
 
 
-    /**
-    let damageBuildless_perBuildSequence: DefiniteNumberSvelteMap<BuildConfig>
+    let damageDiffVsUnbuilt_perBuildConfigSequence
+    = $derived(new SvelteMap(buildConfigs.map(buildConfig => {
+        let gameConfig = new GameConfig(null, champConfig, buildConfig, targetBaseStats);
+        return [buildConfig, gameConfig.evaluateSequencedDamageDiffVsUnbuilt()];
+    })));
+
+    let zeroOrMinDamageDiffsVsUnbuiltOfSequences
+    : ReturnType<typeof GameConfig.evaluateSequencedDamageDiffVsUnbuilt>
     = $derived.by(() => {
-        let buildlessGameConfig = new GameConfig(null, champConfig, new BuildConfig(), targetBaseStats);
-        
-        return new DefiniteNumberSvelteMap<BuildConfig>(
-            buildConfigs.map((buildConfig, i): [BuildConfig, number] => {
-                let damageFromAbilities: number 
-                = buildConfig.affectorSequence
-                .filter(affector => affector instanceof Ability)
-                .map((ability): number => {
-                    let effects = ability.effectsPerRank[Math.max(0, buildlessGameConfig.champConfig.abilityRanks.get(ability) - 1)];
-                    let endGameConfig = Effect.processEffects(buildlessGameConfig, effects);
-                    return endGameConfig.netDamageDealtSum;
-                }).reduce((a,b) => a + b, 0);
+        let nonzeroMinTotalDamages = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.totalDamage).filter(value => value > 0).toArray();
+        let minTotalDamage = nonzeroMinTotalDamages.length > 0 ? Math.min(...nonzeroMinTotalDamages) : 0;
 
-                return [buildConfig, damageFromAbilities];
-            })
-        );
-    });
-    /**/
+        let nonzeroMinTotalDamagesPerGold = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.totalDamagePerGold).filter(value => value > 0).toArray();
+        let minTotalDamagePerGold = nonzeroMinTotalDamagesPerGold.length > 0 ? Math.min(...nonzeroMinTotalDamagesPerGold) : 0;
 
-    let damageAddedPerGold_perBuildSequence: DefiniteNumberSvelteMap<BuildConfig>
-    = $derived(new DefiniteNumberSvelteMap<BuildConfig>(buildConfigs.map(
-        (buildConfig, bIndex): [BuildConfig, number] => {
-            let buildlessEndGameConfig: GameConfig
-            = Effect.processEffects(
-                new GameConfig(null, champConfig, new BuildConfig(), targetBaseStats),
-                buildConfig.affectorSequence
-                .filter(affector => affector instanceof Ability)
-                .flatMap(ability => ability.effectsPerRank[Math.max(0, champConfig.abilityRanks.get(ability) - 1)])
-            );
+        let nonzeroMinAddedDamages = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.addedDamage).filter(value => value > 0).toArray();
+        let minAddedDamage = nonzeroMinAddedDamages.length > 0 ? Math.min(...nonzeroMinAddedDamages) : 0;
 
-            let builtEndGameConfig: GameConfig
-            = Effect.processEffects(
-                new GameConfig(null, champConfig, buildConfig, targetBaseStats),
-                buildConfig.affectorSequence
-                .flatMap(affector => {
-                    if (affector instanceof Ability) {
-                        return affector.effectsPerRank[Math.max(0, champConfig.abilityRanks.get(affector) - 1)];
-                    }
-                    else if (affector instanceof Item) {
-                        return affector.effectsPerRank[buildConfig.itemConfigs.find(itemConfig => itemConfig.item == affector)!.rank]
-                    }
-                    else return [];
-                })
-            );
+        let nonzeroMinAddedDamagesPerGold = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.addedDamagePerGold).filter(value => value > 0).toArray();
+        let minAddedDamagePerGold = nonzeroMinAddedDamagesPerGold.length > 0 ? Math.min(...nonzeroMinAddedDamagesPerGold) : 0;
 
-            let damageAddedPerGold: number
-            = (builtEndGameConfig.netDamageDealtSum - buildlessEndGameConfig.netDamageDealtSum) 
-            / Math.max(1, builtEndGameConfig.buildConfig.totalCost);
-
-            return [buildConfig, damageAddedPerGold];
-        }
-    )));
-
-    let zeroORminNonZeroDamageAddedPerGold_perBuildSequence: number
-    = $derived.by(() => {
-        let nonZeroValues: number[] 
-        = buildConfigs
-        .map(buildConfig => damageAddedPerGold_perBuildSequence.get(buildConfig))
-        .filter(value => value > 0);
-
-        return nonZeroValues.length > 0 ? Math.min(...nonZeroValues) : 0;
+        return {
+            totalDamage: minTotalDamage,
+            totalDamagePerGold: minTotalDamagePerGold,
+            addedDamage: minAddedDamage,
+            addedDamagePerGold: minAddedDamagePerGold
+        };
     });
 
     function handleOnClickAddBuild(
@@ -199,14 +150,18 @@
             >
                 {#each champConfig.champ.abilities as ability, j (ability.name)}
                 <div class="sheer effectOutcome">
-                    <span>
-                        ＋ {Math.round(1000 * (damageAddedPerGold_perBuild_perAbility.get(ability)?.get(buildConfig) ?? 0))} / kG
-                    </span>
+                    {#if damageDiffVsUnbuilt_perBuild_perAbility.get(ability)?.get(buildConfig)}
+                    
+                    <span>＝ {Math.round(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.totalDamagePerGold * 1000)} / kG</span>
+                    {#if zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.totalDamagePerGold != 0}
+                    <span>(ｘ {(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.totalDamagePerGold / zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.totalDamagePerGold).toFixed(2)})</span>
+                    {/if}
 
-                    {#if zeroORminNonZeroDamageAddedPerGoldPerBuild_perAbility.get(ability) != 0}
-                    <span>
-                        ｘ {(damageAddedPerGold_perBuild_perAbility.get(ability)!.get(buildConfig) / zeroORminNonZeroDamageAddedPerGoldPerBuild_perAbility.get(ability)).toFixed(2)}
-                    </span>
+                    <span>＋ {Math.round(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.addedDamagePerGold * 1000)} / kG</span>
+                    {#if zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.addedDamagePerGold != 0}
+                    <span>(ｘ {(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.addedDamagePerGold / zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.addedDamagePerGold).toFixed(2)})</span>
+                    {/if}
+
                     {/if}
                 </div>
                 {/each}
@@ -221,14 +176,18 @@
             {#each buildConfigs as buildConfig, i}
             <div class="sheer sequenceOutcomeForBuild">
                 <div class="sheer effectOutcome">
-                    <span>
-                        ＋ {Math.round(1000 * damageAddedPerGold_perBuildSequence.get(buildConfig))} / kG
-                    </span>
+                    {#if damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)}
+                    
+                    <span>＝ {Math.round(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.totalDamagePerGold * 1000)} / kG</span>
+                    {#if zeroOrMinDamageDiffsVsUnbuiltOfSequences.totalDamagePerGold != 0}
+                    <span>(ｘ {(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.totalDamagePerGold / zeroOrMinDamageDiffsVsUnbuiltOfSequences.totalDamagePerGold).toFixed(2)})</span>
+                    {/if}
 
-                    {#if zeroORminNonZeroDamageAddedPerGold_perBuildSequence != 0}
-                    <span>
-                        ｘ {(damageAddedPerGold_perBuildSequence.get(buildConfig) / zeroORminNonZeroDamageAddedPerGold_perBuildSequence).toFixed(2)}
-                    </span>
+                    <span>＋ {Math.round(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.addedDamagePerGold * 1000)} / kG</span>
+                    {#if zeroOrMinDamageDiffsVsUnbuiltOfSequences.addedDamagePerGold != 0}
+                    <span>(ｘ {(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.addedDamagePerGold / zeroOrMinDamageDiffsVsUnbuiltOfSequences.addedDamagePerGold).toFixed(2)})</span>
+                    {/if}
+
                     {/if}
                 </div>
             </div>

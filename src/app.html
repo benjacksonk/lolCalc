@@ -26,10 +26,6 @@
 		width: 100dvw;
 		height: 100dvh;
 	}
-	
-	button:not([disabled]) {
-		cursor: pointer;
-	}
 
 	img {
 		max-width: 100%;
@@ -37,15 +33,22 @@
 		object-fit: contain;
 		display: block;
 	}
-	p img, span img { display: inline-block; }
+	span > img {
+		display: inline-block;
+	}
+	
+	button:not([disabled]) {
+		display: inline-block;
 
-    .removed {
-        display: none !important;
-    }
+		&:not([disabled]) {
+			cursor: pointer;
+		}
+	}
 
 	.sheer {
 		background: #7771;
 		padding: 0;
+		margin: 0;
 		border: 1px solid #7771;
 	}
 

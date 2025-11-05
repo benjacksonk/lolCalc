@@ -1,4 +1,4 @@
-import { SvelteMap, SvelteSet } from "svelte/reactivity";
+import { SvelteMap } from "svelte/reactivity";
 
 export enum AbilityType { P="P", Q="Q", W="W", E="E", R="R" }
 
@@ -78,67 +78,67 @@ export class Effect {
         effects.forEach(effect => gameConfig = effect.implement(gameConfig));
         return gameConfig;
     }
-}
-
-function createDamageEffect(
-    damageType: DamageType, 
-    baseAmount: number, 
-    ratios: [StatType, number][],
-    trigger: () => boolean,
-    ...aftereffects: Effect[]
-): Effect {
-    return new Effect(
-        trigger,
-        (gameConfig: GameConfig): GameConfig => {
-            let damageFromStats: Array<Damage> 
-            = ratios.map(
-                stattype_ratio => {
-                    let damageAmount: number 
-                    = gameConfig.statsPostEval.get(stattype_ratio[0]) * stattype_ratio[1];
-                    
-                    switch (damageType) {
-                        case DamageType.Magic:
-                            return new Damage(0, 0, damageAmount);
-                            break;
-                        case DamageType.Physical:
-                            return new Damage(0, damageAmount, 0);
-                            break;
-                        default:
-                            return new Damage(damageAmount, 0, 0);
-                            break;
+    
+    static createDamageEffect(
+        damageType: DamageType, 
+        baseAmount: number, 
+        ratios: [StatType, number][],
+        trigger: () => boolean,
+        ...aftereffects: Effect[]
+    ): Effect {
+        return new Effect(
+            trigger,
+            (gameConfig: GameConfig): GameConfig => {
+                let damageFromStats: Array<Damage> 
+                = ratios.map(
+                    stattype_ratio => {
+                        let damageAmount: number 
+                        = gameConfig.statsPostEval.get(stattype_ratio[0]) * stattype_ratio[1];
+                        
+                        switch (damageType) {
+                            case DamageType.Magic:
+                                return new Damage(0, 0, damageAmount);
+                                break;
+                            case DamageType.Physical:
+                                return new Damage(0, damageAmount, 0);
+                                break;
+                            default:
+                                return new Damage(damageAmount, 0, 0);
+                                break;
+                        }
                     }
+                );
+
+                let baseDamage: Damage;
+                switch (damageType) {
+                    case DamageType.Magic:
+                        baseDamage = new Damage(0, 0, baseAmount);
+                        break;
+                    case DamageType.Physical:
+                        baseDamage = new Damage(0, baseAmount, 0);
+                        break;
+                    default:
+                        baseDamage = new Damage(baseAmount, 0, 0);
+                        break;
                 }
-            );
 
-            let baseDamage: Damage;
-            switch (damageType) {
-                case DamageType.Magic:
-                    baseDamage = new Damage(0, 0, baseAmount);
-                    break;
-                case DamageType.Physical:
-                    baseDamage = new Damage(0, baseAmount, 0);
-                    break;
-                default:
-                    baseDamage = new Damage(baseAmount, 0, 0);
-                    break;
-            }
+                let recentDamageSubtotals = Damage.sumPerKey(baseDamage, ...damageFromStats);
+                let recentDamageTotals 
+                = Damage.calculatePostMitigationDamage(
+                    recentDamageSubtotals, 
+                    gameConfig.statsPostEval,
+                    gameConfig.targetBaseStats
+                );
 
-            let recentDamageSubtotals = Damage.sumPerKey(baseDamage, ...damageFromStats);
-            let recentDamageTotals 
-            = Damage.calculatePostMitigationDamage(
-                recentDamageSubtotals, 
-                gameConfig.statsPostEval,
-                gameConfig.targetBaseStats
-            );
+                let newGameConfig = gameConfig.duplicate();
+                newGameConfig.previousGameConfig = gameConfig;
+                newGameConfig.recentDamageDealt = recentDamageTotals;
 
-            let newGameConfig = gameConfig.duplicate();
-            newGameConfig.previousGameConfig = gameConfig;
-            newGameConfig.recentDamageDealt = recentDamageTotals;
-
-            return newGameConfig;
-        },
-        ...aftereffects
-    )
+                return newGameConfig;
+            },
+            ...aftereffects
+        )
+    }
 }
 
 export class Damage extends DefiniteNumberSvelteMap<DamageType> {
@@ -314,7 +314,8 @@ export class Item extends Affector {
             2800,
             "Blackfire Torch", 
             "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item.png", 
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,80],[StatType.Mana,600]]
+            [[StatType.AbilityHaste,20],[StatType.AbilityPower,80],[StatType.Mana,600]],
+            [[Effect.createDamageEffect(DamageType.Magic, 60, [[StatType.AbilityPower,0.06]],() => true)]]
         ),
         BloodlettersCurse: new Item(
             2900,
@@ -332,7 +333,7 @@ export class Item extends Affector {
             3000,
             "Cryptbloom",
             "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,75],[StatType.MagicPenetrationRatio,30]]
+            [[StatType.AbilityHaste,20],[StatType.AbilityPower,75],[StatType.MagicPenetrationRatio,0.3]]
         ),
         Dawncore: new Item(
             2500,
@@ -350,7 +351,8 @@ export class Item extends Affector {
             2650,
             "Hextech Rocketbelt",
             "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,70],[StatType.Health,300]]
+            [[StatType.AbilityHaste,20],[StatType.AbilityPower,70],[StatType.Health,300]],
+            [[Effect.createDamageEffect(DamageType.Magic, 100, [[StatType.AbilityPower,0.1]],() => true)]]
         ),
         HorizonFocus: new Item(
             2750,
@@ -380,7 +382,8 @@ export class Item extends Affector {
             2750,
             "Luden's Companion", 
             "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item.png", 
-            [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.Mana,600]]
+            [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.Mana,600]],
+            [[Effect.createDamageEffect(DamageType.Magic, 150, [[StatType.AbilityPower,0.1]],() => true)]]
         ),
         Malignance: new Item(
             2700,
@@ -446,7 +449,8 @@ export class Item extends Affector {
             2800,
             "Stormsurge",
             "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item.png",
-            [[StatType.AbilityPower,80],[StatType.MagicPenetrationFlat,15],[StatType.MoveSpeedRatio,0.06]]
+            [[StatType.AbilityPower,80],[StatType.MagicPenetrationFlat,15],[StatType.MoveSpeedRatio,0.06]],
+            [[Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower,0.1]],() => true)]]
         ),
         VoidStaff: new Item(
             3000,
@@ -461,6 +465,9 @@ export class Item extends Affector {
             [[StatType.AbilityPower,105],[StatType.Armor,50]]
         )
     } as const;
+}
+
+export class Rune extends Affector {
 }
 
 export class Champion implements Entity {
@@ -486,65 +493,47 @@ export class Champion implements Entity {
         Ahri: new Champion("Ahri", "https://wiki.leagueoflegends.com/en-us/images/thumb/Ahri_OriginalSquare.png/92px-Ahri_OriginalSquare.png", [
             new Ability("Orb of Deception", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Orb_of_Deception_HD.png", [], [
                 [
-                    createDamageEffect(DamageType.Magic, 40, [[StatType.AbilityPower, 0.5]], () => true),
-                    createDamageEffect(DamageType.True, 40, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 40, [[StatType.AbilityPower, 0.5]], () => true),
+                    Effect.createDamageEffect(DamageType.True, 40, [[StatType.AbilityPower, 0.5]], () => true)
                 ],
                 [
-                    createDamageEffect(DamageType.Magic, 65, [[StatType.AbilityPower, 0.5]], () => true),
-                    createDamageEffect(DamageType.True, 65, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 65, [[StatType.AbilityPower, 0.5]], () => true),
+                    Effect.createDamageEffect(DamageType.True, 65, [[StatType.AbilityPower, 0.5]], () => true)
                 ],
                 [
-                    createDamageEffect(DamageType.Magic, 90, [[StatType.AbilityPower, 0.5]], () => true),
-                    createDamageEffect(DamageType.True, 90, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 90, [[StatType.AbilityPower, 0.5]], () => true),
+                    Effect.createDamageEffect(DamageType.True, 90, [[StatType.AbilityPower, 0.5]], () => true)
                 ],
                 [
-                    createDamageEffect(DamageType.Magic, 115, [[StatType.AbilityPower, 0.5]], () => true),
-                    createDamageEffect(DamageType.True, 115, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 115, [[StatType.AbilityPower, 0.5]], () => true),
+                    Effect.createDamageEffect(DamageType.True, 115, [[StatType.AbilityPower, 0.5]], () => true)
                 ],
                 [
-                    createDamageEffect(DamageType.Magic, 140, [[StatType.AbilityPower, 0.5]], () => true),
-                    createDamageEffect(DamageType.True, 140, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 140, [[StatType.AbilityPower, 0.5]], () => true),
+                    Effect.createDamageEffect(DamageType.True, 140, [[StatType.AbilityPower, 0.5]], () => true)
                 ]
             ]),
             new Ability("Fox-Fire", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Fox-Fire_HD.png", [], [
-                [
-                    createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.64]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.64]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.64]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.64]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.64]], () => true)
-                ]
+                [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.64]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.64]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.64]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.64]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.64]], () => true) ]
             ]),
             new Ability("Charm", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Charm_HD.png", [], [
-                [
-                    createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 120, [[StatType.AbilityPower, 0.85]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.85]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 200, [[StatType.AbilityPower, 0.85]], () => true)
-                ],
-                [
-                    createDamageEffect(DamageType.Magic, 240, [[StatType.AbilityPower, 0.85]], () => true)
-                ]
+                [ Effect.createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 120, [[StatType.AbilityPower, 0.85]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.85]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 200, [[StatType.AbilityPower, 0.85]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 240, [[StatType.AbilityPower, 0.85]], () => true) ]
+            ]),
+            new Ability("Spirit Rush", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Spirit_Rush_HD.png", [], [
+                [ Effect.createDamageEffect(DamageType.Magic, 75, [[StatType.AbilityPower, 0.35]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower, 0.35]], () => true) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 175, [[StatType.AbilityPower, 0.35]], () => true) ]
             ]),
         ]),
     } as const;
-}
-
-export class Rune {
 }
 
 export interface Config {
@@ -602,6 +591,53 @@ export class GameConfig implements Config {
 
     get netDamageDealtSum(): number {
         return this.netDamageDealt.values().toArray().reduce((a,b) => a+b);
+    }
+    
+    evaluateSequencedDamageDiffVsUnbuilt() {
+        return GameConfig.evaluateSequencedDamageDiffVsUnbuilt(this);
+    }
+    
+    static evaluateSequencedDamageDiffVsUnbuilt(gameConfig: GameConfig) {
+        let unbuiltGameConfig = gameConfig.duplicate();
+        unbuiltGameConfig.buildConfig = new BuildConfig();
+        unbuiltGameConfig.buildConfig.affectorSequence = gameConfig.buildConfig.affectorSequence.filter(affector => affector instanceof Ability);
+        
+        let unbuiltEffects: Effect[] 
+        = unbuiltGameConfig.buildConfig.affectorSequence.flatMap(
+            (affector): Effect[] => {
+                if (affector instanceof Ability) {
+                    return affector.effectsPerRank[Math.max(0, unbuiltGameConfig.champConfig.abilityRanks.get(affector) - 1)];
+                }
+                else if (affector instanceof Item) {
+                    return affector.effectsPerRank[unbuiltGameConfig.buildConfig.itemConfigs.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
+                }
+                else return [];
+            }
+        );
+
+        unbuiltGameConfig = Effect.processEffects(unbuiltGameConfig, unbuiltEffects);
+        
+        let builtEffects: Effect[] 
+        = gameConfig.buildConfig.affectorSequence.flatMap(
+            (affector): Effect[] => {
+                if (affector instanceof Ability) {
+                    return affector.effectsPerRank[Math.max(0, gameConfig.champConfig.abilityRanks.get(affector) - 1)];
+                }
+                else if (affector instanceof Item) {
+                    return affector.effectsPerRank[gameConfig.buildConfig.itemConfigs.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
+                }
+                else return [];
+            }
+        );
+
+        let endGameConfig = Effect.processEffects(gameConfig, builtEffects);
+        
+        let totalDamage = endGameConfig.netDamageDealtSum;
+        let totalDamagePerGold = totalDamage / endGameConfig.buildConfig.totalCost;
+        let addedDamage = totalDamage - unbuiltGameConfig.netDamageDealtSum;
+        let addedDamagePerGold = addedDamage / endGameConfig.buildConfig.totalCost;
+        
+        return { totalDamage, totalDamagePerGold, addedDamage, addedDamagePerGold };
     }
 }
 
