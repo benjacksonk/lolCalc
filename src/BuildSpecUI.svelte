@@ -1,23 +1,27 @@
 <script lang="ts">
     import { popupState } from "$lib/popupState.svelte";
-    import { Affector, Item, type ItemConfigSet } from "$lib/types.svelte";
-    import PopupUI from "./PopupUI.svelte";
+    import { Item, ItemSlotConfig, type ItemSlotConfigSet } from "$lib/types.svelte";
 
     let {
         itemConfigSet = $bindable()
     } : {
-        itemConfigSet: ItemConfigSet
+        itemConfigSet: ItemSlotConfigSet
     } = $props();
 
-    const popupAnchors 
-    = $state<[(Node|null),(Node|null),(Node|null),(Node|null),(Node|null),(Node|null)]>(
-        [null,null,null,null,null,null]
-    );
+    let popups
+    : [Node|null,Node|null,Node|null,Node|null,Node|null,Node|null] 
+    = $state([null,null,null,null,null,null]);
 
-    function handlemousedownOnPopupAnchor(event: MouseEvent, popupAnchor: Node|null) {
+    function handlemousedownOnPopupAnchor(event: MouseEvent, popup: Node) {
         event.preventDefault();
-        if (popupAnchor) {
-            popupState.popupAnchors.add(popupAnchor);
+        popupState.currentPopup = (popupState.currentPopup == popup ? null : popup);
+    }
+
+    function handleMouseDownOnItemOption(event: MouseEvent, popup: Node, itemConfig: ItemSlotConfig, item: Item) {
+        event.preventDefault();
+        itemConfig.item = item;
+        if (popupState.currentPopup = popup) {
+            popupState.currentPopup = null;
         }
     }
 </script>
@@ -26,18 +30,22 @@
 
 <div class="sheer BuildSpec">
     {#each itemConfigSet as itemConfig, i}
-    <button class="sheer slotBtn" bind:this={popupAnchors[i]} 
-    onmousedown={(event) => handlemousedownOnPopupAnchor(event, popupAnchors[i])}
-    >
-        <img class="slotIcon" alt={itemConfig.item?.iconURL ?? "empty item slot"} src={itemConfig.item?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png"}>
-    </button>
-    
-    {#if popupState.popupAnchors.has(popupAnchors[i])}
-    <PopupUI anchorNode={popupAnchors[i]} 
-    selectionDelegate={(item: Affector|null): void => { itemConfig.item = item as Item; }} 
-    affectors={Item.all}
-    />
-    {/if}
+    <div class="popupContainer">
+        <button class="sheer slotBtn" onmousedown={
+            (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
+        }
+        >
+            <img class="icon min" alt={itemConfig.item.name} src={itemConfig.item.iconURL}>
+        </button>
+        
+        <div class="popup" bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}>
+            {#each Item.all as item, j (item.name)}
+            <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
+                <img class="icon min" alt={item.name} src={item.iconURL}>
+            </button>
+            {/each}
+        </div>
+    </div>
     {/each}
 </div>
 
@@ -47,10 +55,15 @@
     .BuildSpec {
         display: flex;
         flex-flow: row nowrap;
-    }
 
-    .slotIcon {
-        width: 60px;
-        height: 60px;
+        .popup {
+            background: #111;
+            border: 2px solid #555;
+            grid-auto-rows: max-content;
+            grid-template-columns: repeat(11, max-content);
+            
+            left: unset;
+            transform: unset;
+        }
     }
 </style>

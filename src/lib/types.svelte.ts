@@ -4,78 +4,193 @@ export enum AbilityType { P="P", Q="Q", W="W", E="E", R="R" }
 
 export enum DamageType { True="True", Physical="Physical", Magic="Magic" }
 
-export enum TargetType { Self, Ally, Enemy }
-
 export enum StatType {
-    AbilityHaste            = "Ability Haste",
-    AbilityPower            = "Ability Power",
-    AbilityPowerAmpRatio    = "Ability Power Amp Ratio",
-    AttackDamageBase        = "Base Attack Damage",
-    AttackDamageBonus       = "Bonus Attack Damage",
-    Armor                   = "Armor",
-    ArmorPenetrationFlat    = "Lethality (Armor Penetration Flat)",
-    ArmorPenetrationRatio   = "Armor Penetration Ratio",
-    ArmorReductionFlat      = "Armor Reduction Flat",
-    ArmorReductionRatio     = "Armor Reduction Ratio",
-    HealAndShieldPowerRatio = "Heal & Shield Power Ratio",
-    Health                  = "Health",
-    MagicPenetrationFlat    = "Magic Penetration Flat",
-    MagicPenetrationRatio   = "Magic Penetration Ratio",
-    MagicReductionFlat      = "Magic Reduction Flat",
-    MagicReductionRatio     = "Magic Reduction Ratio",
-    MagicResistance         = "Magic Resistance",
-    Mana                    = "Mana",
-    ManaRegenRatio          = "Mana Regeneration Ratio",
-    MoveSpeedFlat           = "Move Speed",
-    MoveSpeedRatio          = "Move Speed Ratio",
+    AbilityHaste                    = "Ability Haste",
+    AbilityPower                    = "Ability Power",
+    AbilityPowerAmpRatio            = "Ability Power Amp Ratio",
+    AttackDamageBase                = "Base Attack Damage",
+    AttackDamageBonus               = "Bonus Attack Damage",
+    Armor                           = "Armor",
+    ArmorPenetrationFlat            = "Lethality (Armor Penetration Flat)",
+    ArmorPenetrationRatio           = "Armor Penetration Ratio",
+    ArmorReductionDebuffFlat        = "Armor Reduction Flat",
+    ArmorReductionDebuffRatio       = "Armor Reduction Ratio",
+    HealAndShieldPowerRatio         = "Heal & Shield Power Ratio",
+    Health                          = "Health",
+    MagicPenetrationFlat            = "Magic Penetration Flat",
+    MagicPenetrationRatio           = "Magic Penetration Ratio",
+    MagicResistReductionDebuffFlat  = "Magic Reduction Flat",
+    MagicResistReductionDebuffRatio = "Magic Reduction Ratio",
+    MagicResistance                 = "Magic Resistance",
+    Mana                            = "Mana",
+    ManaRegenRatio                  = "Mana Regeneration Ratio",
+    MoveSpeedFlat                   = "Move Speed",
+    MoveSpeedRatio                  = "Move Speed Ratio",
 }
 
-export class DefiniteNumberSvelteMap<K> extends SvelteMap<K, number> {
-    constructor(entries: [K, number][] = []) {
-        super(entries);
+export class DefiniteMap<K,V> extends SvelteMap<K,V> {
+    protected readonly defaultValue: V;
+
+    constructor(defaultValue: V, ...params: ConstructorParameters<typeof SvelteMap<K, V>>) {
+        super(...params);
+        this.defaultValue = $state(defaultValue);
     }
 
-    get(key: K): number {
-        return super.get(key) ?? 0;
+    get(key: K): V {
+        return super.get(key) ?? this.defaultValue;
     }
 
-    static sumPerKey<T>(...items: DefiniteNumberSvelteMap<T>[]): DefiniteNumberSvelteMap<T> {
-        let sumEntries: [T, number][] 
-        = items.flatMap(item => item.keys().toArray())
-        .map(key => [key, items.map(item => item.get(key)).reduce((a,b) => a+b)]);
-        
-        return new DefiniteNumberSvelteMap<T>(sumEntries);
+    set(key: K, value: V): this {
+        value == this.defaultValue ? super.delete(key) : super.set(key, value);
+        return this;
+    }
+}
+
+export class DefiniteNumberMap<K> extends DefiniteMap<K,number> {
+    constructor(entries: Iterable<readonly [K, number]> = []) {
+        super(0, entries);
+    }
+
+    static sumPerKey<K>(...summandMaps: DefiniteNumberMap<K>[]): DefiniteNumberMap<K> {
+        return summandMaps.reduce((a,b) => {
+            b.keys().forEach(bKey => a.set(bKey, a.get(bKey) + b.get(bKey)));
+            return a;
+        }, new DefiniteNumberMap<K>());
     }
 
     get total(): number {
-        return this.values().toArray().reduce((a,b) => a + b);
+        return this.values().toArray().reduce((a,b) => a + b, 0);
     }
 }
 
-export class Stats extends DefiniteNumberSvelteMap<StatType> {
-    constructor(items: [StatType, number][] = []) {
-        super(items);
+export class Damage extends DefiniteNumberMap<DamageType> {
+    constructor(trueDmg: number, physicalDmg: number, magicDmg: number) {
+        super([
+            [DamageType.True, trueDmg],
+            [DamageType.Physical, physicalDmg],
+            [DamageType.Magic, magicDmg]
+        ]);
     }
+
+    static multiply(original: Damage, multiplier: number|Damage): Damage {
+        return multiplier instanceof Damage ?
+        new Damage(
+            multiplier.get(DamageType.True) * original.get(DamageType.True), 
+            multiplier.get(DamageType.Physical) * original.get(DamageType.Physical), 
+            multiplier.get(DamageType.Magic) * original.get(DamageType.Magic)
+        ) :
+        new Damage(
+            multiplier * original.get(DamageType.True), 
+            multiplier * original.get(DamageType.Physical), 
+            multiplier * original.get(DamageType.Magic)
+        );
+    }
+
+    static calculateDefenseCoefficient(
+        resistance: number,
+        resistanceReductionFlat: number,
+        resistanceReductionRatio: number,
+        penetrationRatio: number,
+        penetrationFlat: number,
+    ): number {
+        let defenseSubtotal: number 
+        = (resistance - resistanceReductionFlat) * (1 - resistanceReductionRatio);
+        defenseSubtotal = Math.max(0, defenseSubtotal * (1 - penetrationRatio));
+        defenseSubtotal = Math.max(0, defenseSubtotal - penetrationFlat);
+        
+        return defenseSubtotal < 0 ? 
+        (2 - (1 / (1 + (defenseSubtotal / 100)))) : 
+        (1 / (1 + (defenseSubtotal / 100)));
+    }
+
+    static calculatePostMitigationDamage(
+        inputDamage: Damage, 
+        attackerStats: DefiniteNumberMap<StatType>, 
+        defenderStats: DefiniteNumberMap<StatType>
+    ): Damage {
+        let physicalDefenseCoefficient: number 
+        = this.calculateDefenseCoefficient(
+            defenderStats.get(StatType.Armor),
+            defenderStats.get(StatType.ArmorReductionDebuffFlat),
+            defenderStats.get(StatType.ArmorReductionDebuffRatio),
+            attackerStats.get(StatType.ArmorPenetrationRatio),
+            attackerStats.get(StatType.ArmorPenetrationFlat)
+        );
+        
+        let magicDefenseCoefficient: number 
+        = this.calculateDefenseCoefficient(
+            defenderStats.get(StatType.MagicResistance),
+            defenderStats.get(StatType.MagicResistReductionDebuffFlat),
+            defenderStats.get(StatType.MagicResistReductionDebuffRatio),
+            attackerStats.get(StatType.MagicPenetrationRatio),
+            attackerStats.get(StatType.MagicPenetrationFlat)
+        );
+
+        return Damage.multiply(inputDamage, new Damage(1, physicalDefenseCoefficient, magicDefenseCoefficient));
+    }
+}
+
+export class DefiniteDiffMap extends DefiniteMap<BuildConfig,GameDiff> {
+    static readonly zeroDiff: GameDiff = {
+        totalDamage: 0,
+        totalDamagePerGold: 0,
+        addedDamage: 0,
+        addedDamagePerGold: 0
+    }
+    
+    constructor(...params: ConstructorParameters<typeof SvelteMap<BuildConfig, GameDiff>>) {
+        super(DefiniteDiffMap.zeroDiff, ...params);
+    }
+
+    get minsOrZeros(): GameDiff {
+        let diffs = this.values().toArray();
+
+        let nonzeroTotalDamages = diffs.map(diff => diff.totalDamage).filter(value => value > 0);
+        let minTotalDamage = nonzeroTotalDamages.length > 1 ? Math.min(...nonzeroTotalDamages) : nonzeroTotalDamages[0] ?? 0;
+
+        let nonzeroTotalDamagesPerGold = diffs.map(diff => diff.totalDamagePerGold).filter(value => value > 0);
+        let minTotalDamagePerGold = nonzeroTotalDamagesPerGold.length > 1 ? Math.min(...nonzeroTotalDamagesPerGold) : nonzeroTotalDamagesPerGold[0] ?? 0;
+
+        let nonzeroAddedDamages = diffs.map(diff => diff.addedDamage).filter(value => value > 0);
+        let minAddedDamage = nonzeroAddedDamages.length > 1 ? Math.min(...nonzeroAddedDamages) : nonzeroAddedDamages[0] ?? 0;
+
+        let nonzeroAddedDamagesPerGold = diffs.map(diff => diff.addedDamagePerGold).filter(value => value > 0);
+        let minAddedDamagePerGold = nonzeroAddedDamagesPerGold.length > 1 ? Math.min(...nonzeroAddedDamagesPerGold) : nonzeroAddedDamagesPerGold[0] ?? 0;
+
+        return {
+            totalDamage: minTotalDamage,
+            totalDamagePerGold: minTotalDamagePerGold,
+            addedDamage: minAddedDamage,
+            addedDamagePerGold: minAddedDamagePerGold
+        };
+    }
+}
+
+export type GameDiff = {
+    totalDamage: number, 
+    totalDamagePerGold: number, 
+    addedDamage: number, 
+    addedDamagePerGold: number
 }
 
 export class Effect {
-    trigger: () => boolean;
-    // implementation/application/execution/process
+    // implement/process
     implement: (gameConfig: GameConfig, ...params: any[]) => GameConfig;
     aftereffects: Effect[];
 
     constructor(
-        trigger: typeof this.trigger,
         implementation: typeof this.implement,
         ...aftereffects: typeof this.aftereffects
     ) {
-        this.trigger = $state(trigger);
         this.implement = $state(implementation);
         this.aftereffects = $state(aftereffects);
     }
 
     static processEffects(gameConfig: GameConfig, effects: Effect[]): GameConfig {
-        effects.forEach(effect => gameConfig = effect.implement(gameConfig));
+        effects.forEach(effect => {
+            gameConfig = effect.implement(gameConfig);
+            gameConfig = this.processEffects(gameConfig, effect.aftereffects);
+        });
         return gameConfig;
     }
     
@@ -83,11 +198,9 @@ export class Effect {
         damageType: DamageType, 
         baseAmount: number, 
         ratios: [StatType, number][],
-        trigger: () => boolean,
         ...aftereffects: Effect[]
     ): Effect {
         return new Effect(
-            trigger,
             (gameConfig: GameConfig): GameConfig => {
                 let damageFromStats: Array<Damage> 
                 = ratios.map(
@@ -127,84 +240,18 @@ export class Effect {
                 = Damage.calculatePostMitigationDamage(
                     recentDamageSubtotals, 
                     gameConfig.statsPostEval,
-                    gameConfig.targetBaseStats
+                    gameConfig.targetStatsPostEval
                 );
 
-                let newGameConfig = gameConfig.duplicate();
-                newGameConfig.previousGameConfig = gameConfig;
-                newGameConfig.recentDamageDealt = recentDamageTotals;
+                let newGameConfig 
+                = new GameConfig(gameConfig, {
+                    damageAggregate: gameConfig.damageAggregate + recentDamageTotals.total
+                });
 
                 return newGameConfig;
             },
             ...aftereffects
         )
-    }
-}
-
-export class Damage extends DefiniteNumberSvelteMap<DamageType> {
-    constructor(trueDmg: number, physicalDmg: number, magicDmg: number) {
-        super([
-            [DamageType.True, trueDmg],
-            [DamageType.Physical, physicalDmg],
-            [DamageType.Magic, magicDmg]
-        ]);
-    }
-
-    static multiply(original: Damage, multiplier: number|Damage): Damage {
-        return multiplier instanceof Damage ?
-        new Damage(
-            multiplier.get(DamageType.True) * original.get(DamageType.True), 
-            multiplier.get(DamageType.Physical) * original.get(DamageType.Physical), 
-            multiplier.get(DamageType.Magic) * original.get(DamageType.Magic)
-        ) :
-        new Damage(
-            multiplier * original.get(DamageType.True), 
-            multiplier * original.get(DamageType.Physical), 
-            multiplier * original.get(DamageType.Magic)
-        );
-    }
-
-    static calculatePostMitigationDamage(inputDamage: Damage, attackerStats: Stats, defenderStats: Stats): Damage {
-        let coefficientsPerType = inputDamage.entries().map(entry => {
-            let damageType = entry[0];
-            
-            let resistance: number;
-            let resistanceReductionFlat: number;
-            let resistanceReductionRatio: number;
-            let penetrationRatio: number;
-            let penetrationFlat: number;
-            [
-                resistance,
-                resistanceReductionFlat,
-                resistanceReductionRatio,
-                penetrationRatio,
-                penetrationFlat
-            ] = damageType == DamageType.Physical ? [
-                defenderStats.get(StatType.Armor),
-                attackerStats.get(StatType.ArmorReductionFlat),
-                attackerStats.get(StatType.ArmorReductionRatio),
-                attackerStats.get(StatType.ArmorPenetrationRatio),
-                attackerStats.get(StatType.ArmorPenetrationFlat)
-            ] : damageType == DamageType.Magic ? [
-                defenderStats.get(StatType.MagicResistance),
-                attackerStats.get(StatType.MagicReductionFlat),
-                attackerStats.get(StatType.MagicReductionRatio),
-                attackerStats.get(StatType.MagicPenetrationRatio),
-                attackerStats.get(StatType.MagicPenetrationFlat)
-            ] : [0,0,0,0,0];
-        
-            let defenseSubtotal: number = (resistance - resistanceReductionFlat) * (1 - resistanceReductionRatio);
-            defenseSubtotal = Math.max(0, defenseSubtotal * (1 - penetrationRatio));
-            defenseSubtotal = Math.max(0, defenseSubtotal - penetrationFlat);
-            
-            return defenseSubtotal < 0 ? 
-            (2 - (1 / (1 + (defenseSubtotal / 100)))) : 
-            (1 / (1 + (defenseSubtotal / 100)));
-        }).toArray() as [number,number,number];
-
-        let damageScalar = new Damage(...coefficientsPerType);
-
-        return Damage.multiply(inputDamage, damageScalar);
     }
 }
 
@@ -214,22 +261,22 @@ export interface Entity {
 }
 
 export abstract class Affector implements Entity {
-    name: string;
-    iconURL: string;
-    stats: Stats;
-    effectsPerRank: Effect[][];
+    readonly name: string;
+    readonly iconURL: string;
+    readonly stats: DefiniteNumberMap<StatType>;
+    readonly effectsPerRank: Effect[][];
     // singleStats or multiStats ?
     // when stats are dynamic, maybe that can be a StatEffect?
 
     constructor(
         name: typeof this.name, 
         iconURL: typeof this.iconURL,
-        stats: [StatType, number][] = [],
+        stats: Iterable<readonly [StatType,number]> = [],
         effectsPerRank: typeof this.effectsPerRank = []
     ) {
         this.name = name;
         this.iconURL = iconURL;
-        this.stats = new Stats(stats);
+        this.stats = new DefiniteNumberMap(stats);
         this.effectsPerRank = effectsPerRank;
     }
 }
@@ -241,7 +288,7 @@ export class Ability extends Affector {
 }
 
 export class Item extends Affector {
-    price: number;
+    readonly price: number;
 
     constructor(
         price: number,
@@ -253,215 +300,242 @@ export class Item extends Affector {
         Item.all.push(this);
     }
 
-    static all: Item[] = [];
+    static readonly all: Item[] = [];
 
-    static items = {
+    static readonly items = {
+        NoItem: new Item(0, "Itemless", "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png"),
+        AdaptiveForceShard: new Item (
+            0, "Adaptive Force Shard", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+            [[StatType.AbilityPower, 9]]
+        ),
+        AdaptiveForceShardX2: new Item (
+            0, "Adaptive Force Shard x 2", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+            [[StatType.AbilityPower, 18]]
+        ),
+        HealthPotionX2: new Item (
+            100, "Health Potion x 2", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"
+        ),
         DarkSeal: new Item(
-            350,
-            "Dark Seal", 
-            "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item.png", 
+            350, "Dark Seal", "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item.png", 
             [[StatType.AbilityPower,15],[StatType.Health,50]]
         ),
         DoransRing: new Item(
-            400,
-            "Doran's Ring",  
-            "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item.png", 
+            400, "Doran's Ring", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item.png", 
             [[StatType.AbilityPower,18],[StatType.Health,90]]
         ),
+        BootsOfSwiftness: new Item(
+            1000, "Boots of Swiftness", "https://wiki.leagueoflegends.com/en-us/images/Boots_of_Swiftness_item.png", 
+            [[StatType.MoveSpeedFlat,55]]
+        ),
+        PlatedSteelcaps: new Item(
+            1200, "Plated Steelcaps", "https://wiki.leagueoflegends.com/en-us/images/Plated_Steelcaps_item.png", 
+            [[StatType.Armor,25],[StatType.MoveSpeedFlat,45]]
+        ),
+        TriumphantPlatedSteelcaps: new Item(
+            1200, "Triumphant Plated Steelcaps", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Plated_Steelcaps_item.png", 
+            [[StatType.Armor,30],[StatType.MoveSpeedFlat,45]]
+        ),
+        ArmoredAdvance: new Item(
+            1700, "Armored Advance", "https://wiki.leagueoflegends.com/en-us/images/Armored_Advance_item.png", 
+            [[StatType.Armor,40],[StatType.MoveSpeedFlat,50]]
+        ),
+        MercurysTreads: new Item(
+            1250, "Mercury's Treads", "https://wiki.leagueoflegends.com/en-us/images/Mercury%27s_Treads_item.png", 
+            [[StatType.MagicResistance,20],[StatType.MoveSpeedFlat,45]]
+        ),
+        TriumphantMercurysTreads: new Item(
+            1250, "Triumphant Mercury's Treads", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Mercury%27s_Treads_item.png", 
+            [[StatType.MagicResistance,25],[StatType.MoveSpeedFlat,45]]
+        ),
+        ChainlacedCrushers: new Item(
+            1750, "Chainlaced Crushers", "https://wiki.leagueoflegends.com/en-us/images/Chainlaced_Crushers_item.png", 
+            [[StatType.MagicResistance,35],[StatType.MoveSpeedFlat,50]]
+        ),
+        IonianBootsOfLucidity: new Item(
+            900, "Ionian Boots of Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Ionian_Boots_of_Lucidity_item.png", 
+            [[StatType.AbilityHaste,10],[StatType.MoveSpeedFlat,45]]
+        ),
+        TriumphantIonianBootsOfLucidity: new Item(
+            900, "Triumphant Ionian Boots of Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Ionian_Boots_of_Lucidity_item.png", 
+            [[StatType.AbilityHaste,15],[StatType.MoveSpeedFlat,45]]
+        ),
+        CrimsonLucidity: new Item(
+            1400, "Crimson Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Crimson_Lucidity_item.png", 
+            [[StatType.AbilityHaste,25],[StatType.MoveSpeedFlat,50]]
+        ),
         SorcerersShoes: new Item(
-            1100,
-            "Sorcerer's Shoes",  
-            "https://wiki.leagueoflegends.com/en-us/images/Sorcerer%27s_Shoes_item.png", 
+            1100, "Sorcerer's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Sorcerer%27s_Shoes_item.png", 
             [[StatType.MagicPenetrationFlat,12],[StatType.MoveSpeedFlat,45]]
         ),
         TriumphantSorcerersShoes: new Item(
-            1100,
-            "Triumphant Sorcerer's Shoes",  
-            "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Sorcerer%27s_Shoes_item.png", 
+            1100, "Triumphant Sorcerer's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Sorcerer%27s_Shoes_item.png", 
             [[StatType.MagicPenetrationFlat,14],[StatType.MoveSpeedFlat,45]]
         ),
         SpellslingersShoes: new Item(
-            1600,
-            "Spellslinger's Shoes",  
-            "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item.png", 
+            1600, "Spellslinger's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item.png", 
             [[StatType.MagicPenetrationFlat,18],[StatType.MagicPenetrationRatio,0.07],[StatType.MoveSpeedFlat,50]]
         ),
+        SapphireCrystal: new Item(
+            300, "Sapphire Crystal", "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item.png", 
+            [[StatType.Mana,300]]
+        ),
+        AmplifyingTome: new Item(
+            400, "Amplifying Tome", "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item.png", 
+            [[StatType.AbilityPower,20]]
+        ),
+        BlastingWand: new Item(
+            850, "Blasting Wand", "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item.png", 
+            [[StatType.AbilityPower,45]]
+        ),
+        NeedlesslyLargeRod: new Item(
+            1200, "Needlessly Large Rod", "https://wiki.leagueoflegends.com/en-us/images/Needlessly_Large_Rod_item.png", 
+            [[StatType.AbilityPower,65]]
+        ),
         ArchangelsStaff: new Item(
-            2900,
-            "Archangel's Staff",  
-            "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item.png", 
+            2900, "Archangel's Staff", "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item.png", 
             [[StatType.AbilityHaste,25],[StatType.AbilityPower,70],[StatType.Mana,600]]
         ),
         SeraphsEmbrace: new Item(
-            2900,
-            "Seraph's Embrace",  
-            "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item.png", 
+            2900, "Seraph's Embrace", "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item.png", 
             [[StatType.AbilityHaste,25],[StatType.AbilityPower,70],[StatType.Mana,1000]]
         ),
         ArdentCenser: new Item(
-            2200,
-            "Ardent Censer",  
-            "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item.png", 
+            2200, "Ardent Censer", "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item.png", 
             [[StatType.AbilityPower,45],[StatType.HealAndShieldPowerRatio,0.1],[StatType.ManaRegenRatio,1.25],[StatType.MoveSpeedRatio,0.04]]
         ),
         BansheesVeil: new Item(
-            3000,
-            "Banshee's Veil",
-            "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item.png",
+            3000, "Banshee's Veil", "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item.png",
             [[StatType.AbilityPower,105],[StatType.MagicResistance,40]]
         ),
         BlackfireTorch: new Item(
-            2800,
-            "Blackfire Torch", 
-            "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item.png", 
+            2800, "Blackfire Torch", "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item.png", 
             [[StatType.AbilityHaste,20],[StatType.AbilityPower,80],[StatType.Mana,600]],
-            [[Effect.createDamageEffect(DamageType.Magic, 60, [[StatType.AbilityPower,0.06]],() => true)]]
+            [[
+                Effect.createDamageEffect(DamageType.Magic, 60, [[StatType.AbilityPower,0.06]]),
+                new Effect(
+                    (gameConfig : GameConfig): GameConfig => {
+                        return new GameConfig(gameConfig, {
+                            champStatModifiers: new DefiniteNumberMap<StatType>([
+                                [StatType.AbilityPowerAmpRatio, gameConfig.champStatModifiers.get(StatType.AbilityPowerAmpRatio) + 0.04]
+                            ])
+                        });
+                    }
+                )
+            ]]
         ),
         BloodlettersCurse: new Item(
-            2900,
-            "Bloodletter's Curse",
-            "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item.png",
+            2900, "Bloodletter's Curse", "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item.png",
             [[StatType.AbilityHaste,15],[StatType.AbilityPower,65],[StatType.Health,400]]
         ),
         CosmicDrive: new Item(
-            3000,
-            "Cosmic Drive",
-            "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item.png",
+            3000, "Cosmic Drive", "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item.png",
             [[StatType.AbilityHaste,25],[StatType.AbilityPower,70],[StatType.Health,350],[StatType.MoveSpeedRatio,0.04]]
         ),
         Cryptbloom: new Item(
-            3000,
-            "Cryptbloom",
-            "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item.png",
+            3000, "Cryptbloom", "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item.png",
             [[StatType.AbilityHaste,20],[StatType.AbilityPower,75],[StatType.MagicPenetrationRatio,0.3]]
         ),
         Dawncore: new Item(
-            2500,
-            "Dawncore",
-            "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item.png",
+            2500, "Dawncore", "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item.png",
             [[StatType.AbilityPower,45],[StatType.HealAndShieldPowerRatio,0.16],[StatType.ManaRegenRatio,1]]
         ),
         EchoesOfHelia: new Item(
-            2200,
-            "Echoes of Helia",
-            "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item.png",
+            2200, "Echoes of Helia", "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item.png",
             [[StatType.AbilityHaste,20],[StatType.AbilityPower,35],[StatType.Health,200],[StatType.HealAndShieldPowerRatio,1.25]]
         ),
         HextechRocketbelt: new Item(
-            2650,
-            "Hextech Rocketbelt",
-            "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item.png",
+            2650, "Hextech Rocketbelt", "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item.png",
             [[StatType.AbilityHaste,20],[StatType.AbilityPower,70],[StatType.Health,300]],
-            [[Effect.createDamageEffect(DamageType.Magic, 100, [[StatType.AbilityPower,0.1]],() => true)]]
+            [[Effect.createDamageEffect(DamageType.Magic, 100, [[StatType.AbilityPower,0.1]])]]
         ),
         HorizonFocus: new Item(
-            2750,
-            "Horizon Focus",
-            "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item.png",
+            2750, "Horizon Focus", "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item.png",
             [[StatType.AbilityHaste,25],[StatType.AbilityPower,125]]
         ),
         ImperialMandate: new Item(
-            2250,
-            "Imperial Mandate",
-            "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item.png",
+            2250, "Imperial Mandate", "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item.png",
             [[StatType.AbilityHaste,20],[StatType.AbilityPower,60],[StatType.ManaRegenRatio,1.25]]
         ),
         LiandrysTorment: new Item(
-            3000,
-            "Liandry's Torment",
-            "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item.png",
+            3000, "Liandry's Torment", "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item.png",
             [[StatType.AbilityPower,60],[StatType.Health,300]]
         ),
         LichBane: new Item(
-            2900,
-            "Lich Bane",
-            "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item.png",
-            [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.MoveSpeedRatio,0.04]]
+            2900, "Lich Bane", "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item.png",
+            [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.MoveSpeedRatio,0.04]],
+            [[Effect.createDamageEffect(DamageType.Magic,-22,[[StatType.AbilityPower,0.4]])]]
         ),
         LudensCompanion: new Item(
-            2750,
-            "Luden's Companion", 
-            "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item.png", 
+            2750, "Luden's Companion", "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item.png", 
             [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.Mana,600]],
-            [[Effect.createDamageEffect(DamageType.Magic, 150, [[StatType.AbilityPower,0.1]],() => true)]]
+            [[Effect.createDamageEffect(DamageType.Magic, 150, [[StatType.AbilityPower,0.1]])]]
         ),
         Malignance: new Item(
-            2700,
-            "Malignance", 
-            "https://wiki.leagueoflegends.com/en-us/images/Malignance_item.png", 
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,90],[StatType.Mana,600]]
+            2700, "Malignance", "https://wiki.leagueoflegends.com/en-us/images/Malignance_item.png", 
+            [[StatType.AbilityHaste,15],[StatType.AbilityPower,90],[StatType.Mana,600]],
+            [
+                [
+                    new Effect(
+                        (gameConfig: GameConfig): GameConfig => {
+                            return new GameConfig(gameConfig, {
+                                targetStatModifiers: DefiniteNumberMap.sumPerKey(
+                                    gameConfig.targetStatModifiers,
+                                    new DefiniteNumberMap<StatType>([[StatType.MagicResistReductionDebuffFlat, 90]])
+                                )
+                            });
+                        },
+                        Effect.createDamageEffect(DamageType.Magic, 180, [[StatType.AbilityPower, 0.15]])
+                    )
+                ]
+            ]
         ),
         MejaisSoulstealer: new Item(
-            1500,
-            "Mejai's Soulstealer",
-            "https://wiki.leagueoflegends.com/en-us/images/Mejai%27s_Soulstealer_item.png",
+            1500, "Mejai's Soulstealer", "https://wiki.leagueoflegends.com/en-us/images/Mejai%27s_Soulstealer_item.png",
             [[StatType.AbilityPower,20],[StatType.Health,100]]
         ),
         MoonstoneRenewer: new Item(
-            2200,
-            "Moonstone Renewer",
-            "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item.png",
+            2200, "Moonstone Renewer", "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item.png",
             [[StatType.AbilityHaste,20],[StatType.AbilityPower,25],[StatType.Health,200],[StatType.ManaRegenRatio,1.25]]
         ),
         Morellonomicon: new Item(
-            2850,
-            "Morellonomicon",
-            "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item.png",
+            2850, "Morellonomicon", "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item.png",
             [[StatType.AbilityHaste,15],[StatType.AbilityPower,75],[StatType.Health,350]]
         ),
         RabadonsDeathcap: new Item(
-            3500,
-            "Rabadon's Deathcap",
-            "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item.png",
+            3500, "Rabadon's Deathcap", "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item.png",
             [[StatType.AbilityPower,130],[StatType.AbilityPowerAmpRatio,0.3]]
         ),
         Riftmaker: new Item(
-            3100,
-            "Riftmaker",
-            "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item.png",
+            3100, "Riftmaker", "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item.png",
             [[StatType.AbilityHaste,15],[StatType.AbilityPower,70],[StatType.Health,350]]
         ),
         RylaisCrystalScepter: new Item(
-            2600,
-            "Rylai's Crystal Scepter",
-            "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item.png",
+            2600, "Rylai's Crystal Scepter", "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item.png",
             [[StatType.AbilityPower,65],[StatType.Health,400]]
         ),
         Shadowflame: new Item(
-            3200,
-            "Shadowflame",
-            "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item.png",
+            3200, "Shadowflame", "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item.png",
             [[StatType.AbilityPower,110],[StatType.MagicPenetrationFlat,15]]
         ),
         ShurelyasBattlesong: new Item(
-            2200,
-            "Shurelya's Battlesong",
-            "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item.png",
+            2200, "Shurelya's Battlesong", "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item.png",
             [[StatType.AbilityHaste,15],[StatType.AbilityPower,50],[StatType.ManaRegenRatio,1.25],[StatType.MoveSpeedRatio,0.04]]
         ),
         StaffOfFlowingWater: new Item(
-            2250,
-            "Staff of Flowing Water",
-            "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item.png",
+            2250, "Staff of Flowing Water", "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item.png",
             [[StatType.AbilityHaste,15],[StatType.AbilityPower,35],[StatType.HealAndShieldPowerRatio,0.1],[StatType.ManaRegenRatio,1.25]]
         ),
         Stormsurge: new Item(
-            2800,
-            "Stormsurge",
-            "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item.png",
+            2800, "Stormsurge", "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item.png",
             [[StatType.AbilityPower,80],[StatType.MagicPenetrationFlat,15],[StatType.MoveSpeedRatio,0.06]],
-            [[Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower,0.1]],() => true)]]
+            [[Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower,0.1]])]]
         ),
         VoidStaff: new Item(
-            3000,
-            "Void Staff",
-            "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item.png",
+            3000, "Void Staff", "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item.png",
             [[StatType.AbilityPower,95],[StatType.MagicPenetrationRatio,0.4]]
         ),
         ZhonyasHourglass: new Item(
-            3250,
-            "Zhonya's Hourglass",
-            "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item.png",
+            3250, "Zhonya's Hourglass", "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item.png",
             [[StatType.AbilityPower,105],[StatType.Armor,50]]
         )
     } as const;
@@ -475,8 +549,6 @@ export class Champion implements Entity {
     readonly iconURL: string;
     readonly abilities: Ability[];
 
-    static readonly all: Champion[] = [];
-
     constructor(
         name: typeof this.name, 
         iconURL: typeof this.iconURL, 
@@ -489,230 +561,256 @@ export class Champion implements Entity {
         Champion.all.push(this);
     }
 
+    static readonly all: Champion[] = [];
+
     static readonly champs = {
         Ahri: new Champion("Ahri", "https://wiki.leagueoflegends.com/en-us/images/thumb/Ahri_OriginalSquare.png/92px-Ahri_OriginalSquare.png", [
             new Ability("Orb of Deception", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Orb_of_Deception_HD.png", [], [
                 [
-                    Effect.createDamageEffect(DamageType.Magic, 40, [[StatType.AbilityPower, 0.5]], () => true),
-                    Effect.createDamageEffect(DamageType.True, 40, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 40, [[StatType.AbilityPower, 0.5]], 
+                        Effect.createDamageEffect(DamageType.True, 40, [[StatType.AbilityPower, 0.5]])
+                    )
                 ],
                 [
-                    Effect.createDamageEffect(DamageType.Magic, 65, [[StatType.AbilityPower, 0.5]], () => true),
-                    Effect.createDamageEffect(DamageType.True, 65, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 65, [[StatType.AbilityPower, 0.5]],
+                        Effect.createDamageEffect(DamageType.True, 65, [[StatType.AbilityPower, 0.5]])
+                    )
                 ],
                 [
-                    Effect.createDamageEffect(DamageType.Magic, 90, [[StatType.AbilityPower, 0.5]], () => true),
-                    Effect.createDamageEffect(DamageType.True, 90, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 90, [[StatType.AbilityPower, 0.5]],
+                        Effect.createDamageEffect(DamageType.True, 90, [[StatType.AbilityPower, 0.5]])
+                    )
                 ],
                 [
-                    Effect.createDamageEffect(DamageType.Magic, 115, [[StatType.AbilityPower, 0.5]], () => true),
-                    Effect.createDamageEffect(DamageType.True, 115, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 115, [[StatType.AbilityPower, 0.5]],
+                        Effect.createDamageEffect(DamageType.True, 115, [[StatType.AbilityPower, 0.5]])
+                    )
                 ],
                 [
-                    Effect.createDamageEffect(DamageType.Magic, 140, [[StatType.AbilityPower, 0.5]], () => true),
-                    Effect.createDamageEffect(DamageType.True, 140, [[StatType.AbilityPower, 0.5]], () => true)
+                    Effect.createDamageEffect(DamageType.Magic, 140, [[StatType.AbilityPower, 0.5]],
+                        Effect.createDamageEffect(DamageType.True, 140, [[StatType.AbilityPower, 0.5]])
+                    )
                 ]
             ]),
             new Ability("Fox-Fire", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Fox-Fire_HD.png", [], [
-                [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.64]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.64]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.64]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.64]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.64]], () => true) ]
+                [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.64]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.64]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.64]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.64]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.64]]) ]
             ]),
             new Ability("Charm", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Charm_HD.png", [], [
-                [ Effect.createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 120, [[StatType.AbilityPower, 0.85]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.85]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 200, [[StatType.AbilityPower, 0.85]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 240, [[StatType.AbilityPower, 0.85]], () => true) ]
+                [ Effect.createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 120, [[StatType.AbilityPower, 0.85]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.85]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 200, [[StatType.AbilityPower, 0.85]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 240, [[StatType.AbilityPower, 0.85]]) ]
             ]),
             new Ability("Spirit Rush", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Spirit_Rush_HD.png", [], [
-                [ Effect.createDamageEffect(DamageType.Magic, 75, [[StatType.AbilityPower, 0.35]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower, 0.35]], () => true) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 175, [[StatType.AbilityPower, 0.35]], () => true) ]
+                [ Effect.createDamageEffect(DamageType.Magic, 75, [[StatType.AbilityPower, 0.35]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower, 0.35]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 175, [[StatType.AbilityPower, 0.35]]) ]
             ]),
         ]),
     } as const;
 }
 
-export interface Config {
-    duplicate(): Config;
-}
+export class OriginGameConfig {
+    readonly champConfig: ChampConfig;
+    readonly buildConfig: BuildConfig;
+    readonly targetBaseStats: DefiniteNumberMap<StatType>;
 
-export class GameConfig implements Config { 
-    previousGameConfig: GameConfig|null;
-    champConfig: ChampConfig;
-    buildConfig: BuildConfig;
-    targetBaseStats: Stats;
-    recentDamageDealt: Damage;
+    constructor(blueprint: OriginGameConfig|null = null, newValues: Partial<OriginGameConfig> = {}) {
+        let oldValues 
+        = blueprint instanceof OriginGameConfig ? {
+            champConfig: new ChampConfig(blueprint.champConfig),
+            buildConfig: new BuildConfig(blueprint.buildConfig),
+            targetBaseStats: DefiniteNumberMap.sumPerKey(blueprint.targetBaseStats)
+        } : {
+            champConfig: new ChampConfig(),
+            buildConfig: new BuildConfig(),
+            targetBaseStats: new DefiniteNumberMap<StatType>()
+        };
 
-    constructor(
-        previousGameConfig: typeof this.previousGameConfig,
-        champConfig: typeof this.champConfig,
-        buildConfig: typeof this.buildConfig,
-        targetBaseStats: typeof this.targetBaseStats,
-        recentDamageDealt: typeof this.recentDamageDealt = new Damage(0,0,0),
-    ) {
-        this.previousGameConfig = $state(previousGameConfig);
-        this.champConfig = $state(champConfig);
-        this.buildConfig = $state(buildConfig);
-        this.targetBaseStats = $state(targetBaseStats);
-        this.recentDamageDealt = $state(recentDamageDealt);
+        this.champConfig = $state(newValues.champConfig ?? oldValues.champConfig);
+        this.buildConfig = $state(newValues.buildConfig ?? oldValues.buildConfig);
+        this.targetBaseStats = $state(newValues.targetBaseStats ?? oldValues.targetBaseStats);
     }
 
-    duplicate(): GameConfig {
-        return new GameConfig(
-            this.previousGameConfig?.duplicate() ?? null,
-            this.champConfig.duplicate(),
-            this.buildConfig.duplicate(),
-            Stats.sumPerKey(this.targetBaseStats),
-            Damage.sumPerKey(this.recentDamageDealt)
-        );
-    }
-
-    get statsPostEval(): Stats {
-        let itemStats = this.buildConfig.itemConfigs.map(itemConfig => itemConfig.item?.stats ?? new Stats());
-        let preStats = Stats.sumPerKey(...itemStats);
-        return preStats;
-    }
-
-    get initialGameConfig(): GameConfig {
-        return this.previousGameConfig?.initialGameConfig ?? this;
-    }
-
-    get recentDamageDealtSum(): number {
-        return this.recentDamageDealt.values().toArray().reduce((a,b) => a+b);
-    }
-
-    get netDamageDealt(): Damage {
-        return Damage.sumPerKey(this.recentDamageDealt, this.previousGameConfig?.netDamageDealt ?? new Damage(0,0,0));
-    }
-
-    get netDamageDealtSum(): number {
-        return this.netDamageDealt.values().toArray().reduce((a,b) => a+b);
+    evaluateSequencedDamageDiffVsUnbuilt(): GameDiff {
+        return OriginGameConfig.evaluateSequencedDamageDiffVsUnbuilt(this);
     }
     
-    evaluateSequencedDamageDiffVsUnbuilt() {
-        return GameConfig.evaluateSequencedDamageDiffVsUnbuilt(this);
-    }
-    
-    static evaluateSequencedDamageDiffVsUnbuilt(gameConfig: GameConfig) {
-        let unbuiltGameConfig = gameConfig.duplicate();
-        unbuiltGameConfig.buildConfig = new BuildConfig();
-        unbuiltGameConfig.buildConfig.affectorSequence = gameConfig.buildConfig.affectorSequence.filter(affector => affector instanceof Ability);
-        
-        let unbuiltEffects: Effect[] 
-        = unbuiltGameConfig.buildConfig.affectorSequence.flatMap(
-            (affector): Effect[] => {
-                if (affector instanceof Ability) {
-                    return affector.effectsPerRank[Math.max(0, unbuiltGameConfig.champConfig.abilityRanks.get(affector) - 1)];
-                }
-                else if (affector instanceof Item) {
-                    return affector.effectsPerRank[unbuiltGameConfig.buildConfig.itemConfigs.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
-                }
-                else return [];
-            }
-        );
+    static evaluateSequencedDamageDiffVsUnbuilt(originGameConfig: OriginGameConfig): GameDiff {
+        let builtGameConfig 
+        = new GameConfig(null, {
+            originGameConfig: originGameConfig
+        });
 
-        unbuiltGameConfig = Effect.processEffects(unbuiltGameConfig, unbuiltEffects);
+        let unbuiltGameConfig 
+        = new GameConfig(builtGameConfig, {
+            originGameConfig: new OriginGameConfig(builtGameConfig.originGameConfig, {
+                buildConfig: new BuildConfig(builtGameConfig.originGameConfig.buildConfig, {
+                    itemSlots: [new ItemSlotConfig(),new ItemSlotConfig(),new ItemSlotConfig(),new ItemSlotConfig(),new ItemSlotConfig(),new ItemSlotConfig()],
+                    affectorQueue: builtGameConfig.originGameConfig.buildConfig.affectorQueue.filter(affector => affector instanceof Ability)
+                })
+            })
+        });
         
         let builtEffects: Effect[] 
-        = gameConfig.buildConfig.affectorSequence.flatMap(
+        = builtGameConfig.originGameConfig.buildConfig.affectorQueue.flatMap(
             (affector): Effect[] => {
                 if (affector instanceof Ability) {
-                    return affector.effectsPerRank[Math.max(0, gameConfig.champConfig.abilityRanks.get(affector) - 1)];
+                    return affector.effectsPerRank[Math.max(0, builtGameConfig.originGameConfig.champConfig.abilityRanks.get(affector) - 1)];
                 }
                 else if (affector instanceof Item) {
-                    return affector.effectsPerRank[gameConfig.buildConfig.itemConfigs.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
+                    return affector.effectsPerRank[builtGameConfig.originGameConfig.buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
                 }
                 else return [];
             }
         );
-
-        let endGameConfig = Effect.processEffects(gameConfig, builtEffects);
         
-        let totalDamage = endGameConfig.netDamageDealtSum;
-        let totalDamagePerGold = totalDamage / endGameConfig.buildConfig.totalCost;
-        let addedDamage = totalDamage - unbuiltGameConfig.netDamageDealtSum;
-        let addedDamagePerGold = addedDamage / endGameConfig.buildConfig.totalCost;
+        let unbuiltEffects: Effect[] 
+        = unbuiltGameConfig.originGameConfig.buildConfig.affectorQueue.flatMap((affector): Effect[] => 
+            affector.effectsPerRank[Math.max(0, unbuiltGameConfig.originGameConfig.champConfig.abilityRanks.get(affector) - 1)]
+        );
+
+        let endUnbuiltGameConfig = Effect.processEffects(unbuiltGameConfig, unbuiltEffects);
+
+        let endBuiltGameConfig = Effect.processEffects(builtGameConfig, builtEffects);
+        
+        let totalCost = endBuiltGameConfig.originGameConfig.buildConfig.totalCost;
+        let totalDamage = endBuiltGameConfig.damageAggregate;
+        let totalDamagePerGold = totalDamage / totalCost;
+        let addedDamage = totalDamage - endUnbuiltGameConfig.damageAggregate;
+        let addedDamagePerGold = addedDamage / totalCost;
         
         return { totalDamage, totalDamagePerGold, addedDamage, addedDamagePerGold };
     }
 }
 
-export class ChampConfig implements Config {
-    champ: Champion;
-    abilityRanks: DefiniteNumberSvelteMap<Ability>;
+export class GameConfig {
+    readonly originGameConfig: OriginGameConfig;
+    readonly champStatModifiers: DefiniteNumberMap<StatType>;
+    readonly targetStatModifiers: DefiniteNumberMap<StatType>;
+    readonly damageAggregate: number;
 
-    constructor(
-        champion: typeof this.champ,
-        abilityRanks: [Ability, number][] = []
-    ) {
-        this.champ = $state(champion);
-        this.abilityRanks = new DefiniteNumberSvelteMap<Ability>(abilityRanks);
+    constructor(blueprint: GameConfig|null = null, newValues: Partial<GameConfig> = {}) {
+        let oldValues
+        = blueprint instanceof GameConfig ? {
+            // shared because gameconfigs don't currently mutate this
+            originGameConfig: blueprint.originGameConfig,
+            // copied because gameconfigs can mutate these
+            champStatModifiers: new DefiniteNumberMap<StatType>(blueprint.champStatModifiers),
+            targetStatModifiers: new DefiniteNumberMap<StatType>(blueprint.targetStatModifiers),
+            damageAggregate: blueprint.damageAggregate
+        } : {
+            originGameConfig: new OriginGameConfig(),
+            champStatModifiers: new DefiniteNumberMap<StatType>(),
+            targetStatModifiers: new DefiniteNumberMap<StatType>(),
+            damageAggregate: 0
+        };
+
+        this.originGameConfig = $state(newValues.originGameConfig ?? oldValues.originGameConfig);
+        this.champStatModifiers = $state(newValues.champStatModifiers ?? oldValues.champStatModifiers);
+        this.targetStatModifiers = $state(newValues.targetStatModifiers ?? oldValues.targetStatModifiers);
+        this.damageAggregate = $state(newValues.damageAggregate ?? oldValues.damageAggregate);
     }
 
-    duplicate(): ChampConfig {
-        return new ChampConfig(
-            this.champ,
-            this.abilityRanks.entries().toArray(),
-        );
-    }
-};
-
-export class BuildConfig implements Config {
-    itemConfigs: ItemConfigSet;
-    // runes: RuneSet;
-    affectorSequence: Affector[];
-    
-    constructor(
-        items: typeof this.itemConfigs = [
-            new ItemConfig(),
-            new ItemConfig(),
-            new ItemConfig(),
-            new ItemConfig(),
-            new ItemConfig(),
-            new ItemConfig()
-        ],
-        // runes: typeof this.runes,
-        affectorSequence: typeof this.affectorSequence = []
-    ) {
-        this.itemConfigs = $state(items);
-        // this.runes = $state(runes);
-        this.affectorSequence = $state(affectorSequence);
+    get statsPostEval(): DefiniteNumberMap<StatType> {
+        let itemStats = this.originGameConfig.buildConfig.itemSlots.map(itemConfig => itemConfig.item.stats);
+        let stats = DefiniteNumberMap.sumPerKey(...itemStats, this.champStatModifiers);
+        stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
+        return stats;
     }
 
-    duplicate(): BuildConfig {
-        return new BuildConfig(
-            [...(this.itemConfigs.map(itemConfig => itemConfig.duplicate()))] as ItemConfigSet,
-            [...this.affectorSequence]
-        );
-    }
-
-    get items(): Item[] {
-        return this.itemConfigs.map(itemConfig => itemConfig.item).filter(item => item != null);
-    }
-
-    get totalCost(): number {
-        return this.itemConfigs.map(itemConfig => itemConfig.item?.price ?? 0).reduce((a,b) => a + b);
+    get targetStatsPostEval(): DefiniteNumberMap<StatType> {
+        let stats = DefiniteNumberMap.sumPerKey(this.originGameConfig.targetBaseStats, this.targetStatModifiers);
+        stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
+        return stats;
     }
 }
 
-export type ItemConfigSet
-= [ ItemConfig, ItemConfig, ItemConfig, ItemConfig, ItemConfig, ItemConfig ];
+export class ChampConfig {
+    champ: Champion;
+    abilityRanks: DefiniteNumberMap<Ability>;
 
-export class ItemConfig implements Config {
-    item: Item|null;
-    rank: number;
+    constructor(blueprint: ChampConfig|null = null, newValues: Partial<ChampConfig> = {}) {
+        let oldValues 
+        = blueprint instanceof ChampConfig ? {
+            champ: blueprint.champ,
+            abilityRanks: new DefiniteNumberMap<Ability>(blueprint.abilityRanks)
+        } : {
+            champ: Champion.all[0],
+            abilityRanks: new DefiniteNumberMap<Ability>()
+        };
 
-    constructor(item: typeof this.item = null, rank: typeof this.rank = 0) {
-        this.item = $state(item);
-        this.rank = $state(rank);
+        this.champ = $state(newValues.champ ?? oldValues.champ);
+        this.abilityRanks = $state(newValues.abilityRanks ?? oldValues.abilityRanks);
+    }
+};
+
+export class BuildConfig {
+    itemSlots: ItemSlotConfigSet;
+    // runes: RuneSet;
+    readonly affectorQueue: Affector[];
+    
+    constructor(blueprint: BuildConfig|null = null, newValues: Partial<BuildConfig> = {}) {
+        let oldValues 
+        = blueprint instanceof BuildConfig ? {
+            itemSlots: [
+                new ItemSlotConfig(blueprint.itemSlots[0]),
+                new ItemSlotConfig(blueprint.itemSlots[1]),
+                new ItemSlotConfig(blueprint.itemSlots[2]),
+                new ItemSlotConfig(blueprint.itemSlots[3]),
+                new ItemSlotConfig(blueprint.itemSlots[4]),
+                new ItemSlotConfig(blueprint.itemSlots[5])
+            ] as ItemSlotConfigSet,
+            affectorQueue: [...blueprint.affectorQueue]
+        } : {
+            itemSlots: [
+                new ItemSlotConfig(), 
+                new ItemSlotConfig(), 
+                new ItemSlotConfig(), 
+                new ItemSlotConfig(), 
+                new ItemSlotConfig(), 
+                new ItemSlotConfig()
+            ] as ItemSlotConfigSet,
+            affectorQueue: []
+        };
+
+        this.itemSlots = $state(newValues.itemSlots ?? oldValues.itemSlots);
+        this.affectorQueue = $state(newValues.affectorQueue ?? oldValues.affectorQueue);
     }
 
-    duplicate(): ItemConfig {
-        return new ItemConfig(this.item, this.rank);
+    get items(): Item[] {
+        return this.itemSlots.map(itemConfig => itemConfig.item).filter(item => item != null);
+    }
+
+    get totalCost(): number {
+        return this.itemSlots.map(itemConfig => itemConfig.item.price).reduce((a,b) => a + b, 0);
+    }
+}
+
+export type ItemSlotConfigSet
+= [ ItemSlotConfig, ItemSlotConfig, ItemSlotConfig, ItemSlotConfig, ItemSlotConfig, ItemSlotConfig ];
+
+export class ItemSlotConfig {
+    item: Item;
+    rank: number;
+
+    constructor(blueprint: ItemSlotConfig|null = null, newValues: Partial<ItemSlotConfig> = {}) {
+        let oldValues 
+        = blueprint instanceof ItemSlotConfig ? {
+            item: blueprint.item,
+            rank: blueprint.rank
+        } : {
+            item: Item.items.NoItem,
+            rank: 0
+        };
+
+        this.item = $state(newValues.item ?? oldValues.item);
+        this.rank = $state(newValues.rank ?? oldValues.rank);
     }
 }
 

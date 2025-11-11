@@ -13,20 +13,20 @@
 
 
 
-<div class="sheer ChampSpecUI" style:flex-flow={"row wrap"}>
-    <div class="champHerald" style:flex-flow={"row-reverse nowrap"}>
-        <div class="champOverview" style:grid-column={"2"}>
+<div class="ChampSpecUI">
+    <div class="champHerald">
+        <div class="champOverview">
             <span class="champName">{champConfig.champ?.name}</span>
             <div class="champLevel">
                 <span>Level {level}</span>
             </div>
         </div>
-        <img src={champConfig.champ?.iconURL} alt="" class="champIcon">
+        <img src={champConfig.champ?.iconURL} alt="" class="icon max">
     </div>
     <div class="abilityControls">
         {#each champConfig.champ?.abilities as ability, i}
         <div class="abilityControl">
-            <img src={ability.iconURL ?? ""} alt="" class="abilityIcon">
+            <img src={ability.iconURL ?? ""} alt="" class="icon med">
             {#if champConfig.champ != null}
             <input class="levelControl abilityLevelControl" 
             type="number" min="0" max="5" step="1" defaultValue="0"
@@ -45,29 +45,28 @@
 <style>
     .ChampSpecUI {
         display: flex;
-        
+
+        flex-flow: row-reverse wrap;
         gap: 16px;
-        justify-content: center;
+        justify-content: end;
+        justify-items: end;
         align-content: center;
-        justify-items: center;
         align-items: center;
     }
 
     .champHerald {
         display: flex;
+        
+        flex-flow: "row nowrap";
         gap: 16px;
     }
 
     .levelControl {
     }
 
-    .champIcon {
-        width: 100px;
-        height: 100px;
-    }
-
     .champOverview {
         grid-row: 1;
+        grid-column: 2;
         display: flex;
         
         flex-flow: column nowrap;
@@ -86,11 +85,6 @@
             display: flex;
 
             flex-flow: column nowrap;
-        }
-
-        .abilityIcon {
-            width: 60px;
-            height: 60px;
         }
     }
 </style>

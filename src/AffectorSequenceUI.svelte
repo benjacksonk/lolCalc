@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Affector } from "$lib/types.svelte";
     import EntitySlotUI from "./EntitySlotUI.svelte";
-    import PopupUI from "./PopupUI.svelte";
     import { popupState } from "$lib/popupState.svelte";
 
     let {
@@ -12,13 +11,24 @@
         affectorOptions: Affector[]
     } = $props();
 
-    let popupAnchor = $state<Node>();
+    let popup = $state<Node>();
 
     function handlemousedownOnPopupAnchor(event: MouseEvent) {
         event.preventDefault();
-        if (popupAnchor) {
-            popupState.popupAnchors.add(popupAnchor);
+        popupState.currentPopup = (popupState.currentPopup == popup ? null : popup!);
+    }
+
+    function handleMouseDownOnItemOption(event: MouseEvent, affector: Affector) {
+        event.preventDefault();
+        affectorSequence.push(affector);
+        if (popupState.currentPopup = popup!) {
+            popupState.currentPopup = null;
         }
+    }
+
+    function removeAffector(event: MouseEvent, affectorIndex: number) {
+        event.preventDefault();
+        affectorSequence.splice(affectorIndex, 1);
     }
 </script>
 
@@ -26,23 +36,25 @@
 
 <div class="sheer AffectorSequenceUI">
     {#each affectorSequence as affector, i}
-    <img src={affector.iconURL} alt={affector.name} style:width={"50px"} style:height={"50px"}>
+    <button class="entityButton" onmousedown={(event) => removeAffector(event, i)}>
+        <img src={affector.iconURL} alt={affector.name} class="icon min">
+    </button>
     <!-- <div class="sheer" style:width={"80px"} style:height={"80px"}>
     <EntitySlotUI bind:chosenEntity={affectorSequence[i]} entities={affectorOptions}/>
     </div> -->
     {/each}
     
-    <button bind:this={popupAnchor} onmousedown={handlemousedownOnPopupAnchor}>＋</button>
-    
-    {#if popupState.popupAnchors.has(popupAnchor)}
-    <PopupUI anchorNode={popupAnchor} affectors={affectorOptions} 
-    selectionDelegate={
-        (affector: Affector|null): void => {
-            if (affector) { affectorSequence.push(affector); }
-        }
-    }
-    />
-    {/if}
+    <div class="popupContainer">
+        <button onmousedown={handlemousedownOnPopupAnchor}>＋</button>
+        
+        <div class="popup" bind:this={popup} style:display={popupState.currentPopup == popup ? "grid" : "none"}>
+            {#each affectorOptions as affector, j (affector.name)}
+            <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
+                <img class="icon min" alt={affector.name} src={affector.iconURL}>
+            </button>
+            {/each}
+        </div>
+    </div>
 </div>
 
 
@@ -51,5 +63,24 @@
     .AffectorSequenceUI {
         display: flex;
         flex-flow: row nowrap;
+
+        .popupContainer {
+            display: grid;
+        }
+
+        .popup {
+            background: #111;
+            border: 2px solid #555;
+            grid-auto-rows: max-content;
+            grid-template-columns: repeat(6, max-content);
+            
+            left: 100%;
+            transform: translateX(-100%);
+        }
+    }
+
+    .entityButton {
+        background: none;
+        border: none;
     }
 </style>

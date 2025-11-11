@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Ability, ChampConfig, Champion, BuildConfig, GameConfig, Stats, DefiniteNumberSvelteMap } from "$lib/types.svelte";
+    import { Ability, ChampConfig, BuildConfig, DefiniteDiffMap, DefiniteNumberMap, StatType, OriginGameConfig } from "$lib/types.svelte";
     import { SvelteMap } from "svelte/reactivity";
     import BuildSpecUI from "../BuildSpecUI.svelte";
     import ChampSpecUI from "../ChampSpecUI.svelte";
@@ -7,100 +7,57 @@
     import AffectorSequenceUI from "../AffectorSequenceUI.svelte";
 
     let champConfig: ChampConfig 
-    = $state(new ChampConfig(Champion.champs.Ahri));
+    = $state(new ChampConfig());
 
     let buildConfigs: BuildConfig[] 
     = $state([new BuildConfig()]);
 
-    let targetBaseStats: Stats
-    = $state(new Stats());
+    let targetBaseStats: DefiniteNumberMap<StatType>
+    = $state(new DefiniteNumberMap<StatType>());
 
+    let damageDiffPerBuildConfig_perAbility: SvelteMap<Ability, DefiniteDiffMap>
+    = $derived(new SvelteMap(champConfig.champ.abilities.map(
+        ability => {
+            let build_diff_map: DefiniteDiffMap 
+            = new DefiniteDiffMap(buildConfigs.map(
+                buildConfig => {
+                    let originGameConfig: OriginGameConfig
+                    = new OriginGameConfig(null, {
+                        champConfig: champConfig,
+                        buildConfig: new BuildConfig(buildConfig, {
+                            affectorQueue: [ability]
+                        }),
+                        targetBaseStats: targetBaseStats
+                    });
 
+                    return [buildConfig, originGameConfig.evaluateSequencedDamageDiffVsUnbuilt()];
+                }
+            ));
+            
+            return [ability, build_diff_map];
+        }
+    )));
 
-    let damageDiffVsUnbuilt_perBuild_perAbility
-    = $derived(new SvelteMap(champConfig.champ.abilities.map((ability) => {
+    let damageDiffPerBuildConfigSequence: DefiniteDiffMap
+    = $derived(new DefiniteDiffMap(
+        buildConfigs.map(buildConfig => {
+            let originGameConfig: OriginGameConfig
+            = new OriginGameConfig(null, {
+                champConfig: champConfig,
+                buildConfig: buildConfig,
+                targetBaseStats: targetBaseStats
+            });
 
-        let damageDiffVsUnbuilt
-        = new SvelteMap(buildConfigs.map((buildConfig) => {
-
-            let gameConfig = new GameConfig(
-                null, 
-                champConfig, 
-                buildConfig.duplicate(), 
-                targetBaseStats
-            );
-            gameConfig.buildConfig.affectorSequence = [ability];
-
-            return [buildConfig, gameConfig.evaluateSequencedDamageDiffVsUnbuilt()];
-        }));
-
-        return [ability, damageDiffVsUnbuilt];
-    })));
-
-    let zeroOrMinDamageDiffsVsUnbuilt_perAbility
-    : Map<Ability, ReturnType<typeof GameConfig.evaluateSequencedDamageDiffVsUnbuilt>>
-    = $derived(new SvelteMap(
-        champConfig.champ.abilities.map(
-            (ability) => {
-                let nonzeroMinTotalDamages = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.totalDamage).filter(value => value > 0).toArray();
-                let minTotalDamage = nonzeroMinTotalDamages.length > 0 ? Math.min(...nonzeroMinTotalDamages) : 0;
-
-                let nonzeroMinTotalDamagesPerGold = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.totalDamagePerGold).filter(value => value > 0).toArray();
-                let minTotalDamagePerGold = nonzeroMinTotalDamagesPerGold.length > 0 ? Math.min(...nonzeroMinTotalDamagesPerGold) : 0;
-
-                let nonzeroMinAddedDamages = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.addedDamage).filter(value => value > 0).toArray();
-                let minAddedDamage = nonzeroMinAddedDamages.length > 0 ? Math.min(...nonzeroMinAddedDamages) : 0;
-
-                let nonzeroMinAddedDamagesPerGold = damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.values().map(value => value.addedDamagePerGold).filter(value => value > 0).toArray();
-                let minAddedDamagePerGold = nonzeroMinAddedDamagesPerGold.length > 0 ? Math.min(...nonzeroMinAddedDamagesPerGold) : 0;
-
-                return [ability, {
-                    totalDamage: minTotalDamage,
-                    totalDamagePerGold: minTotalDamagePerGold,
-                    addedDamage: minAddedDamage,
-                    addedDamagePerGold: minAddedDamagePerGold
-                }];
-            }
-        )
+            return [buildConfig, originGameConfig.evaluateSequencedDamageDiffVsUnbuilt()]
+        })
     ));
-
-
-
-    let damageDiffVsUnbuilt_perBuildConfigSequence
-    = $derived(new SvelteMap(buildConfigs.map(buildConfig => {
-        let gameConfig = new GameConfig(null, champConfig, buildConfig, targetBaseStats);
-        return [buildConfig, gameConfig.evaluateSequencedDamageDiffVsUnbuilt()];
-    })));
-
-    let zeroOrMinDamageDiffsVsUnbuiltOfSequences
-    : ReturnType<typeof GameConfig.evaluateSequencedDamageDiffVsUnbuilt>
-    = $derived.by(() => {
-        let nonzeroMinTotalDamages = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.totalDamage).filter(value => value > 0).toArray();
-        let minTotalDamage = nonzeroMinTotalDamages.length > 0 ? Math.min(...nonzeroMinTotalDamages) : 0;
-
-        let nonzeroMinTotalDamagesPerGold = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.totalDamagePerGold).filter(value => value > 0).toArray();
-        let minTotalDamagePerGold = nonzeroMinTotalDamagesPerGold.length > 0 ? Math.min(...nonzeroMinTotalDamagesPerGold) : 0;
-
-        let nonzeroMinAddedDamages = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.addedDamage).filter(value => value > 0).toArray();
-        let minAddedDamage = nonzeroMinAddedDamages.length > 0 ? Math.min(...nonzeroMinAddedDamages) : 0;
-
-        let nonzeroMinAddedDamagesPerGold = damageDiffVsUnbuilt_perBuildConfigSequence.values().map(value => value.addedDamagePerGold).filter(value => value > 0).toArray();
-        let minAddedDamagePerGold = nonzeroMinAddedDamagesPerGold.length > 0 ? Math.min(...nonzeroMinAddedDamagesPerGold) : 0;
-
-        return {
-            totalDamage: minTotalDamage,
-            totalDamagePerGold: minTotalDamagePerGold,
-            addedDamage: minAddedDamage,
-            addedDamagePerGold: minAddedDamagePerGold
-        };
-    });
 
     function handleOnClickAddBuild(
         event: MouseEvent, 
         lastBuild: BuildConfig|null
     ) {
         event.preventDefault();
-        buildConfigs.push(lastBuild?.duplicate() ?? new BuildConfig());
+        buildConfigs.push(new BuildConfig(lastBuild));
     }
 </script>
 
@@ -113,15 +70,32 @@
     </div>
 
     <div class="sheer buildsAndSequences">
+        {#snippet damageDiff(definiteDamageDiffSvelteMap: DefiniteDiffMap, buildConfig: BuildConfig)}
+        <div class="sheer effectOutcome">
+            <span>＋{Math.round(definiteDamageDiffSvelteMap.get(buildConfig).addedDamagePerGold * 1000)} /kG
+            {#if definiteDamageDiffSvelteMap.minsOrZeros.addedDamagePerGold != 0
+              && definiteDamageDiffSvelteMap.minsOrZeros.addedDamagePerGold != definiteDamageDiffSvelteMap.get(buildConfig).addedDamagePerGold
+            }
+            ∶{(definiteDamageDiffSvelteMap.get(buildConfig).addedDamagePerGold / definiteDamageDiffSvelteMap.minsOrZeros.addedDamagePerGold).toFixed(2)}
+            {/if}
+            </span>
+
+            <span>＝{Math.round(definiteDamageDiffSvelteMap.get(buildConfig).totalDamagePerGold * 1000)} /kG
+            {#if definiteDamageDiffSvelteMap.minsOrZeros.totalDamagePerGold != 0
+              && definiteDamageDiffSvelteMap.minsOrZeros.totalDamagePerGold != definiteDamageDiffSvelteMap.get(buildConfig).totalDamagePerGold
+            }
+            ∶{(definiteDamageDiffSvelteMap.get(buildConfig).totalDamagePerGold / definiteDamageDiffSvelteMap.minsOrZeros.totalDamagePerGold).toFixed(2)}
+            {/if}
+            </span>
+        </div>
+        {/snippet}
+
         <!-- <div class="sheer"></div> -->
         <div class="sheer effectSequencer"
         style:grid-column-end={`span ${champConfig.champ.abilities.length}`}
         >
             {#each champConfig.champ.abilities as ability, i (ability.name)}
-            <img src={ability.iconURL} alt={ability.name}
-            style:width={"80px"}
-            style:height={"80px"}
-            >
+            <img src={ability.iconURL} alt={ability.name} class="icon med">
              <!-- <AbilitySelectorUI playerConfig={initialPlayerConfig}/> -->
             {/each}
         </div>
@@ -130,13 +104,13 @@
         style:grid-row-end={`span ${buildConfigs.length + 1}`}
         >
             {#each buildConfigs as buildConfig, i}
-            <BuildSpecUI bind:itemConfigSet={buildConfigs[i].itemConfigs}/>
+            <BuildSpecUI bind:itemConfigSet={buildConfigs[i].itemSlots}/>
             {/each}
 
             <button style:display="grid"
             onmousedown={(event) => handleOnClickAddBuild(event, buildConfigs[buildConfigs.length - 1] ?? null)}
             >
-            +
+            ＋
             </button>
         </div>
         
@@ -149,21 +123,11 @@
             style:grid-column={`span ${champConfig.champ.abilities.length}`}
             >
                 {#each champConfig.champ.abilities as ability, j (ability.name)}
-                <div class="sheer effectOutcome">
-                    {#if damageDiffVsUnbuilt_perBuild_perAbility.get(ability)?.get(buildConfig)}
-                    
-                    <span>＝ {Math.round(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.totalDamagePerGold * 1000)} / kG</span>
-                    {#if zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.totalDamagePerGold != 0}
-                    <span>(ｘ {(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.totalDamagePerGold / zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.totalDamagePerGold).toFixed(2)})</span>
-                    {/if}
-
-                    <span>＋ {Math.round(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.addedDamagePerGold * 1000)} / kG</span>
-                    {#if zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.addedDamagePerGold != 0}
-                    <span>(ｘ {(damageDiffVsUnbuilt_perBuild_perAbility.get(ability)!.get(buildConfig)!.addedDamagePerGold / zeroOrMinDamageDiffsVsUnbuilt_perAbility.get(ability)!.addedDamagePerGold).toFixed(2)})</span>
-                    {/if}
-
-                    {/if}
-                </div>
+                {#if damageDiffPerBuildConfig_perAbility.has(ability)}
+                {@render damageDiff(damageDiffPerBuildConfig_perAbility.get(ability)!, buildConfig)}
+                {:else}
+                <div class="sheer"></div>
+                {/if}
                 {/each}
             </div>
             {/each}
@@ -175,25 +139,11 @@
         >
             {#each buildConfigs as buildConfig, i}
             <div class="sheer sequenceOutcomeForBuild">
-                <div class="sheer effectOutcome">
-                    {#if damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)}
-                    
-                    <span>＝ {Math.round(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.totalDamagePerGold * 1000)} / kG</span>
-                    {#if zeroOrMinDamageDiffsVsUnbuiltOfSequences.totalDamagePerGold != 0}
-                    <span>(ｘ {(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.totalDamagePerGold / zeroOrMinDamageDiffsVsUnbuiltOfSequences.totalDamagePerGold).toFixed(2)})</span>
-                    {/if}
-
-                    <span>＋ {Math.round(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.addedDamagePerGold * 1000)} / kG</span>
-                    {#if zeroOrMinDamageDiffsVsUnbuiltOfSequences.addedDamagePerGold != 0}
-                    <span>(ｘ {(damageDiffVsUnbuilt_perBuildConfigSequence.get(buildConfig)!.addedDamagePerGold / zeroOrMinDamageDiffsVsUnbuiltOfSequences.addedDamagePerGold).toFixed(2)})</span>
-                    {/if}
-
-                    {/if}
-                </div>
+                {@render damageDiff(damageDiffPerBuildConfigSequence, buildConfig)}
             </div>
 
             <AffectorSequenceUI 
-            bind:affectorSequence={buildConfig.affectorSequence}
+            bind:affectorSequence={buildConfig.affectorQueue}
             affectorOptions={[...champConfig.champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0)]}
             />
             {/each}
@@ -209,6 +159,7 @@
         height: 100%;
         color: #ccc;
         background-color: #111;
+        /* overflow: hidden; */
         display: grid;
 
         gap: 10px;
@@ -219,7 +170,9 @@
         display: grid;
 
         grid-auto-flow: column;
-        grid-template-columns: repeat(auto-fit, minmax(0,auto));
+        grid-template-columns: repeat(auto-fit, minmax(0,1fr));
+        justify-content: center;
+        gap: 40px;
     }
     
     .buildsAndSequences {
