@@ -1,14 +1,16 @@
 <script lang="ts">
-    import { ChampConfig } from "$lib/types.svelte";
+    import { Ability, Champion, DefiniteNumberMap } from "$lib/types.svelte";
 
     let {
-        champConfig = $bindable()
+        champ = $bindable(),
+        abilityRanks = $bindable()
     } : {
-        champConfig: ChampConfig
+        champ: Champion,
+        abilityRanks: DefiniteNumberMap<Ability>
     } = $props();
 
     let level: number 
-    = $derived(champConfig.abilityRanks.values().reduce((a, b) => a + b, 0));
+    = $derived(abilityRanks.values().reduce((a, b) => a + b, 0));
 </script>
 
 
@@ -16,25 +18,24 @@
 <div class="ChampSpecUI">
     <div class="champHerald">
         <div class="champOverview">
-            <span class="champName">{champConfig.champ?.name}</span>
+            <span class="champName">{champ.name}</span>
             <div class="champLevel">
                 <span>Level {level}</span>
             </div>
         </div>
-        <img src={champConfig.champ?.iconURL} alt="" class="icon max">
+        <img src={champ.iconURL} alt="" class="icon max">
     </div>
     <div class="abilityControls">
-        {#each champConfig.champ?.abilities as ability, i}
+        {#each champ.abilities as ability, i}
         <div class="abilityControl">
             <img src={ability.iconURL ?? ""} alt="" class="icon med">
-            {#if champConfig.champ != null}
+            
             <input class="levelControl abilityLevelControl" 
             type="number" min="0" max="5" step="1" defaultValue="0"
             bind:value={
-            () => champConfig.abilityRanks.get(ability),
-            (v) => champConfig.abilityRanks.set(ability, v)
+            () => abilityRanks.get(ability),
+            (v) => abilityRanks.set(ability, v)
             }>
-            {/if}
         </div>
         {/each}
     </div>

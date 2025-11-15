@@ -1,13 +1,12 @@
 <script lang="ts">
     import { Affector } from "$lib/types.svelte";
-    import EntitySlotUI from "./EntitySlotUI.svelte";
     import { popupState } from "$lib/popupState.svelte";
 
     let {
-        affectorSequence = $bindable(),
+        affectorQueue = $bindable(),
         affectorOptions
     } : {
-        affectorSequence: Affector[],
+        affectorQueue: Affector[],
         affectorOptions: Affector[]
     } = $props();
 
@@ -20,7 +19,7 @@
 
     function handleMouseDownOnItemOption(event: MouseEvent, affector: Affector) {
         event.preventDefault();
-        affectorSequence.push(affector);
+        affectorQueue.push(affector);
         if (popupState.currentPopup = popup!) {
             popupState.currentPopup = null;
         }
@@ -28,20 +27,17 @@
 
     function removeAffector(event: MouseEvent, affectorIndex: number) {
         event.preventDefault();
-        affectorSequence.splice(affectorIndex, 1);
+        affectorQueue.splice(affectorIndex, 1);
     }
 </script>
 
 
 
 <div class="sheer AffectorSequenceUI">
-    {#each affectorSequence as affector, i}
+    {#each affectorQueue as affector, i}
     <button class="entityButton" onmousedown={(event) => removeAffector(event, i)}>
         <img src={affector.iconURL} alt={affector.name} class="icon min">
     </button>
-    <!-- <div class="sheer" style:width={"80px"} style:height={"80px"}>
-    <EntitySlotUI bind:chosenEntity={affectorSequence[i]} entities={affectorOptions}/>
-    </div> -->
     {/each}
     
     <div class="popupContainer">
