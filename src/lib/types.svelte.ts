@@ -181,7 +181,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
                 .flatMap(ability => effectsPerAbility.get(ability));
 
                 let endUnbuiltGameConfig 
-                = new GameOrigin(buildConfig.buildStats, targetBaseStats, unbuiltEffects).processEffects();
+                = new GameOrigin(new DefiniteNumberMap<StatType>(), targetBaseStats, unbuiltEffects).processEffects();
                 
                 let effectQueueDiff = DiffAtlas.calculateDiff(buildConfig.totalCost, endBuiltGameConfig, endUnbuiltGameConfig);
                 return [buildConfig, effectQueueDiff];
@@ -737,25 +737,6 @@ export class GameConfig {
         return this.#defenseCoefficients;
     }
 }
-
-export class ChampConfig {
-    champ: Champion;
-    abilityRanks: DefiniteNumberMap<Ability>;
-
-    constructor(blueprint: ChampConfig|null = null, newValues: Partial<ChampConfig> = {}) {
-        let oldValues 
-        = blueprint instanceof ChampConfig ? {
-            champ: blueprint.champ,
-            abilityRanks: new DefiniteNumberMap<Ability>(blueprint.abilityRanks),
-        } : {
-            champ: Champion.all[0],
-            abilityRanks: new DefiniteNumberMap<Ability>(),
-        };
-
-        this.champ = $state(newValues.champ ?? oldValues.champ);
-        this.abilityRanks = $state(newValues.abilityRanks ?? oldValues.abilityRanks);
-    }
-};
 
 export class BuildConfig {
     itemSlots: ItemSlotConfigSet;
