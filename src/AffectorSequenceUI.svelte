@@ -35,7 +35,7 @@
 
 <div class="sheer AffectorSequenceUI">
     {#each affectorQueue as affector, i}
-    <button class="entityButton" onmousedown={(event) => removeAffector(event, i)}>
+    <button class="sheer entityButton" onmousedown={(event) => removeAffector(event, i)}>
         <img src={affector.iconURL} alt={affector.name} class="icon min">
     </button>
     {/each}
@@ -59,6 +59,7 @@
     .AffectorSequenceUI {
         display: flex;
         flex-flow: row nowrap;
+        gap: 1px;
 
         .popupContainer {
             display: grid;
@@ -76,6 +77,7 @@
     }
 
     .entityButton {
+        display: grid;
         background: none;
         border: none;
     }

@@ -40,33 +40,32 @@
     <div class="sheer buildsAndSequences">
         {#snippet damageDiff(diff: GameDiff, diffMins: GameDiff)}
         <div class="sheer effectOutcome">
-            <span>＋{Math.round(diff.addedDamagePerGold * 1000)} /kG
-            {#if diffMins.addedDamagePerGold != 0
-              && diffMins.addedDamagePerGold != diff.addedDamagePerGold
-            }
-            ∶{(diff.addedDamagePerGold / diffMins.addedDamagePerGold).toFixed(2)}
-            {/if}
-            </span>
+            <div class="absoluteDamagePerGold">
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{Math.round(diff.addedDamagePerGold * 1000)}</span><span class="unit">D/kG</span></span>
+                <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{Math.round(diff.totalDamagePerGold * 1000)}</span><span class="unit">D/kG</span></span>
+            </div>
 
-            <span>＝{Math.round(diff.totalDamagePerGold * 1000)} /kG
-            {#if diffMins.totalDamagePerGold != 0
-              && diffMins.totalDamagePerGold != diff.totalDamagePerGold
-            }
-            ∶{(diff.totalDamagePerGold / diffMins.totalDamagePerGold).toFixed(2)}
-            {/if}
-            </span>
+            <div class="relativeDamagePerGold">
+                <!-- {#if diffMins.addedDamagePerGold != 0 && diffMins.addedDamagePerGold != diff.addedDamagePerGold} -->
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.addedDamagePerGold / diffMins.addedDamagePerGold - 1)).toFixed(1)}%</span><span class="unit">Δ D/kG</span></span>
+                <!-- {/if} -->
+                
+                <!-- {#if diffMins.totalDamagePerGold != 0 && diffMins.totalDamagePerGold != diff.totalDamagePerGold} -->
+                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.totalDamagePerGold / diffMins.totalDamagePerGold - 1)).toFixed(1)}%</span><span class="unit">Σ D/kG</span></span>
+                <!-- {/if} -->
+            </div>
         </div>
         {/snippet}
 
-        <div class="sheer effectSequencer"
+        <div class="effectSequencer"
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability, i (ability.name)}
-            <img src={ability.iconURL} alt={ability.name} class="icon med">
+            <img src={ability.iconURL} alt={ability.name} class="sheer icon med">
             {/each}
         </div>
 
-        <div class="sheer buildSpecs"
+        <div class="buildSpecs"
         style:grid-row-end={`span ${buildConfigs.length + 1}`}
         >
             {#each buildConfigs as buildConfig, i}
@@ -80,32 +79,38 @@
             </button>
         </div>
         
-        <div class="sheer abilityOutcomesPerBuild" 
+        <div class="abilityOutcomesPerBuild" 
         style:grid-row-end={`span ${buildConfigs.length}`}
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
-            {#each buildConfigs as buildConfig, i}
-            <div class="sheer abilityOutcomesForBuild"
-            style:grid-column={`span ${champ.abilities.length}`}
+            {#each champ.abilities as ability}
+            <div class="sheer diffColumn abilityDiffsPerBuild"
+            style:grid-row={`span ${buildConfigs.length}`}
             >
-                {#each champ.abilities as ability, j (ability.name)}
+                {#each buildConfigs as buildConfig}
                 {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).minsOrZeros)}
                 {/each}
             </div>
             {/each}
         </div>
         
-        <div class="sheer sequenceOutcomesPerBuild" 
+        <div class="sequenceOutcomesPerBuild" 
         style:grid-row-end={`span ${buildConfigs.length}`}
         style:grid-column-start={2 + champ.abilities.length}
         >
-            {#each buildConfigs as buildConfig, i}
-            {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).minsOrZeros)}
+            <div class="sheer diffColumn affectorQueueDiffs" style:grid-row={`span ${buildConfigs.length}`}>
+                {#each buildConfigs as buildConfig}
+                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).minsOrZeros)}
+                {/each}
+            </div>
 
-            <AffectorSequenceUI bind:affectorQueue={buildConfig.affectorQueue}
-            affectorOptions={[...champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0)]}
-            />
-            {/each}
+            <div class="affectorQueues" style:grid-row={`span ${buildConfigs.length}`}>
+                {#each buildConfigs as buildConfig}
+                <AffectorSequenceUI bind:affectorQueue={buildConfig.affectorQueue}
+                affectorOptions={[...champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0)]}
+                />
+                {/each}
+            </div>
         </div>
     </div>
 </main>
@@ -150,6 +155,7 @@
         grid-auto-flow: column;
         grid-template-rows: subgrid;
         grid-template-columns: subgrid;
+        justify-items: center;
     }
 
     .buildSpecs {
@@ -170,7 +176,7 @@
         grid-template-rows: subgrid;
         grid-template-columns: subgrid;
 
-        .abilityOutcomesForBuild {
+        .abilityDiffsPerBuild {
             display: grid;
 
             grid-template-rows: subgrid;
@@ -186,10 +192,74 @@
         grid-template-rows: subgrid;
         grid-template-columns: subgrid;
     }
+    
+    .diffColumn {
+        .absoluteDamagePerGold,
+        .relativeDamagePerGold {
+            display: flex;
+            flex-flow: column nowrap;
+        }
+        &:not(:hover) .absoluteDamagePerGold,
+        &:hover .relativeDamagePerGold {
+            visibility: hidden;
+        }
 
-    .effectOutcome {
+        .effectOutcome {
+            display: grid;
+            align-content: center;
+        }
+
+        .absoluteDamagePerGold,
+        .relativeDamagePerGold {
+            grid-row: 1;
+            grid-column: 1;
+            display: grid;
+        }
+    }
+
+    .affectorQueueDiffs,
+    .affectorQueues {
+        display: grid;
+        grid-template: subgrid / subgrid;
+    }
+
+    .diffPart {
+        width: 100%;
+        text-align: end;
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: max-content 1fr max-content;
+        gap: 0 1ch;
+        align-items: baseline;
+        justify-content: stretch;
+    }
+
+    .operator {
+        width: max-content;
+        margin-right: -0.4ch;
+    }
+
+    .amount {
+        width: 100%;
+    }
+
+    .unit {
+        width: max-content;
         display: flex;
+        flex-flow: row nowrap;
+        align-content: baseline;
+    }
+    
+    .deltaDiff {
+        color: #e2e2e2;
 
-        flex-flow: column nowrap;
+        .operator, 
+        .unit {
+            color: #868686;
+        }
+    }
+
+    .totalDiff {
+        color: #595959;
     }
 </style>

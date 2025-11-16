@@ -31,7 +31,7 @@
 <div class="sheer BuildSpec">
     {#each itemConfigSet as itemConfig, i}
     <div class="popupContainer">
-        <button class="sheer slotBtn" onmousedown={
+        <button class="sheer entityBtn slotBtn" onmousedown={
             (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
         }
         >
@@ -55,6 +55,7 @@
     .BuildSpec {
         display: flex;
         flex-flow: row nowrap;
+        align-items: center;
 
         .popup {
             background: #111;
@@ -65,5 +66,9 @@
             left: unset;
             transform: unset;
         }
+    }
+
+    .entityBtn {
+        display: flex;
     }
 </style>
