@@ -76,13 +76,6 @@ export class Damage extends DefiniteNumberMap<DamageType> {
         return Damage.multiply(this, multiplier);
     }
 
-    calculatePostMitigationDamage(
-        attackerStats: DefiniteNumberMap<StatType>, 
-        defenderStats: DefiniteNumberMap<StatType>
-    ): Damage {
-        return Damage.calculatePostMitigationDamage(this, attackerStats, defenderStats);
-    }
-
     static multiply(original: Damage, multiplier: number|Damage): Damage {
         return multiplier instanceof Damage ?
         new Damage(
@@ -112,32 +105,6 @@ export class Damage extends DefiniteNumberMap<DamageType> {
         return defenseSubtotal == 0 ? 1 :
         defenseSubtotal < 0 ? (2 - (1 / (1 + (defenseSubtotal / 100)))) : 
         (1 / (1 + (defenseSubtotal / 100)));
-    }
-
-    static calculatePostMitigationDamage(
-        inputDamage: Damage, 
-        attackerStats: DefiniteNumberMap<StatType>, 
-        defenderStats: DefiniteNumberMap<StatType>
-    ): Damage {
-        let physicalDefenseCoefficient: number 
-        = this.calculateDefenseCoefficient(
-            defenderStats.get(StatType.Armor),
-            defenderStats.get(StatType.ArmorReductionDebuffFlat),
-            defenderStats.get(StatType.ArmorReductionDebuffRatio),
-            attackerStats.get(StatType.ArmorPenetrationRatio),
-            attackerStats.get(StatType.ArmorPenetrationFlat)
-        );
-        
-        let magicDefenseCoefficient: number 
-        = this.calculateDefenseCoefficient(
-            defenderStats.get(StatType.MagicResistance),
-            defenderStats.get(StatType.MagicResistReductionDebuffFlat),
-            defenderStats.get(StatType.MagicResistReductionDebuffRatio),
-            attackerStats.get(StatType.MagicPenetrationRatio),
-            attackerStats.get(StatType.MagicPenetrationFlat)
-        );
-
-        return Damage.multiply(inputDamage, new Damage(1, physicalDefenseCoefficient, magicDefenseCoefficient));
     }
 }
 
@@ -184,19 +151,14 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
         targetBaseStats: DefiniteNumberMap<StatType>,
         buildConfigs: BuildConfig[]
     ) {
-        let abilities = champ.abilities;
-        
         let effectsPerAbility 
-        = new DefiniteMap<Ability,Effect[]>(
-            [],
-            abilities.map(ability => 
-                [ability, ability.effectsPerRank[Math.max(0, abilityRanks.get(ability) - 1)]]
-            )
-        );
+        = new DefiniteMap<Ability,Effect[]>([], champ.abilities.map(
+            ability => [ability, ability.effectsPerRank[Math.max(0, abilityRanks.get(ability) - 1)]]
+        ));
         
         let affectorQueueDiffMap 
-        = new DiffMap(
-            buildConfigs.map((buildConfig): [BuildConfig, GameDiff] => {
+        = new DiffMap(buildConfigs.map(
+            (buildConfig): [BuildConfig, GameDiff] => {
                 let builtEffects 
                 = buildConfig.affectorQueue.flatMap(
                     (affector): Effect[] => {
@@ -221,20 +183,20 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
                 let endUnbuiltGameConfig 
                 = new GameOrigin(buildConfig.buildStats, targetBaseStats, unbuiltEffects).processEffects();
                 
-                let effectQueueDiff = DiffAtlas.getEffectsDiff(buildConfig.totalCost, endBuiltGameConfig, endUnbuiltGameConfig);
+                let effectQueueDiff = DiffAtlas.calculateDiff(buildConfig.totalCost, endBuiltGameConfig, endUnbuiltGameConfig);
                 return [buildConfig, effectQueueDiff];
-            })
-        );
+            }
+        ));
 
         let entries 
-        = abilities.map((ability): [Ability, DiffMap] => {
+        = champ.abilities.map((ability): [Ability, DiffMap] => {
             let effects = effectsPerAbility.get(ability);
             
             let diffMap = new DiffMap( 
                 buildConfigs.map((buildConfig): [BuildConfig, GameDiff] => {
                     let endBuiltGameConfig = new GameOrigin(buildConfig.buildStats, targetBaseStats, effects).processEffects();
                     let endUnbuiltGameConfig = new GameOrigin(new DefiniteNumberMap<StatType>(), targetBaseStats, effects).processEffects();
-                    let effectQueueDiff = DiffAtlas.getEffectsDiff(buildConfig.totalCost, endBuiltGameConfig, endUnbuiltGameConfig);
+                    let effectQueueDiff = DiffAtlas.calculateDiff(buildConfig.totalCost, endBuiltGameConfig, endUnbuiltGameConfig);
                     return [buildConfig, effectQueueDiff];
                 })
             );
@@ -245,7 +207,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
         super(affectorQueueDiffMap, entries);
     }
 
-    static getEffectsDiff(totalCost: number, builtEndGameConfig: GameConfig, unbuiltEndGameConfig: GameConfig) {
+    static calculateDiff(totalCost: number, builtEndGameConfig: GameConfig, unbuiltEndGameConfig: GameConfig) {
         let totalDamage = builtEndGameConfig.damageAggregate;
         let totalDamagePerGold = totalDamage / totalCost;
         let addedDamage = totalDamage - unbuiltEndGameConfig.damageAggregate;
@@ -268,36 +230,29 @@ export type GameDiff = {
 }
 
 export class Effect {
-    // readonly source: Affector;
     // implement/process
     readonly implement: (gameConfig: GameConfig, ...params: any[]) => GameConfig;
     readonly aftereffects: Effect[];
 
     constructor(
-        // source: typeof this.source,
         implementation: typeof this.implement,
         ...aftereffects: typeof this.aftereffects
     ) {
-        // this.source = source;
         this.implement = implementation;
         this.aftereffects = aftereffects;
     }
     
     static createDamageEffect(
-        // source: Affector,
         damageType: DamageType, 
         baseAmount: number, 
         ratios: [StatType, number][],
         ...aftereffects: Effect[]
     ): Effect {
         return new Effect(
-            // source,
             (gameConfig: GameConfig): GameConfig => {
                 let recentDamageAmountRaw: number
-                = baseAmount + (
-                    ratios.map(stattype_ratio => gameConfig.statsPostEval.get(stattype_ratio[0]) * stattype_ratio[1])
-                    .reduce((a,b) => a + b, 0)
-                );
+                = ratios.map(stat_ratio => gameConfig.statsPostEval.get(stat_ratio[0]) * stat_ratio[1])
+                .reduce((a,b) => a + b, baseAmount);
                 
                 let recentDamage: Damage;
                 switch (damageType) {
@@ -312,11 +267,7 @@ export class Effect {
                         break;
                 }
 
-                recentDamage 
-                = recentDamage.calculatePostMitigationDamage( 
-                    gameConfig.statsPostEval,
-                    gameConfig.targetStatsPostEval
-                );
+                recentDamage.multiply(gameConfig.defenseCoefficients);
 
                 return new GameConfig(gameConfig, {
                     damageAggregate: gameConfig.damageAggregate + recentDamage.total
@@ -715,14 +666,17 @@ export class GameConfig {
     readonly targetStatModifiers: DefiniteNumberMap<StatType>;
     readonly damageAggregate: number;
 
+    #statsPostEval?: DefiniteNumberMap<StatType>;
+    #targetStatsPostEval?: DefiniteNumberMap<StatType>;
+    #defenseCoefficients: Damage;
+
     constructor(blueprint: GameConfig|null = null, newValues: Partial<GameConfig> = {}) {
         let oldValues
         = blueprint instanceof GameConfig ? {
-            // shared because gameconfigs don't currently mutate this
             originGameConfig: blueprint.origin,
-            // copied because gameconfigs can mutate these
-            champStatModifiers: new DefiniteNumberMap<StatType>(blueprint.champStatModifiers),
-            targetStatModifiers: new DefiniteNumberMap<StatType>(blueprint.targetStatModifiers),
+            champStatModifiers: blueprint.champStatModifiers,
+            targetStatModifiers: blueprint.targetStatModifiers,
+            defenseCoefficients: blueprint.defenseCoefficients,
             damageAggregate: blueprint.damageAggregate
         } : {
             originGameConfig: new GameOrigin(
@@ -732,26 +686,55 @@ export class GameConfig {
             ),
             champStatModifiers: new DefiniteNumberMap<StatType>(),
             targetStatModifiers: new DefiniteNumberMap<StatType>(),
+            defenseCoefficients: new Damage(0,0,0),
             damageAggregate: 0
         };
 
-        this.origin = $state(newValues.origin ?? oldValues.originGameConfig);
-        this.champStatModifiers = $state(newValues.champStatModifiers ?? oldValues.champStatModifiers);
-        this.targetStatModifiers = $state(newValues.targetStatModifiers ?? oldValues.targetStatModifiers);
-        this.damageAggregate = $state(newValues.damageAggregate ?? oldValues.damageAggregate);
+        this.origin = newValues.origin ?? oldValues.originGameConfig;
+        this.champStatModifiers = newValues.champStatModifiers ?? oldValues.champStatModifiers;
+        this.targetStatModifiers = newValues.targetStatModifiers ?? oldValues.targetStatModifiers;
+        this.damageAggregate = newValues.damageAggregate ?? oldValues.damageAggregate;
+        
+        this.#defenseCoefficients 
+        = (newValues.champStatModifiers || newValues.targetStatModifiers) ?
+        new Damage(
+            1, 
+            Damage.calculateDefenseCoefficient(
+                this.targetStatsPostEval.get(StatType.Armor),
+                this.targetStatsPostEval.get(StatType.ArmorReductionDebuffFlat),
+                this.targetStatsPostEval.get(StatType.ArmorReductionDebuffRatio),
+                this.statsPostEval.get(StatType.ArmorPenetrationRatio),
+                this.statsPostEval.get(StatType.ArmorPenetrationFlat)
+            ),
+            Damage.calculateDefenseCoefficient(
+                this.targetStatsPostEval.get(StatType.MagicResistance),
+                this.targetStatsPostEval.get(StatType.MagicResistReductionDebuffFlat),
+                this.targetStatsPostEval.get(StatType.MagicResistReductionDebuffRatio),
+                this.statsPostEval.get(StatType.MagicPenetrationRatio),
+                this.statsPostEval.get(StatType.MagicPenetrationFlat)
+            )
+        ) : 
+        oldValues.defenseCoefficients;
     }
 
     get statsPostEval(): DefiniteNumberMap<StatType> {
-        let buildStats = this.origin.buildStats;
-        let stats = DefiniteNumberMap.sumPerKey(buildStats, this.champStatModifiers);
-        stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
-        return stats;
+        return this.#statsPostEval ??= (() => {
+            let stats = DefiniteNumberMap.sumPerKey(this.origin.buildStats, this.champStatModifiers);
+            stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
+            return stats;
+        })();
     }
 
     get targetStatsPostEval(): DefiniteNumberMap<StatType> {
-        let stats = DefiniteNumberMap.sumPerKey(this.origin.targetBaseStats, this.targetStatModifiers);
-        stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
-        return stats;
+        return this.#targetStatsPostEval ??= (() => {
+            let stats = DefiniteNumberMap.sumPerKey(this.origin.targetBaseStats, this.targetStatModifiers);
+            stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
+            return stats;
+        })();
+    }
+
+    get defenseCoefficients(): Damage {
+        return this.#defenseCoefficients;
     }
 }
 

@@ -11,16 +11,14 @@
     let abilityRanks: DefiniteNumberMap<Ability>
     = $state(new DefiniteNumberMap());
 
-    let buildConfigs: BuildConfig[] 
-    = $state([new BuildConfig()]);
-
     let targetBaseStats: DefiniteNumberMap<StatType>
     = $state(new DefiniteNumberMap());
 
+    let buildConfigs: BuildConfig[] 
+    = $state([new BuildConfig()]);
+
     let diffAtlas: DiffAtlas 
-    = $derived(new DiffAtlas(
-        champ, abilityRanks, targetBaseStats, buildConfigs
-    ));
+    = $derived(new DiffAtlas(champ, abilityRanks, targetBaseStats, buildConfigs));
 
     function handleOnClickAddBuild(
         event: MouseEvent, 
