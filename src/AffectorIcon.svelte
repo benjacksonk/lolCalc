@@ -18,9 +18,9 @@
         <span class="affectorName">{affector.name}</span>
 
         {#if affector instanceof Item}
-        <span class="affectorStat">
+        <span class="affectorStat itemStat">
             <span class="affectorStatValue">{affector.price}</span>
-            <span class="affectorStatName">Gold Price</span>
+            <span class="affectorStatName">Gold</span>
         </span>
         {/if}
 
@@ -42,7 +42,7 @@
     .AffectorIcon {
         > .popup {
             background-color: #234;
-            color: #ccc;
+            color: #e2e2e2;
             border: 3px solid #ca8;
             padding: 10px;
             display: grid;
@@ -56,11 +56,15 @@
         }
     }
 
+    .itemStat {
+        color: #edb;
+    }
+
     .affectorName {
         grid-column: span 2;
         text-align: center;
         font-weight: bold;
-        color: #fed;
+        color: #edb;
         display: grid;
     }
 
