@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Affector } from "$lib/types.svelte";
+    import { Item, type Affector } from "$lib/types.svelte";
 
     let {
         affector,
@@ -16,6 +16,14 @@
     <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
     <div class="popup tooltip affectorDetails">
         <span class="affectorName">{affector.name}</span>
+
+        {#if affector instanceof Item}
+        <span class="affectorStat">
+            <span class="affectorStatValue">{affector.price}</span>
+            <span class="affectorStatName">Gold Price</span>
+        </span>
+        {/if}
+
         {#each affector.stats as stat}
             <span class="affectorStat"><span class="affectorStatValue">
                 {#if stat[0].includes("Ratio")}
