@@ -1,4 +1,8 @@
-import { SvelteSet } from "svelte/reactivity";
-
-export const popupState: { currentPopup: Node|null } 
-= $state({ currentPopup: null });
+export const popupState: {
+    currentPopup: Node|null,
+    // currentTooltip: Node|null
+} 
+= $state({
+    currentPopup: null,
+    // currentTooltip: null
+});

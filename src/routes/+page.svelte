@@ -255,7 +255,7 @@
 
         .operator, 
         .unit {
-            color: #868686;
+            color: #595959;
         }
     }
 

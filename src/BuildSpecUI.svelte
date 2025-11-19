@@ -1,6 +1,7 @@
 <script lang="ts">
     import { popupState } from "$lib/popupState.svelte";
     import { Item, ItemSlotConfig, type ItemSlotConfigSet } from "$lib/types.svelte";
+    import AffectorIcon from "./AffectorIcon.svelte";
 
     let {
         itemConfigSet = $bindable()
@@ -35,13 +36,13 @@
             (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
         }
         >
-            <img class="icon min" alt={itemConfig.item.name} src={itemConfig.item.iconURL}>
+            <AffectorIcon affector={itemConfig.item} size="min"/>
         </button>
         
         <div class="popup" bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}>
             {#each Item.all as item, j (item.name)}
             <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
-                <img class="icon min" alt={item.name} src={item.iconURL}>
+                <AffectorIcon affector={item} size="min"/>
             </button>
             {/each}
         </div>

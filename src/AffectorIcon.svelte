@@ -1,0 +1,77 @@
+<script lang="ts">
+    import type { Affector } from "$lib/types.svelte";
+
+    let {
+        affector,
+        size
+    } : {
+        affector: Affector,
+        size: "max"|"med"|"min"
+    } = $props();
+</script>
+
+
+
+<div class="AffectorIcon popupContainer">
+    <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
+    <div class="popup tooltip affectorDetails">
+        <span class="affectorName">{affector.name}</span>
+        {#each affector.stats as stat}
+            <span class="affectorStat"><span class="affectorStatValue">
+                {#if stat[0].includes("Ratio")}
+                {stat[1] * 100} %
+                {:else}
+                {stat[1]}
+                {/if}
+            </span><span class="affectorStatName">{stat[0]}</span></span>
+        {/each}
+    </div>
+</div>
+
+
+
+<style>
+    .AffectorIcon {
+        > .popup {
+            background-color: #234;
+            color: #ccc;
+            border: 3px solid #ca8;
+            padding: 10px;
+            display: grid;
+
+            grid-template-columns: auto auto;
+            gap: 5px;
+        }
+
+        &:not(:hover) > .tooltip {
+            visibility: hidden;
+        }
+    }
+
+    .affectorName {
+        grid-column: span 2;
+        text-align: center;
+        font-weight: bold;
+        color: #fed;
+        display: grid;
+    }
+
+    .affectorStat {
+        grid-column: span 2;
+        display: grid;
+        gap: 20px;
+        
+        grid-template-columns: subgrid;
+        grid-template-rows: subgrid;
+    }
+
+    .affectorStatValue {
+        text-align: right;
+        display: grid;
+    }
+
+    .affectorStatName {
+        text-align: left;
+        display: grid;
+    }
+</style>
