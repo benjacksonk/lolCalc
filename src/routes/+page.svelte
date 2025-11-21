@@ -38,20 +38,19 @@
     </div>
 
     <div class="sheer buildsAndSequences">
-        {#snippet damageDiff(diff: GameDiff, diffMins: GameDiff)}
+        {#snippet damageDiff(diff: GameDiff, min_DamageDiffPerGoldDiff: number)}
         <div class="sheer effectOutcome">
             <div class="absoluteDamagePerGold">
-                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{Math.round(diff.addedDamagePerGold * 1000)}</span><span class="unit">D/kG</span></span>
-                <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{Math.round(diff.totalDamagePerGold * 1000)}</span><span class="unit">D/kG</span></span>
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{diff.totalDamageDiff.toFixed(0)}</span></span>
+                <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span></span>
+                <span class="unit">damage</span>
             </div>
 
             <div class="relativeDamagePerGold">
                 <!-- {#if diffMins.addedDamagePerGold != 0 && diffMins.addedDamagePerGold != diff.addedDamagePerGold} -->
-                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.addedDamagePerGold / diffMins.addedDamagePerGold - 1)).toFixed(1)}%</span><span class="unit">Δ D/kG</span></span>
-                <!-- {/if} -->
-                
-                <!-- {#if diffMins.totalDamagePerGold != 0 && diffMins.totalDamagePerGold != diff.totalDamagePerGold} -->
-                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.totalDamagePerGold / diffMins.totalDamagePerGold - 1)).toFixed(1)}%</span><span class="unit">Σ D/kG</span></span>
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageDiff_per_goldDiff / min_DamageDiffPerGoldDiff - 1)).toFixed(1)}%</span></span>
+                <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{(diff.damageDiff_per_goldDiff * 1000).toFixed(0)}</span></span>
+                <span class="unit"><span>Δ dmg/</span><span>Δ kGold</span></span>
                 <!-- {/if} -->
             </div>
         </div>
@@ -88,7 +87,7 @@
             style:grid-row={`span ${buildConfigs.length}`}
             >
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).minsOrZeros)}
+                {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).min_DamageDiffPerGoldDiff)}
                 {/each}
             </div>
             {/each}
@@ -100,7 +99,7 @@
         >
             <div class="sheer diffColumn affectorQueueDiffs" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).minsOrZeros)}
+                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).min_DamageDiffPerGoldDiff)}
                 {/each}
             </div>
 
@@ -168,22 +167,7 @@
         grid-template-columns: subgrid;
     }
 
-    .abilityOutcomesPerBuild {
-        display: grid;
-
-        grid-row-start: 2;
-        grid-column-start: 2;
-        grid-template-rows: subgrid;
-        grid-template-columns: subgrid;
-
-        .abilityDiffsPerBuild {
-            display: grid;
-
-            grid-template-rows: subgrid;
-            grid-template-columns: subgrid;
-        }
-    }
-
+    .abilityOutcomesPerBuild,
     .sequenceOutcomesPerBuild {
         display: grid;
 
@@ -194,49 +178,54 @@
     }
     
     .diffColumn {
-        .absoluteDamagePerGold,
-        .relativeDamagePerGold {
-            display: flex;
-            flex-flow: column nowrap;
-        }
+        display: grid;
+        grid-template-rows: subgrid;
+        grid-template-columns: max-content 1fr max-content;
+
         &:not(:hover) .absoluteDamagePerGold,
         &:hover .relativeDamagePerGold {
             visibility: hidden;
         }
 
-        .effectOutcome {
+        .effectOutcome,
+        .absoluteDamagePerGold,
+        .relativeDamagePerGold {
             display: grid;
+        }
+
+        .effectOutcome {
+            grid-column: span 3;
+            grid-template-columns: subgrid;
             align-content: center;
         }
 
         .absoluteDamagePerGold,
         .relativeDamagePerGold {
             grid-row: 1;
-            grid-column: 1;
-            display: grid;
+            grid-column: 1 / span 3;
+            grid-template-columns: max-content 1fr max-content;
         }
     }
 
-    .affectorQueueDiffs,
     .affectorQueues {
         display: grid;
         grid-template: subgrid / subgrid;
     }
 
     .diffPart {
+        grid-column: span 2;
         width: 100%;
         text-align: end;
         display: grid;
         grid-auto-flow: column;
-        grid-template-columns: max-content 1fr max-content;
-        gap: 0 1ch;
+        /* grid-template-columns: subgrid; */
+        gap: 0 0.4ch;
         align-items: baseline;
         justify-content: stretch;
     }
 
     .operator {
         width: max-content;
-        margin-right: -0.4ch;
     }
 
     .amount {
@@ -244,21 +233,20 @@
     }
 
     .unit {
-        width: max-content;
-        display: flex;
-        flex-flow: row nowrap;
-        align-content: baseline;
+        grid-row: 1 / span 2;
+        grid-column: 3;
+        margin-left: 1ch;
+        display: grid;
+        grid-auto-flow: row;
+        align-content: center;
+        justify-items: right;
     }
     
     .deltaDiff {
         color: #e2e2e2;
-
-        .operator, 
-        .unit {
-            color: #595959;
-        }
     }
 
+    .unit,
     .totalDiff {
         color: #595959;
     }

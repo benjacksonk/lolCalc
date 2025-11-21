@@ -108,127 +108,6 @@ export class Damage extends DefiniteNumberMap<DamageType> {
     }
 }
 
-export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
-    static readonly zeroDiff: GameDiff = {
-        totalDamage: 0,
-        totalDamagePerGold: 0,
-        addedDamage: 0,
-        addedDamagePerGold: 0
-    }
-
-    readonly minsOrZeros: GameDiff;
-    
-    constructor(entries: Iterable<readonly [BuildConfig, GameDiff]>) {
-        super(DiffMap.zeroDiff, entries);
-        
-        let diffs = this.values().toArray();
-
-        let nonzeroTotalDamages = diffs.map(diff => diff.totalDamage).filter(value => value > 0);
-        let minTotalDamage = nonzeroTotalDamages.length > 1 ? Math.min(...nonzeroTotalDamages) : nonzeroTotalDamages[0] ?? 0;
-
-        let nonzeroTotalDamagesPerGold = diffs.map(diff => diff.totalDamagePerGold).filter(value => value > 0);
-        let minTotalDamagePerGold = nonzeroTotalDamagesPerGold.length > 1 ? Math.min(...nonzeroTotalDamagesPerGold) : nonzeroTotalDamagesPerGold[0] ?? 0;
-
-        let nonzeroAddedDamages = diffs.map(diff => diff.addedDamage).filter(value => value > 0);
-        let minAddedDamage = nonzeroAddedDamages.length > 1 ? Math.min(...nonzeroAddedDamages) : nonzeroAddedDamages[0] ?? 0;
-
-        let nonzeroAddedDamagesPerGold = diffs.map(diff => diff.addedDamagePerGold).filter(value => value > 0);
-        let minAddedDamagePerGold = nonzeroAddedDamagesPerGold.length > 1 ? Math.min(...nonzeroAddedDamagesPerGold) : nonzeroAddedDamagesPerGold[0] ?? 0;
-
-        this.minsOrZeros = {
-            totalDamage: minTotalDamage,
-            totalDamagePerGold: minTotalDamagePerGold,
-            addedDamage: minAddedDamage,
-            addedDamagePerGold: minAddedDamagePerGold
-        };
-    }
-}
-
-export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
-    constructor(
-        champ: Champion,
-        abilityRanks: DefiniteNumberMap<Ability>,
-        targetBaseStats: DefiniteNumberMap<StatType>,
-        buildConfigs: BuildConfig[]
-    ) {
-        let effectsPerAbility 
-        = new DefiniteMap<Ability,Effect[]>([], champ.abilities.map(
-            ability => [ability, ability.effectsPerRank[Math.max(0, abilityRanks.get(ability) - 1)]]
-        ));
-        
-        let affectorQueueDiffMap 
-        = new DiffMap(buildConfigs.map(
-            (buildConfig): [BuildConfig, GameDiff] => {
-                let builtEffects 
-                = buildConfig.affectorQueue.flatMap(
-                    (affector): Effect[] => {
-                        if (affector instanceof Ability) {
-                            return effectsPerAbility.get(affector);
-                        }
-                        else if (affector instanceof Item) {
-                            return affector.effectsPerRank[buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
-                        }
-                        else return [];
-                    }
-                );
-
-                let endBuiltGameConfig 
-                = new GameOrigin(buildConfig.buildStats, targetBaseStats, builtEffects).processEffects();
-
-                let unbuiltEffects 
-                = buildConfig.affectorQueue
-                .filter(affector => affector instanceof Ability)
-                .flatMap(ability => effectsPerAbility.get(ability));
-
-                let endUnbuiltGameConfig 
-                = new GameOrigin(new DefiniteNumberMap<StatType>(), targetBaseStats, unbuiltEffects).processEffects();
-                
-                let effectQueueDiff = DiffAtlas.calculateDiff(buildConfig.totalCost, endBuiltGameConfig, endUnbuiltGameConfig);
-                return [buildConfig, effectQueueDiff];
-            }
-        ));
-
-        let entries 
-        = champ.abilities.map((ability): [Ability, DiffMap] => {
-            let effects = effectsPerAbility.get(ability);
-            
-            let diffMap = new DiffMap( 
-                buildConfigs.map((buildConfig): [BuildConfig, GameDiff] => {
-                    let endBuiltGameConfig = new GameOrigin(buildConfig.buildStats, targetBaseStats, effects).processEffects();
-                    let endUnbuiltGameConfig = new GameOrigin(new DefiniteNumberMap<StatType>(), targetBaseStats, effects).processEffects();
-                    let effectQueueDiff = DiffAtlas.calculateDiff(buildConfig.totalCost, endBuiltGameConfig, endUnbuiltGameConfig);
-                    return [buildConfig, effectQueueDiff];
-                })
-            );
-
-            return [ability, diffMap];
-        });
-
-        super(affectorQueueDiffMap, entries);
-    }
-
-    static calculateDiff(totalCost: number, builtEndGameConfig: GameConfig, unbuiltEndGameConfig: GameConfig) {
-        let totalDamage = builtEndGameConfig.damageAggregate;
-        let totalDamagePerGold = totalDamage / totalCost;
-        let addedDamage = totalDamage - unbuiltEndGameConfig.damageAggregate;
-        let addedDamagePerGold = addedDamage / totalCost;
-        
-        return {
-            totalDamage, 
-            totalDamagePerGold, 
-            addedDamage, 
-            addedDamagePerGold
-        };
-    }
-}
-
-export type GameDiff = {
-    totalDamage: number, 
-    totalDamagePerGold: number, 
-    addedDamage: number, 
-    addedDamagePerGold: number
-}
-
 export class Effect {
     // implement/process
     readonly implement: (gameConfig: GameConfig, ...params: any[]) => GameConfig;
@@ -616,11 +495,11 @@ export class Champion implements Entity {
                 ]
             ]),
             new Ability("Fox-Fire", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Fox-Fire_HD.png", [], [
-                [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.64]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.64]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.64]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.64]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.64]]) ]
+                [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.72]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.72]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.72]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.72]]) ],
+                [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.72]]) ]
             ]),
             new Ability("Charm", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Charm_HD.png", [], [
                 [ Effect.createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]]) ],
@@ -640,6 +519,7 @@ export class Champion implements Entity {
 
 export class GameOrigin {
     constructor(
+        public readonly buildPrice: number,
         public readonly buildStats: DefiniteNumberMap<StatType>,
         public readonly targetBaseStats: DefiniteNumberMap<StatType>,
         public readonly effectQueue: Effect[]
@@ -680,6 +560,7 @@ export class GameConfig {
             damageAggregate: blueprint.damageAggregate
         } : {
             originGameConfig: new GameOrigin(
+                0,
                 new DefiniteNumberMap<StatType>(), 
                 new DefiniteNumberMap<StatType>(),
                 []
@@ -737,6 +618,101 @@ export class GameConfig {
         return this.#defenseCoefficients;
     }
 }
+
+export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
+    static readonly zeroDiff: GameDiff = {
+        unbuiltEndGameConfig: new GameConfig(),
+        builtEndGameConfig: new GameConfig(),
+        totalDamageDiff: 0,
+        damageDiff_per_goldDiff: 0
+    }
+
+    readonly min_DamageDiffPerGoldDiff: number;
+    
+    constructor(entries: Iterable<readonly [BuildConfig, GameDiff]>) {
+        super(DiffMap.zeroDiff, entries);
+        
+        let diffs = this.values().toArray();
+        let nonzero_damageDiff_per_goldDiffs = diffs.map(diff => diff.damageDiff_per_goldDiff).filter(value => value > 0);
+
+        this.min_DamageDiffPerGoldDiff = nonzero_damageDiff_per_goldDiffs.length > 1 ? Math.min(...nonzero_damageDiff_per_goldDiffs) : nonzero_damageDiff_per_goldDiffs[0] ?? 0;
+    }
+}
+
+export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
+    constructor(
+        champ: Champion,
+        abilityRanks: DefiniteNumberMap<Ability>,
+        targetBaseStats: DefiniteNumberMap<StatType>,
+        buildConfigs: BuildConfig[]
+    ) {
+        let effectsPerAbility 
+        = new DefiniteMap<Ability,Effect[]>([], champ.abilities.map(
+            ability => [ability, ability.effectsPerRank[Math.max(0, abilityRanks.get(ability) - 1)]]
+        ));
+        
+        let affectorQueueDiffMap 
+        = new DiffMap(buildConfigs.map(
+            (buildConfig): [BuildConfig, GameDiff] => {
+                let builtEffects 
+                = buildConfig.affectorQueue.flatMap(
+                    (affector): Effect[] => {
+                        if (affector instanceof Ability) {
+                            return effectsPerAbility.get(affector);
+                        }
+                        else if (affector instanceof Item) {
+                            return affector.effectsPerRank[buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
+                        }
+                        else return [];
+                    }
+                );
+
+                let endBuiltGameConfig 
+                = new GameOrigin(buildConfig.totalCost, buildConfig.buildStats, targetBaseStats, builtEffects).processEffects();
+
+                let unbuiltEffects 
+                = buildConfig.affectorQueue
+                .filter(affector => affector instanceof Ability)
+                .flatMap(ability => effectsPerAbility.get(ability));
+
+                let endUnbuiltGameConfig 
+                = new GameOrigin(0, new DefiniteNumberMap<StatType>(), targetBaseStats, unbuiltEffects).processEffects();
+                
+                let effectQueueDiff = DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig);
+                return [buildConfig, effectQueueDiff];
+            }
+        ));
+
+        let entries 
+        = champ.abilities.map((ability): [Ability, DiffMap] => {
+            let effects = effectsPerAbility.get(ability);
+            
+            let diffMap = new DiffMap( 
+                buildConfigs.map((buildConfig): [BuildConfig, GameDiff] => {
+                    let endBuiltGameConfig = new GameOrigin(buildConfig.totalCost, buildConfig.buildStats, targetBaseStats, effects).processEffects();
+                    let endUnbuiltGameConfig = new GameOrigin(0, new DefiniteNumberMap<StatType>(), targetBaseStats, effects).processEffects();
+                    let effectQueueDiff = DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig);
+                    return [buildConfig, effectQueueDiff];
+                })
+            );
+
+            return [ability, diffMap];
+        });
+
+        super(affectorQueueDiffMap, entries);
+    }
+
+    static calculateDiff(unbuiltEndGameConfig: GameConfig, builtEndGameConfig: GameConfig) {
+        return {
+            unbuiltEndGameConfig,
+            builtEndGameConfig,
+            totalDamageDiff: builtEndGameConfig.damageAggregate - unbuiltEndGameConfig.damageAggregate,
+            damageDiff_per_goldDiff: (builtEndGameConfig.damageAggregate - unbuiltEndGameConfig.damageAggregate) / (builtEndGameConfig.origin.buildPrice - unbuiltEndGameConfig.origin.buildPrice),
+        };
+    }
+}
+
+export type GameDiff = ReturnType<typeof DiffAtlas.calculateDiff>;
 
 export class BuildConfig {
     itemSlots: ItemSlotConfigSet;
