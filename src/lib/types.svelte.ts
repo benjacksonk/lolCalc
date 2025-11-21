@@ -289,6 +289,10 @@ export class Item extends Affector {
             1200, "Needlessly Large Rod", "https://wiki.leagueoflegends.com/en-us/images/Needlessly_Large_Rod_item.png", 
             [[StatType.AbilityPower,65]]
         ),
+        LostChapter: new Item(
+            1200, "Lost Chapter", "https://wiki.leagueoflegends.com/en-us/images/Lost_Chapter_item.png", 
+            [[StatType.AbilityHaste,10],[StatType.AbilityPower,40],[StatType.Mana,300]]
+        ),
         ArchangelsStaff: new Item(
             2900, "Archangel's Staff", "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item.png", 
             [[StatType.AbilityHaste,25],[StatType.AbilityPower,70],[StatType.Mana,600]]
