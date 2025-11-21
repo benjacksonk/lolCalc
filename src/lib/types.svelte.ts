@@ -72,10 +72,6 @@ export class Damage extends DefiniteNumberMap<DamageType> {
         ]);
     }
 
-    multiply(multiplier: number|Damage): Damage {
-        return Damage.multiply(this, multiplier);
-    }
-
     static multiply(original: Damage, multiplier: number|Damage): Damage {
         return multiplier instanceof Damage ?
         new Damage(
@@ -146,7 +142,7 @@ export class Effect {
                         break;
                 }
 
-                recentDamage.multiply(gameConfig.defenseCoefficients);
+                recentDamage = Damage.multiply(recentDamage, gameConfig.defenseCoefficients);
 
                 return new GameConfig(gameConfig, {
                     damageAggregate: gameConfig.damageAggregate + recentDamage.total
@@ -546,9 +542,9 @@ export class GameConfig {
     readonly targetStatModifiers: DefiniteNumberMap<StatType>;
     readonly damageAggregate: number;
 
-    #statsPostEval?: DefiniteNumberMap<StatType>;
-    #targetStatsPostEval?: DefiniteNumberMap<StatType>;
-    #defenseCoefficients: Damage;
+    readonly statsPostEval: DefiniteNumberMap<StatType>;
+    readonly targetStatsPostEval: DefiniteNumberMap<StatType>;
+    readonly defenseCoefficients: Damage;
 
     constructor(blueprint: GameConfig|null = null, newValues: Partial<GameConfig> = {}) {
         let oldValues
@@ -556,7 +552,6 @@ export class GameConfig {
             originGameConfig: blueprint.origin,
             champStatModifiers: blueprint.champStatModifiers,
             targetStatModifiers: blueprint.targetStatModifiers,
-            defenseCoefficients: blueprint.defenseCoefficients,
             damageAggregate: blueprint.damageAggregate
         } : {
             originGameConfig: new GameOrigin(
@@ -567,7 +562,6 @@ export class GameConfig {
             ),
             champStatModifiers: new DefiniteNumberMap<StatType>(),
             targetStatModifiers: new DefiniteNumberMap<StatType>(),
-            defenseCoefficients: new Damage(0,0,0),
             damageAggregate: 0
         };
 
@@ -576,8 +570,25 @@ export class GameConfig {
         this.targetStatModifiers = newValues.targetStatModifiers ?? oldValues.targetStatModifiers;
         this.damageAggregate = newValues.damageAggregate ?? oldValues.damageAggregate;
         
-        this.#defenseCoefficients 
-        = (newValues.champStatModifiers || newValues.targetStatModifiers) ?
+
+        this.statsPostEval 
+        = newValues.champStatModifiers || !blueprint ? 
+        DefiniteNumberMap.sumPerKey(this.origin.buildStats, this.champStatModifiers) : 
+        blueprint.statsPostEval;
+        
+        this.statsPostEval.set(StatType.AbilityPower, this.statsPostEval.get(StatType.AbilityPower) * (1 + this.statsPostEval.get(StatType.AbilityPowerAmpRatio)));
+
+
+        this.targetStatsPostEval 
+        = newValues.targetStatModifiers || !blueprint ?
+        DefiniteNumberMap.sumPerKey(this.origin.targetBaseStats, this.targetStatModifiers) :
+        blueprint.targetStatsPostEval;
+        
+        this.targetStatsPostEval.set(StatType.AbilityPower, this.targetStatsPostEval.get(StatType.AbilityPower) * (1 + this.targetStatsPostEval.get(StatType.AbilityPowerAmpRatio)));
+
+
+        this.defenseCoefficients 
+        = (newValues.champStatModifiers || newValues.targetStatModifiers) || !blueprint ?
         new Damage(
             1, 
             Damage.calculateDefenseCoefficient(
@@ -594,28 +605,7 @@ export class GameConfig {
                 this.statsPostEval.get(StatType.MagicPenetrationRatio),
                 this.statsPostEval.get(StatType.MagicPenetrationFlat)
             )
-        ) : 
-        oldValues.defenseCoefficients;
-    }
-
-    get statsPostEval(): DefiniteNumberMap<StatType> {
-        return this.#statsPostEval ??= (() => {
-            let stats = DefiniteNumberMap.sumPerKey(this.origin.buildStats, this.champStatModifiers);
-            stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
-            return stats;
-        })();
-    }
-
-    get targetStatsPostEval(): DefiniteNumberMap<StatType> {
-        return this.#targetStatsPostEval ??= (() => {
-            let stats = DefiniteNumberMap.sumPerKey(this.origin.targetBaseStats, this.targetStatModifiers);
-            stats.set(StatType.AbilityPower, stats.get(StatType.AbilityPower) * (1 + stats.get(StatType.AbilityPowerAmpRatio)));
-            return stats;
-        })();
-    }
-
-    get defenseCoefficients(): Damage {
-        return this.#defenseCoefficients;
+        ) : blueprint.defenseCoefficients;
     }
 }
 
