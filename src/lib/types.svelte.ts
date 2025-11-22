@@ -385,7 +385,7 @@ export class Item extends Affector {
         LichBane: new Item(
             2900, "Lich Bane", "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item.png",
             [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.MoveSpeedRatio,0.04]],
-            [[Effect.createDamageEffect(DamageType.Magic,-22,[[StatType.AbilityPower,0.4]])]]
+            [[Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.AbilityPower,0.4],[StatType.BaseAttackDamage,0.75]])]]
         ),
         LudensCompanion: new Item(
             2750, "Luden's Companion", "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item.png", 
@@ -402,7 +402,7 @@ export class Item extends Affector {
                             return new GameConfig(gameConfig, {
                                 targetStatModifiers: DefiniteNumberMap.sumPerKey(
                                     gameConfig.targetStatModifiers,
-                                    new DefiniteNumberMap<StatType>([[StatType.MagicResistReductionDebuffFlat, 90]])
+                                    new DefiniteNumberMap<StatType>([[StatType.MagicResistReductionDebuffFlat, 10]])
                                 )
                             });
                         },
