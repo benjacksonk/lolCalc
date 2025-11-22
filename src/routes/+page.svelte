@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Ability, BuildConfig, DefiniteNumberMap, StatType, type GameDiff, Champion, DiffAtlas } from "$lib/types.svelte";
+    import { Ability, BuildConfig, DefiniteNumberMap, StatType, type GameDiff, Champion, DiffAtlas, Affector, Rune } from "$lib/types.svelte";
     import BuildSpecUI from "../BuildSpecUI.svelte";
     import ChampSpecUI from "../ChampSpecUI.svelte";
     import TargetSpecUI from "../TargetSpecUI.svelte";
@@ -106,7 +106,7 @@
             <div class="affectorQueues" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
                 <AffectorSequenceUI bind:affectorQueue={buildConfig.affectorQueue}
-                affectorOptions={[...champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0)]}
+                affectorOptions={[...Affector.allBasicAffectors, ...champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0), ...Rune.all]}
                 />
                 {/each}
             </div>

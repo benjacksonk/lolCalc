@@ -15,14 +15,19 @@ export enum StatType {
     ArmorPenetrationRatio           = "Armor Penetration Ratio",
     ArmorReductionDebuffFlat        = "Armor Reduction Flat",
     ArmorReductionDebuffRatio       = "Armor Reduction Ratio",
+    BaseAttackDamage                = "Base Attack Damage",
+    BonusAttackDamage               = "Bonus Attack Damage",
     HealAndShieldPowerRatio         = "Heal & Shield Power Ratio",
     Health                          = "Health",
+    HealthRegenPer5sec              = "Health Regeneration per 5 sec",
+    ChampionLevelUps                = "Champ Level Ups",
     MagicPenetrationFlat            = "Magic Penetration Flat",
     MagicPenetrationRatio           = "Magic Penetration Ratio",
     MagicResistReductionDebuffFlat  = "Magic Reduction Flat",
     MagicResistReductionDebuffRatio = "Magic Reduction Ratio",
     MagicResistance                 = "Magic Resistance",
     Mana                            = "Mana",
+    ManaRegenPer5sec                = "Mana Regeneration per 5 sec",
     ManaRegenRatio                  = "Mana Regeneration Ratio",
     MoveSpeedFlat                   = "Move Speed",
     MoveSpeedRatio                  = "Move Speed Ratio",
@@ -158,7 +163,7 @@ export interface Entity {
     iconURL: string;
 }
 
-export abstract class Affector implements Entity {
+export class Affector implements Entity {
     readonly name: string;
     readonly iconURL: string;
     readonly stats: DefiniteNumberMap<StatType>;
@@ -177,6 +182,21 @@ export abstract class Affector implements Entity {
         this.stats = new DefiniteNumberMap(stats);
         this.effectsPerRank = effectsPerRank;
     }
+
+    static allBasicAffectors = [
+        new Affector("Basic Attack", "https://wiki.leagueoflegends.com/en-us/images/Attack_damage_icon.png", [], [
+            [
+                Effect.createDamageEffect(
+                    DamageType.Physical, 
+                    0,
+                    [
+                        [StatType.BaseAttackDamage, 1],
+                        [StatType.BonusAttackDamage, 0],
+                    ]
+                )
+            ],
+        ]),
+    ] as const;
 }
 
 export class Ability extends Affector {
@@ -444,21 +464,82 @@ export class Item extends Affector {
 }
 
 export class Rune extends Affector {
+    constructor(...affectorParams: ConstructorParameters<typeof Affector>) {
+        super(...affectorParams);
+
+        Rune.all.push(this);
+    }
+
+    static readonly all: Rune[] = [];
+
+    static readonly runes = {
+        // still ought to work out adaptive damage
+        ArcaneComet: new Rune("Arcane Comet", "https://wiki.leagueoflegends.com/en-us/images/Arcane_Comet_rune.png", [], [
+            [
+                Effect.createDamageEffect(
+                    DamageType.Magic, 
+                    30,
+                    [
+                        [StatType.ChampionLevelUps, (130-30)/17],
+                        [StatType.BonusAttackDamage, 0.1],
+                        [StatType.AbilityPower, 0.05]
+                    ]
+                )
+            ],
+        ]),
+        Electrocute: new Rune("Electrocute", "https://wiki.leagueoflegends.com/en-us/images/Electrocute_rune.png", [], [
+            [
+                Effect.createDamageEffect(
+                    DamageType.Magic, 
+                    70,
+                    [
+                        [StatType.ChampionLevelUps, (240-70)/17],
+                        [StatType.BonusAttackDamage, 0.1],
+                        [StatType.AbilityPower, 0.05]
+                    ]
+                )
+            ],
+        ]),
+        SummonAery: new Rune("Summon Aery", "https://wiki.leagueoflegends.com/en-us/images/Summon_Aery_rune.png", [], [
+            [
+                Effect.createDamageEffect(
+                    DamageType.Magic, 
+                    10,
+                    [
+                        [StatType.ChampionLevelUps, (50-10)/17],
+                        [StatType.BonusAttackDamage, 0.1],
+                        [StatType.AbilityPower, 0.05]
+                    ]
+                )
+            ],
+        ]),
+        Scorch: new Rune("Scorch", "https://wiki.leagueoflegends.com/en-us/images/Scorch_rune.png", [], [
+            [
+                Effect.createDamageEffect(
+                    DamageType.Magic, 
+                    20,
+                    [
+                        [StatType.ChampionLevelUps, (40-20)/17],
+                    ]
+                )
+            ],
+        ])
+    } as const;
 }
 
 export class Champion implements Entity {
-    readonly name: string;
-    readonly iconURL: string;
-    readonly abilities: Ability[];
+    readonly baseStats: DefiniteNumberMap<StatType>;
+    readonly statGrowthCoefficients: DefiniteNumberMap<StatType>;
 
     constructor(
-        name: typeof this.name, 
-        iconURL: typeof this.iconURL, 
-        abilities: typeof this.abilities
+        readonly name: string,
+        readonly iconURL: string,
+        readonly abilities: Ability[],
+        baseStats: Iterable<readonly [StatType, number]>,
+        statGrowthCoefficients: Iterable<readonly [StatType, number]>
     ) {
-        this.name = name;
-        this.iconURL = iconURL;
-        this.abilities = abilities;
+        this.baseStats = new DefiniteNumberMap<StatType>(baseStats);
+        this.statGrowthCoefficients = new DefiniteNumberMap<StatType>(statGrowthCoefficients);
 
         Champion.all.push(this);
     }
@@ -466,54 +547,76 @@ export class Champion implements Entity {
     static readonly all: Champion[] = [];
 
     static readonly champs = {
-        Ahri: new Champion("Ahri", "https://wiki.leagueoflegends.com/en-us/images/thumb/Ahri_OriginalSquare.png/92px-Ahri_OriginalSquare.png", [
-            new Ability("Orb of Deception", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Orb_of_Deception_HD.png", [], [
-                [
-                    Effect.createDamageEffect(DamageType.Magic, 40, [[StatType.AbilityPower, 0.5]], 
-                        Effect.createDamageEffect(DamageType.True, 40, [[StatType.AbilityPower, 0.5]])
-                    )
-                ],
-                [
-                    Effect.createDamageEffect(DamageType.Magic, 65, [[StatType.AbilityPower, 0.5]],
-                        Effect.createDamageEffect(DamageType.True, 65, [[StatType.AbilityPower, 0.5]])
-                    )
-                ],
-                [
-                    Effect.createDamageEffect(DamageType.Magic, 90, [[StatType.AbilityPower, 0.5]],
-                        Effect.createDamageEffect(DamageType.True, 90, [[StatType.AbilityPower, 0.5]])
-                    )
-                ],
-                [
-                    Effect.createDamageEffect(DamageType.Magic, 115, [[StatType.AbilityPower, 0.5]],
-                        Effect.createDamageEffect(DamageType.True, 115, [[StatType.AbilityPower, 0.5]])
-                    )
-                ],
-                [
-                    Effect.createDamageEffect(DamageType.Magic, 140, [[StatType.AbilityPower, 0.5]],
-                        Effect.createDamageEffect(DamageType.True, 140, [[StatType.AbilityPower, 0.5]])
-                    )
-                ]
-            ]),
-            new Ability("Fox-Fire", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Fox-Fire_HD.png", [], [
-                [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.72]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.72]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.72]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.72]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.72]]) ]
-            ]),
-            new Ability("Charm", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Charm_HD.png", [], [
-                [ Effect.createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 120, [[StatType.AbilityPower, 0.85]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.85]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 200, [[StatType.AbilityPower, 0.85]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 240, [[StatType.AbilityPower, 0.85]]) ]
-            ]),
-            new Ability("Spirit Rush", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Spirit_Rush_HD.png", [], [
-                [ Effect.createDamageEffect(DamageType.Magic, 75, [[StatType.AbilityPower, 0.35]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower, 0.35]]) ],
-                [ Effect.createDamageEffect(DamageType.Magic, 175, [[StatType.AbilityPower, 0.35]]) ]
-            ]),
-        ]),
+        Ahri: new Champion(
+            "Ahri", 
+            "https://wiki.leagueoflegends.com/en-us/images/thumb/Ahri_OriginalSquare.png/92px-Ahri_OriginalSquare.png", 
+            [
+                new Ability("Orb of Deception", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Orb_of_Deception_HD.png", [], [
+                    [
+                        Effect.createDamageEffect(DamageType.Magic, 40, [[StatType.AbilityPower, 0.5]], 
+                            Effect.createDamageEffect(DamageType.True, 40, [[StatType.AbilityPower, 0.5]])
+                        )
+                    ],
+                    [
+                        Effect.createDamageEffect(DamageType.Magic, 65, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 65, [[StatType.AbilityPower, 0.5]])
+                        )
+                    ],
+                    [
+                        Effect.createDamageEffect(DamageType.Magic, 90, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 90, [[StatType.AbilityPower, 0.5]])
+                        )
+                    ],
+                    [
+                        Effect.createDamageEffect(DamageType.Magic, 115, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 115, [[StatType.AbilityPower, 0.5]])
+                        )
+                    ],
+                    [
+                        Effect.createDamageEffect(DamageType.Magic, 140, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 140, [[StatType.AbilityPower, 0.5]])
+                        )
+                    ]
+                ]),
+                new Ability("Fox-Fire", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Fox-Fire_HD.png", [], [
+                    [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.72]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.72]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.72]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.72]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.72]]) ]
+                ]),
+                new Ability("Charm", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Charm_HD.png", [], [
+                    [ Effect.createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 120, [[StatType.AbilityPower, 0.85]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.85]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 200, [[StatType.AbilityPower, 0.85]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 240, [[StatType.AbilityPower, 0.85]]) ]
+                ]),
+                new Ability("Spirit Rush", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Spirit_Rush_HD.png", [], [
+                    [ Effect.createDamageEffect(DamageType.Magic, 75, [[StatType.AbilityPower, 0.35]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower, 0.35]]) ],
+                    [ Effect.createDamageEffect(DamageType.Magic, 175, [[StatType.AbilityPower, 0.35]]) ]
+                ]),
+            ], 
+            [
+                [StatType.Health, 590],
+                [StatType.HealthRegenPer5sec, 2.5],
+                [StatType.Mana, 418],
+                [StatType.ManaRegenPer5sec, 8],
+                [StatType.Armor, 21],
+                [StatType.MagicResistance, 30],
+                [StatType.AttackDamageBase, 53]
+            ], 
+            [
+                [StatType.Health, 104],
+                [StatType.HealthRegenPer5sec, 0.6],
+                [StatType.Mana, 25],
+                [StatType.ManaRegenPer5sec, 0.8],
+                [StatType.Armor, 4.2],
+                [StatType.MagicResistance, 1.3],
+                [StatType.AttackDamageBase, 3],
+            ]
+        ),
     } as const;
 }
 
@@ -521,6 +624,7 @@ export class GameOrigin {
     constructor(
         public readonly buildPrice: number,
         public readonly buildStats: DefiniteNumberMap<StatType>,
+        public readonly champBaseStats: DefiniteNumberMap<StatType>,
         public readonly targetBaseStats: DefiniteNumberMap<StatType>,
         public readonly effectQueue: Effect[]
     ) {
@@ -562,6 +666,7 @@ export class GameConfig {
                 0,
                 new DefiniteNumberMap<StatType>(), 
                 new DefiniteNumberMap<StatType>(),
+                new DefiniteNumberMap<StatType>(),
                 []
             ),
             champStatModifiers: new DefiniteNumberMap<StatType>(),
@@ -577,7 +682,7 @@ export class GameConfig {
 
         this.statsPostEval 
         = newValues.champStatModifiers || !blueprint ? 
-        DefiniteNumberMap.sumPerKey(this.origin.buildStats, this.champStatModifiers) : 
+        DefiniteNumberMap.sumPerKey(this.origin.champBaseStats, this.champStatModifiers, this.origin.buildStats) : 
         blueprint.statsPostEval;
         
         this.statsPostEval.set(StatType.AbilityPower, this.statsPostEval.get(StatType.AbilityPower) * (1 + this.statsPostEval.get(StatType.AbilityPowerAmpRatio)));
@@ -640,6 +745,22 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
         targetBaseStats: DefiniteNumberMap<StatType>,
         buildConfigs: BuildConfig[]
     ) {
+        let champLevel = abilityRanks.values().reduce((a,b) => a+b, 0);
+        let champLevelUps = Math.max(0, champLevel - 1);
+        let growthCoeffecient = champLevelUps * (0.7025 + (0.0175 * champLevelUps));
+        
+        let growthStats 
+        = new DefiniteNumberMap(champ.statGrowthCoefficients.entries().map(statType_statCoefficient => {
+            let statType = statType_statCoefficient[0];
+            let statCoefficient = statType_statCoefficient[1];
+            
+            return [statType, statCoefficient * growthCoeffecient]
+        }));
+        
+        let totalBaseStats 
+        = DefiniteNumberMap.sumPerKey(new DefiniteNumberMap<StatType>([[StatType.ChampionLevelUps, champLevelUps]]), champ.baseStats, growthStats);
+        // totalBaseStats.set(StatType.ChampionLevel, champLevel);
+        
         let effectsPerAbility 
         = new DefiniteMap<Ability,Effect[]>([], champ.abilities.map(
             ability => [ability, ability.effectsPerRank[Math.max(0, abilityRanks.get(ability) - 1)]]
@@ -648,6 +769,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
         let affectorQueueDiffMap 
         = new DiffMap(buildConfigs.map(
             (buildConfig): [BuildConfig, GameDiff] => {
+
                 let builtEffects 
                 = buildConfig.affectorQueue.flatMap(
                     (affector): Effect[] => {
@@ -657,20 +779,36 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
                         else if (affector instanceof Item) {
                             return affector.effectsPerRank[buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
                         }
-                        else return [];
+                        else return affector.effectsPerRank[0];
                     }
                 );
 
                 let endBuiltGameConfig 
-                = new GameOrigin(buildConfig.totalCost, buildConfig.buildStats, targetBaseStats, builtEffects).processEffects();
+                = new GameOrigin(
+                    buildConfig.totalCost, 
+                    buildConfig.buildStats, 
+                    totalBaseStats,
+                    targetBaseStats,
+                    builtEffects
+                ).processEffects();
 
                 let unbuiltEffects 
                 = buildConfig.affectorQueue
-                .filter(affector => affector instanceof Ability)
-                .flatMap(ability => effectsPerAbility.get(ability));
+                .filter(affector => affector !instanceof Item)
+                .flatMap(affector => 
+                    affector instanceof Ability ? 
+                    effectsPerAbility.get(affector) :
+                    affector.effectsPerRank[0]
+                );
 
                 let endUnbuiltGameConfig 
-                = new GameOrigin(0, new DefiniteNumberMap<StatType>(), targetBaseStats, unbuiltEffects).processEffects();
+                = new GameOrigin(
+                    0, 
+                    new DefiniteNumberMap<StatType>(), 
+                    totalBaseStats,
+                    targetBaseStats, 
+                    unbuiltEffects
+                ).processEffects();
                 
                 let effectQueueDiff = DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig);
                 return [buildConfig, effectQueueDiff];
@@ -683,8 +821,24 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
             
             let diffMap = new DiffMap( 
                 buildConfigs.map((buildConfig): [BuildConfig, GameDiff] => {
-                    let endBuiltGameConfig = new GameOrigin(buildConfig.totalCost, buildConfig.buildStats, targetBaseStats, effects).processEffects();
-                    let endUnbuiltGameConfig = new GameOrigin(0, new DefiniteNumberMap<StatType>(), targetBaseStats, effects).processEffects();
+                    let endBuiltGameConfig 
+                    = new GameOrigin(
+                        buildConfig.totalCost, 
+                        buildConfig.buildStats, 
+                        totalBaseStats,
+                        targetBaseStats, 
+                        effects
+                    ).processEffects();
+
+                    let endUnbuiltGameConfig 
+                    = new GameOrigin(
+                        0, 
+                        new DefiniteNumberMap<StatType>(), 
+                        totalBaseStats,
+                        targetBaseStats, 
+                        effects
+                    ).processEffects();
+                    
                     let effectQueueDiff = DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig);
                     return [buildConfig, effectQueueDiff];
                 })
