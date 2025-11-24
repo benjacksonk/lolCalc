@@ -50,7 +50,7 @@
                 <!-- {#if diffMins.addedDamagePerGold != 0 && diffMins.addedDamagePerGold != diff.addedDamagePerGold} -->
                 <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageDiff_per_goldDiff / min_DamageDiffPerGoldDiff - 1)).toFixed(1)}%</span></span>
                 <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{(diff.damageDiff_per_goldDiff * 1000).toFixed(0)}</span></span>
-                <span class="unit"><span>Δ dmg∕</span><span>Δ kGold</span></span>
+                <span class="unit" style:grid-template-rows={"subgrid"}><span>Δ dmg∕</span><span>Δ kGold</span></span>
                 <!-- {/if} -->
             </div>
         </div>
@@ -218,9 +218,10 @@
         text-align: end;
         display: grid;
         grid-auto-flow: column;
-        /* grid-template-columns: subgrid; */
         gap: 0 0.4ch;
+        align-self: baseline;
         align-items: baseline;
+        align-content: center;
         justify-content: stretch;
     }
 
@@ -237,9 +238,9 @@
         grid-column: 3;
         margin-left: 1ch;
         display: grid;
-        grid-auto-flow: row;
-        align-content: center;
         justify-items: right;
+        align-content: center;
+        align-items: baseline;
     }
     
     .deltaDiff {

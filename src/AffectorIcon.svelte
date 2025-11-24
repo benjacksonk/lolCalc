@@ -3,17 +3,21 @@
 
     let {
         affector,
-        size
+        size,
+        hasTooltip
     } : {
         affector: Affector,
-        size: "max"|"med"|"min"
+        size: "max"|"med"|"min",
+        hasTooltip: boolean
     } = $props();
 </script>
 
 
 
-<div class="AffectorIcon popupContainer">
+<div class="AffectorIcon">
     <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
+
+    {#if hasTooltip}
     <div class="popup tooltip affectorDetails">
         <span class="affectorName">{affector.name}</span>
 
@@ -34,6 +38,7 @@
             </span><span class="affectorStatName">{stat[0]}</span></span>
         {/each}
     </div>
+    {/if}
 </div>
 
 

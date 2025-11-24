@@ -40,7 +40,7 @@
     </button>
     {/each}
     
-    <div class="popupContainer">
+    <div class="addAffectorButtonWrapper">
         <button onmousedown={handlemousedownOnPopupAnchor}>＋</button>
         
         <div class="popup" bind:this={popup} style:display={popupState.currentPopup == popup ? "grid" : "none"}>
@@ -61,7 +61,7 @@
         flex-flow: row nowrap;
         gap: 1px;
 
-        .popupContainer {
+        .addAffectorButtonWrapper {
             display: grid;
         }
 

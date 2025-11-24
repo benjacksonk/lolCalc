@@ -732,9 +732,16 @@ export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
         super(DiffMap.zeroDiff, entries);
         
         let diffs = this.values().toArray();
-        let nonzero_damageDiff_per_goldDiffs = diffs.map(diff => diff.damageDiff_per_goldDiff).filter(value => value > 0);
 
-        this.min_DamageDiffPerGoldDiff = nonzero_damageDiff_per_goldDiffs.length > 1 ? Math.min(...nonzero_damageDiff_per_goldDiffs) : nonzero_damageDiff_per_goldDiffs[0] ?? 0;
+        let nonzero_damageDiff_per_goldDiffs 
+        = diffs
+        .map(diff => diff.damageDiff_per_goldDiff)
+        .filter(value => value > 0);
+
+        this.min_DamageDiffPerGoldDiff 
+        = nonzero_damageDiff_per_goldDiffs.length > 1 ? 
+        Math.min(...nonzero_damageDiff_per_goldDiffs) : 
+        nonzero_damageDiff_per_goldDiffs[0] ?? 0;
     }
 }
 
@@ -757,7 +764,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
             return [statType, statCoefficient * growthCoeffecient]
         }));
         
-        let totalBaseStats 
+        let champBaseStats 
         = DefiniteNumberMap.sumPerKey(new DefiniteNumberMap<StatType>([[StatType.ChampionLevelUps, champLevelUps]]), champ.baseStats, growthStats);
         // totalBaseStats.set(StatType.ChampionLevel, champLevel);
         
@@ -771,33 +778,26 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
             (buildConfig): [BuildConfig, GameDiff] => {
 
                 let builtEffects 
-                = buildConfig.affectorQueue.flatMap(
-                    (affector): Effect[] => {
-                        if (affector instanceof Ability) {
-                            return effectsPerAbility.get(affector);
-                        }
-                        else if (affector instanceof Item) {
-                            return affector.effectsPerRank[buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0];
-                        }
-                        else return affector.effectsPerRank[0];
-                    }
+                = buildConfig.affectorQueue.flatMap((affector): Effect[] => 
+                    affector instanceof Ability ? effectsPerAbility.get(affector) : 
+                    affector instanceof Item ? affector.effectsPerRank[buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0] : 
+                    affector.effectsPerRank[0]
                 );
 
                 let endBuiltGameConfig 
                 = new GameOrigin(
                     buildConfig.totalCost, 
                     buildConfig.buildStats, 
-                    totalBaseStats,
+                    champBaseStats,
                     targetBaseStats,
                     builtEffects
                 ).processEffects();
 
                 let unbuiltEffects 
                 = buildConfig.affectorQueue
-                .filter(affector => affector !instanceof Item)
+                .filter(affector => !(affector instanceof Item))
                 .flatMap(affector => 
-                    affector instanceof Ability ? 
-                    effectsPerAbility.get(affector) :
+                    affector instanceof Ability ? effectsPerAbility.get(affector) :
                     affector.effectsPerRank[0]
                 );
 
@@ -805,19 +805,18 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
                 = new GameOrigin(
                     0, 
                     new DefiniteNumberMap<StatType>(), 
-                    totalBaseStats,
+                    champBaseStats,
                     targetBaseStats, 
                     unbuiltEffects
                 ).processEffects();
                 
-                let effectQueueDiff = DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig);
-                return [buildConfig, effectQueueDiff];
+                return [buildConfig, DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig)];
             }
         ));
 
         let entries 
         = champ.abilities.map((ability): [Ability, DiffMap] => {
-            let effects = effectsPerAbility.get(ability);
+            let abilityEffects = effectsPerAbility.get(ability);
             
             let diffMap = new DiffMap( 
                 buildConfigs.map((buildConfig): [BuildConfig, GameDiff] => {
@@ -825,22 +824,21 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
                     = new GameOrigin(
                         buildConfig.totalCost, 
                         buildConfig.buildStats, 
-                        totalBaseStats,
+                        champBaseStats,
                         targetBaseStats, 
-                        effects
+                        abilityEffects
                     ).processEffects();
 
                     let endUnbuiltGameConfig 
                     = new GameOrigin(
                         0, 
                         new DefiniteNumberMap<StatType>(), 
-                        totalBaseStats,
+                        champBaseStats,
                         targetBaseStats, 
-                        effects
+                        abilityEffects
                     ).processEffects();
                     
-                    let effectQueueDiff = DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig);
-                    return [buildConfig, effectQueueDiff];
+                    return [buildConfig, DiffAtlas.calculateDiff(endUnbuiltGameConfig, endBuiltGameConfig)];
                 })
             );
 

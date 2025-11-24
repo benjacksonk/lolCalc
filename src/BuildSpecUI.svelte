@@ -31,18 +31,18 @@
 
 <div class="sheer BuildSpec">
     {#each itemConfigSet as itemConfig, i}
-    <div class="popupContainer">
+    <div>
         <button class="sheer entityBtn slotBtn" onmousedown={
             (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
         }
         >
-            <AffectorIcon affector={itemConfig.item} size="min"/>
+            <AffectorIcon affector={itemConfig.item} size="min" hasTooltip={true}/>
         </button>
         
         <div class="popup" bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}>
             {#each Item.all as item, j (item.name)}
             <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
-                <AffectorIcon affector={item} size="min"/>
+                <AffectorIcon affector={item} size="min" hasTooltip={true}/>
             </button>
             {/each}
         </div>
