@@ -723,15 +723,29 @@ export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
         unbuiltEndGameConfig: new GameConfig(),
         builtEndGameConfig: new GameConfig(),
         totalDamageDiff: 0,
+        damageTotal_per_goldDiff: 0,
         damageDiff_per_goldDiff: 0
     }
 
+    readonly min_DamageTotalPerGoldDiff: number;
     readonly min_DamageDiffPerGoldDiff: number;
     
     constructor(entries: Iterable<readonly [BuildConfig, GameDiff]>) {
         super(DiffMap.zeroDiff, entries);
         
         let diffs = this.values().toArray();
+
+
+        let nonzero_damageTotal_per_goldDiffs 
+        = diffs
+        .map(diff => diff.damageTotal_per_goldDiff)
+        .filter(value => value > 0);
+
+        this.min_DamageTotalPerGoldDiff 
+        = nonzero_damageTotal_per_goldDiffs.length > 1 ? 
+        Math.min(...nonzero_damageTotal_per_goldDiffs) : 
+        nonzero_damageTotal_per_goldDiffs[0] ?? 0;
+
 
         let nonzero_damageDiff_per_goldDiffs 
         = diffs
@@ -853,6 +867,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
             unbuiltEndGameConfig,
             builtEndGameConfig,
             totalDamageDiff: builtEndGameConfig.damageAggregate - unbuiltEndGameConfig.damageAggregate,
+            damageTotal_per_goldDiff: builtEndGameConfig.damageAggregate / builtEndGameConfig.origin.buildPrice,
             damageDiff_per_goldDiff: (builtEndGameConfig.damageAggregate - unbuiltEndGameConfig.damageAggregate) / (builtEndGameConfig.origin.buildPrice - unbuiltEndGameConfig.origin.buildPrice),
         };
     }

@@ -38,7 +38,7 @@
     </div>
 
     <div class="sheer buildsAndSequences">
-        {#snippet damageDiff(diff: GameDiff, min_DamageDiffPerGoldDiff: number)}
+        {#snippet damageDiff(diff: GameDiff, min_DamageDiffPerGoldDiff: number, min_DamageTotalPerGoldDiff: number)}
         <div class="sheer effectOutcome">
             <div class="absoluteDamagePerGold">
                 <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{diff.totalDamageDiff.toFixed(0)}</span></span>
@@ -47,11 +47,9 @@
             </div>
 
             <div class="relativeDamagePerGold">
-                <!-- {#if diffMins.addedDamagePerGold != 0 && diffMins.addedDamagePerGold != diff.addedDamagePerGold} -->
                 <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageDiff_per_goldDiff / min_DamageDiffPerGoldDiff - 1)).toFixed(1)}%</span></span>
-                <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{(diff.damageDiff_per_goldDiff * 1000).toFixed(0)}</span></span>
-                <span class="unit" style:grid-template-rows={"subgrid"}><span>Δ dmg∕</span><span>Δ kGold</span></span>
-                <!-- {/if} -->
+                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageTotal_per_goldDiff/ min_DamageTotalPerGoldDiff - 1)).toFixed(1)}%</span></span>
+                <span class="unit" style:grid-template-rows={"subgrid"}><span>Δ d∕g</span><span>Σ d∕g</span></span>
             </div>
         </div>
         {/snippet}
@@ -87,7 +85,7 @@
             style:grid-row={`span ${buildConfigs.length}`}
             >
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).min_DamageDiffPerGoldDiff)}
+                {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).min_DamageDiffPerGoldDiff, diffAtlas.get(ability).min_DamageTotalPerGoldDiff)}
                 {/each}
             </div>
             {/each}
@@ -99,7 +97,7 @@
         >
             <div class="sheer diffColumn affectorQueueDiffs" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).min_DamageDiffPerGoldDiff)}
+                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).min_DamageDiffPerGoldDiff, diffAtlas.get(null).min_DamageTotalPerGoldDiff)}
                 {/each}
             </div>
 
