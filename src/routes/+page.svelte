@@ -47,9 +47,9 @@
             </div>
 
             <div class="relativeDamagePerGold">
-                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageDiff_per_goldDiff / min_DamageDiffPerGoldDiff - 1)).toFixed(1)}%</span></span>
-                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageTotal_per_goldDiff/ min_DamageTotalPerGoldDiff - 1)).toFixed(1)}%</span></span>
-                <span class="unit" style:grid-template-rows={"subgrid"}><span>Δ d∕g</span><span>Σ d∕g</span></span>
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageDiff_per_goldDiff / min_DamageDiffPerGoldDiff - 1)).toFixed(1)} % Δ</span></span>
+                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageTotal_per_goldDiff/ min_DamageTotalPerGoldDiff - 1)).toFixed(1)} % Σ</span></span>
+                <span class="unit">d∕g</span>
             </div>
         </div>
         {/snippet}
@@ -216,7 +216,6 @@
         text-align: end;
         display: grid;
         grid-auto-flow: column;
-        gap: 0 0.4ch;
         align-self: baseline;
         align-items: baseline;
         align-content: center;
@@ -234,7 +233,7 @@
     .unit {
         grid-row: 1 / span 2;
         grid-column: 3;
-        margin-left: 1ch;
+        margin-left: 0.8ch;
         display: grid;
         justify-items: right;
         align-content: center;

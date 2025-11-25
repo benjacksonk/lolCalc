@@ -380,7 +380,19 @@ export class Item extends Affector {
         ),
         LiandrysTorment: new Item(
             3000, "Liandry's Torment", "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item.png",
-            [[StatType.AbilityPower,60],[StatType.Health,300]]
+            [[StatType.AbilityPower,60],[StatType.Health,300]],
+            [
+                [
+                    new Effect((gameConfig: GameConfig): GameConfig => {
+                        let rawDamage = new Damage(0, 0, gameConfig.targetStatsPostEval.get(StatType.Health) * 0.06);
+                        let effectiveDamage = Damage.multiply(rawDamage, gameConfig.defenseCoefficients);
+                        
+                        return new GameConfig(gameConfig, {
+                            damageAggregate: gameConfig.damageAggregate + effectiveDamage.total
+                        });
+                    })
+                ]
+            ]
         ),
         LichBane: new Item(
             2900, "Lich Bane", "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item.png",
@@ -437,7 +449,16 @@ export class Item extends Affector {
         ),
         Shadowflame: new Item(
             3200, "Shadowflame", "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item.png",
-            [[StatType.AbilityPower,110],[StatType.MagicPenetrationFlat,15]]
+            [[StatType.AbilityPower,110],[StatType.MagicPenetrationFlat,15]],
+            [
+                [
+                    new Effect((gameConfig: GameConfig): GameConfig => {
+                        return new GameConfig(gameConfig, {
+                            damageAggregate: gameConfig.damageAggregate * 1.2
+                        });
+                    })
+                ]
+            ]
         ),
         ShurelyasBattlesong: new Item(
             2200, "Shurelya's Battlesong", "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item.png",
