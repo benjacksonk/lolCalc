@@ -221,17 +221,23 @@ export class Item extends Affector {
     static readonly all: Item[] = [];
 
     static readonly items = {
-        NoItem: new Item(0, "Itemless", "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png"),
-        AdaptiveForceShard: new Item (
+        Nothing: new Item(0, "Nothing", "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png"),
+        AdaptiveForceShard: new Item(
             0, "Adaptive Force Shard", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
             [[StatType.AbilityPower, 9]]
         ),
         AdaptiveForceShardX2: new Item (
-            0, "Adaptive Force Shard x 2", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+            0, "2 Adaptive Force Shards", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
             [[StatType.AbilityPower, 18]]
         ),
-        HealthPotionX2: new Item (
-            100, "Health Potion x 2", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"
+        HealthPotion: new Item(
+            50, "Health Potion", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item_Winter.png"
+        ),
+        HealthPotionX2: new Item(
+            100, "2 Health Potions", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item_Winter.png"
+        ),
+        RefillablePotion: new Item(
+            150, "Refillable Potion", "https://wiki.leagueoflegends.com/en-us/images/Refillable_Potion_item_Winter.png"
         ),
         DarkSeal: new Item(
             350, "Dark Seal", "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item.png", 
@@ -240,6 +246,10 @@ export class Item extends Affector {
         DoransRing: new Item(
             400, "Doran's Ring", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item.png", 
             [[StatType.AbilityPower,18],[StatType.Health,90]]
+        ),
+        Boots: new Item(
+            300, "Boots", "https://wiki.leagueoflegends.com/en-us/images/Boots_item.png", 
+            [[StatType.MoveSpeedFlat,25]]
         ),
         BootsOfSwiftness: new Item(
             1000, "Boots of Swiftness", "https://wiki.leagueoflegends.com/en-us/images/Boots_of_Swiftness_item.png", 
@@ -955,7 +965,7 @@ export class ItemSlotConfig {
             item: blueprint.item,
             rank: blueprint.rank
         } : {
-            item: Item.items.NoItem,
+            item: Item.items.Nothing,
             rank: 0
         };
 

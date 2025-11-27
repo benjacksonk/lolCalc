@@ -43,7 +43,11 @@
     <div class="addAffectorButtonWrapper">
         <button onmousedown={handlemousedownOnPopupAnchor}>＋</button>
         
-        <div class="popup" bind:this={popup} style:display={popupState.currentPopup == popup ? "grid" : "none"}>
+        <div 
+        class="popup" 
+        class:REMOVED={popupState.currentPopup != popup}
+        bind:this={popup} style:display={popupState.currentPopup == popup ? "grid" : "none"}
+        >
             {#each affectorOptions as affector, j (affector.name)}
             <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
                 <img class="icon min" alt={affector.name} src={affector.iconURL}>

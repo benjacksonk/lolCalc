@@ -39,7 +39,11 @@
             <AffectorIcon affector={itemConfig.item} size="min" hasTooltip={true}/>
         </button>
         
-        <div class="popup" bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}>
+        <div 
+        class="popup" 
+        class:REMOVED={popupState.currentPopup != popups[i]}
+        bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}
+        >
             {#each Item.all as item, j (item.name)}
             <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
                 <AffectorIcon affector={item} size="min" hasTooltip={true}/>

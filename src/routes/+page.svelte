@@ -37,7 +37,7 @@
         <TargetSpecUI bind:targetBaseStats/>
     </div>
 
-    <div class="sheer buildsAndSequences">
+    <div class="sheer diffTable">
         {#snippet damageDiff(diff: GameDiff, min_DamageDiffPerGoldDiff: number, min_DamageTotalPerGoldDiff: number)}
         <div class="sheer effectOutcome">
             <div class="absoluteDamagePerGold">
@@ -54,7 +54,7 @@
         </div>
         {/snippet}
 
-        <div class="effectSequencer"
+        <div class="diffTableAbilities"
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability, i (ability.name)}
@@ -62,7 +62,7 @@
             {/each}
         </div>
 
-        <div class="buildSpecs"
+        <div class="diffTableBuilds"
         style:grid-row-end={`span ${buildConfigs.length + 1}`}
         >
             {#each buildConfigs as buildConfig, i}
@@ -76,12 +76,12 @@
             </button>
         </div>
         
-        <div class="abilityOutcomesPerBuild" 
+        <div class="diffsPerBuildPerAbility" 
         style:grid-row-end={`span ${buildConfigs.length}`}
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability}
-            <div class="sheer diffColumn abilityDiffsPerBuild"
+            <div class="sheer diffColumn"
             style:grid-row={`span ${buildConfigs.length}`}
             >
                 {#each buildConfigs as buildConfig}
@@ -91,17 +91,17 @@
             {/each}
         </div>
         
-        <div class="sequenceOutcomesPerBuild" 
+        <div class="sequenceDiffsPerBuild" 
         style:grid-row-end={`span ${buildConfigs.length}`}
         style:grid-column-start={2 + champ.abilities.length}
         >
-            <div class="sheer diffColumn affectorQueueDiffs" style:grid-row={`span ${buildConfigs.length}`}>
+            <div class="sheer diffColumn" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
                 {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).min_DamageDiffPerGoldDiff, diffAtlas.get(null).min_DamageTotalPerGoldDiff)}
                 {/each}
             </div>
 
-            <div class="affectorQueues" style:grid-row={`span ${buildConfigs.length}`}>
+            <div class="sequencesPerBuild" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
                 <AffectorSequenceUI bind:affectorQueue={buildConfig.affectorQueue}
                 affectorOptions={[...Affector.allBasicAffectors, ...champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0), ...Rune.all]}
@@ -136,7 +136,7 @@
         gap: 40px;
     }
     
-    .buildsAndSequences {
+    .diffTable {
         display: grid;
 
         gap: 10px;
@@ -144,7 +144,7 @@
         grid-auto-columns: max-content;
     }
 
-    .effectSequencer {
+    .diffTableAbilities {
         grid-row: 1;
         grid-column-start: 2;
         display: grid;
@@ -155,7 +155,7 @@
         justify-items: center;
     }
 
-    .buildSpecs {
+    .diffTableBuilds {
         grid-row-start: 2;
         grid-column: 1;
         display: grid;
@@ -165,8 +165,8 @@
         grid-template-columns: subgrid;
     }
 
-    .abilityOutcomesPerBuild,
-    .sequenceOutcomesPerBuild {
+    .diffsPerBuildPerAbility,
+    .sequenceDiffsPerBuild {
         display: grid;
 
         grid-row-start: 2;
@@ -205,7 +205,7 @@
         }
     }
 
-    .affectorQueues {
+    .sequencesPerBuild {
         display: grid;
         grid-template: subgrid / subgrid;
     }
