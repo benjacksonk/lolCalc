@@ -32,7 +32,7 @@
 <div class="sheer BuildSpec">
     {#each itemConfigSet as itemConfig, i}
     <div>
-        <button class="sheer entityBtn slotBtn" onmousedown={
+        <button class="sheer affectorButton slotButton" onmousedown={
             (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
         }
         >
@@ -45,7 +45,7 @@
         bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}
         >
             {#each Item.all as item, j (item.name)}
-            <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
+            <button class="sheer affectorButton optionButton" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
                 <AffectorIcon affector={item} size="min" hasTooltip={true}/>
             </button>
             {/each}
@@ -73,7 +73,7 @@
         }
     }
 
-    .entityBtn {
+    .affectorButton {
         display: flex;
     }
 </style>

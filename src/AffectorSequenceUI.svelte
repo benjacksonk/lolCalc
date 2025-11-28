@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Affector } from "$lib/types.svelte";
     import { popupState } from "$lib/popupState.svelte";
+    import AffectorIcon from "./AffectorIcon.svelte";
 
     let {
         affectorQueue = $bindable(),
@@ -36,7 +37,7 @@
 <div class="sheer AffectorSequenceUI">
     {#each affectorQueue as affector, i}
     <button class="sheer entityButton" onmousedown={(event) => removeAffector(event, i)}>
-        <img src={affector.iconURL} alt={affector.name} class="icon min">
+        <AffectorIcon {affector} size="min" hasTooltip={false}/>
     </button>
     {/each}
     
@@ -50,7 +51,7 @@
         >
             {#each affectorOptions as affector, j (affector.name)}
             <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
-                <img class="icon min" alt={affector.name} src={affector.iconURL}>
+                <AffectorIcon {affector} size={"min"} hasTooltip={false}/>
             </button>
             {/each}
         </div>

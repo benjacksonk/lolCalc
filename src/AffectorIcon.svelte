@@ -15,7 +15,9 @@
 
 
 <div class="AffectorIcon">
-    <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
+    <div class="iconWrapper">
+        <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
+    </div>
 
     {#if hasTooltip}
     <div class="popup tooltip affectorDetails">
@@ -45,11 +47,13 @@
 
 <style>
     .AffectorIcon {
-        > .popup {
-            background-color: #234;
+        > .tooltip {
+            background-color: #1a2a3a;
             color: #e2e2e2;
-            border: 3px solid #ca8;
+            border: 2px solid #2a3a4a;
             padding: 10px;
+            outline: 1px solid #cba;
+            box-shadow: 0 0 7px 5px #111a;
             display: grid;
 
             grid-template-columns: auto auto;
@@ -59,6 +63,25 @@
         &:not(:hover) > .tooltip {
             visibility: hidden;
         }
+
+        &:hover {
+            z-index: 1;
+
+            > .iconWrapper {
+                transition: 0.035s ease-out;
+                transform: scale(133%);
+                outline: 1px solid #cba;
+                box-shadow: 0 0 17px 12px #111e;
+
+                > .icon {
+                    border: 1px solid #777;
+                }
+            }
+        }
+    }
+
+    .iconWrapper {
+        background-color: #222;
     }
 
     .itemStat {
