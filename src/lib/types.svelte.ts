@@ -307,6 +307,10 @@ export class Item extends Affector {
             300, "Sapphire Crystal", "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item.png", 
             [[StatType.Mana,300]]
         ),
+        TearOfTheGoddess: new Item(
+            400, "Tear of the Goddess", "https://wiki.leagueoflegends.com/en-us/images/Tear_of_the_Goddess_item.png", 
+            [[StatType.Mana,240]]
+        ),
         AmplifyingTome: new Item(
             400, "Amplifying Tome", "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item.png", 
             [[StatType.AbilityPower,20]]
