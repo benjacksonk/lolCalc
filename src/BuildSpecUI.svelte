@@ -1,12 +1,15 @@
 <script lang="ts">
     import { popupState } from "$lib/popupState.svelte";
-    import { Item, ItemSlotConfig, type ItemSlotConfigSet } from "$lib/types.svelte";
+    import { BuildConfig, GameConfig, Item, ItemSlotConfig } from "$lib/types.svelte";
     import AffectorIcon from "./AffectorIcon.svelte";
+    import StatsTooltip from "./StatsTooltip.svelte";
 
     let {
-        itemConfigSet = $bindable()
+        buildConfig = $bindable(),
+        derivedGameConfig
     } : {
-        itemConfigSet: ItemSlotConfigSet
+        buildConfig: BuildConfig,
+        derivedGameConfig: GameConfig
     } = $props();
 
     let popups
@@ -30,7 +33,12 @@
 
 
 <div class="sheer BuildSpec">
-    {#each itemConfigSet as itemConfig, i}
+    <div class="price">
+        <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span><span class="priceUnit">g</span>
+        <StatsTooltip stats={derivedGameConfig.statsPostEval} position="right" header={"Initial Stat Totals"}/>
+    </div>
+
+    {#each buildConfig.itemSlots as itemConfig, i}
     <div>
         <button class="sheer affectorButton slotButton" onmousedown={
             (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
@@ -46,7 +54,7 @@
         >
             {#each Item.all as item, j (item.name)}
             <button class="sheer affectorButton optionButton" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
-                <AffectorIcon affector={item} size="min" hasTooltip={true}/>
+                <AffectorIcon affector={item} size="sml" hasTooltip={true}/>
             </button>
             {/each}
         </div>
@@ -58,9 +66,11 @@
 
 <style>
     .BuildSpec {
-        display: flex;
-        flex-flow: row nowrap;
-        align-items: center;
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-rows: repeat(2, minmax(0,1fr));
+        grid-template-columns: 4em;
+        grid-auto-columns: minmax(0,1fr);
 
         .popup {
             background: #111;
@@ -71,6 +81,18 @@
             left: unset;
             transform: unset;
         }
+    }
+
+    .price {
+        grid-row: span 2;
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: auto;
+        grid-auto-columns: max-content;
+        align-content: center;
+        text-align: right;
+        padding: 0 5px;
+        gap: 0 0.2em;
     }
 
     .affectorButton {

@@ -656,6 +656,8 @@ export class Champion implements Entity {
 }
 
 export class GameOrigin {
+    #initialGameConfig: GameConfig|undefined;
+    
     constructor(
         public readonly buildPrice: number,
         public readonly buildStats: DefiniteNumberMap<StatType>,
@@ -665,11 +667,15 @@ export class GameOrigin {
     ) {
     }
 
+    get initialGameConfig() {
+        return this.#initialGameConfig ??= new GameConfig(null, { origin: this });
+    }
+
     processEffects(): GameConfig {
-        let gameConfig = new GameConfig(null, { origin: this });
+        let gameConfig = this.initialGameConfig;
         
         this.effectQueue.forEach(effect => {
-            gameConfig = effect.implement(gameConfig);
+            gameConfig = effect.implement(this.initialGameConfig);
             effect.aftereffects.forEach(aftereffect => {
                 gameConfig = aftereffect.implement(gameConfig);
             });

@@ -51,7 +51,7 @@
         >
             {#each affectorOptions as affector, j (affector.name)}
             <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
-                <AffectorIcon {affector} size={"min"} hasTooltip={false}/>
+                <AffectorIcon {affector} size={"sml"} hasTooltip={false}/>
             </button>
             {/each}
         </div>

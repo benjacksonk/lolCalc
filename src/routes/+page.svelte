@@ -27,6 +27,14 @@
         event.preventDefault();
         buildConfigs.push(new BuildConfig(lastBuild));
     }
+
+    function handleOnClickDeleteBuild(
+        event: MouseEvent, 
+        lastBuild: BuildConfig
+    ) {
+        event.preventDefault();
+        buildConfigs.splice(buildConfigs.indexOf(lastBuild), 1);
+    }
 </script>
 
 
@@ -66,7 +74,17 @@
         style:grid-row-end={`span ${buildConfigs.length + 1}`}
         >
             {#each buildConfigs as buildConfig, i}
-            <BuildSpecUI bind:itemConfigSet={buildConfigs[i].itemSlots}/>
+            <div class="buildContainer">
+                <button class="button_deleteBuild"
+                onmousedown={(event) => handleOnClickDeleteBuild(event, buildConfig)}
+                disabled={i==0}
+                >𐌢</button>
+
+                <BuildSpecUI 
+                bind:buildConfig={buildConfigs[i]} 
+                derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtEndGameConfig.origin.initialGameConfig}
+                />
+            </div>
             {/each}
 
             <button style:display="grid"
@@ -163,6 +181,20 @@
         gap: 10px;
         grid-template-rows: subgrid;
         grid-template-columns: subgrid;
+    }
+
+    .buildContainer {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: max-content;
+        grid-auto-columns: auto;
+    }
+
+    .button_deleteBuild {
+        display: grid;
+        padding: 0 5px;
+        align-content: center;
+        text-align: center;
     }
 
     .diffsPerBuildPerAbility,
