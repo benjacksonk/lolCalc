@@ -77,7 +77,7 @@
             <div class="buildContainer">
                 <button class="button_deleteBuild"
                 onmousedown={(event) => handleOnClickDeleteBuild(event, buildConfig)}
-                disabled={i==0}
+                disabled={buildConfigs.length <= 1}
                 >𐌢</button>
 
                 <BuildSpecUI 
@@ -193,6 +193,9 @@
     .button_deleteBuild {
         display: grid;
         padding: 0 5px;
+        background-color: #a55;
+        border: 2px solid #944;
+        color: #722;
         align-content: center;
         text-align: center;
     }

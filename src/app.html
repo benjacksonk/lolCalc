@@ -20,6 +20,13 @@
 	}
 
 	:root {
+		--zoomScale: 1.15;
+		--unzoomScale: calc(1 / var(--zoomScale));
+		--shadow-small: 0 0px 4px 4px #000000af;
+		--shadow-medium: 0 0px 12px 6px #000000af;
+		--shadow-large: 0 0px 32px 8px #000000af;
+		--gold: #fd9;
+		--gold-pale: #edb;
 	}
 
 	body {
@@ -45,14 +52,6 @@
 	span > img {
 		display: inline-block;
 	}
-	
-	button:not([disabled]) {
-		display: inline-block;
-
-		&:not([disabled]) {
-			cursor: pointer;
-		}
-	}
 
 	input[type="number"] {
 		background: linear-gradient(in oklab to bottom, white 50%, #f6f6f6 81%, white);
@@ -65,53 +64,65 @@
 		text-align: right;
 	}
 
+	button {
+		display: inline-block;
+		transition: 0.035s ease-out;
+
+		&:not([disabled]) {
+			cursor: pointer;
+		}
+	}
+	button:not([disabled]):hover,
+	*:has(> .popup:not(.REMOVED):not(.tooltip)) {
+		z-index: 1;
+		outline: 2px solid var(--gold-pale);
+		box-shadow: var(--shadow-medium);
+		transform: scale(var(--zoomScale));
+
+		&:has(> .popup:not(.REMOVED):not(.tooltip)) {
+			outline: 2px solid var(--gold);
+		}
+
+		.popup {
+			top: calc(50% * (1 + var(--unzoomScale)));
+			left: calc(50% * (1 - var(--unzoomScale)));
+			transform-origin: top left;
+			transform: scale(var(--unzoomScale));
+		}
+	}
+
 	*:has(> .popup) {
 		position: relative;
+
+		&:hover {
+			z-index: 1;
+			outline: 2px solid var(--gold-pale);
+		}
 	}
     .popup {
-        position: absolute;
         z-index: 1;
+        position: absolute;
         width: max-content;
         height: max-content;
-        top: calc(100% + 5px);
-        left: 50%;
-        transform: translateX(-50%);
+        box-shadow: var(--shadow-medium);
+
+		&.tooltip {
+			box-shadow: var(--shadow-medium);
+		}
     }
-	*:has(> .tooltip) {
-        > .tooltip {
-            background-color: #1a2a3a;
-            color: #e2e2e2;
-            border: 2px solid #2a3a4a;
-            padding: 10px;
-            outline: 1px solid #cba;
-            box-shadow: 0 0 7px 5px #111a;
-            display: grid;
-
-            grid-template-columns: auto auto;
-            gap: 5px;
-        }
-
-        &:not(:hover) > .tooltip {
-            visibility: hidden;
-        }
-
-        &:hover {
-            z-index: 1;
-
-            > .iconWrapper {
-                transition: 0.035s ease-out;
-                transform: scale(133%);
-                outline: 1px solid #cba;
-                box-shadow: 0 0 17px 12px #111e;
-
-                > .icon {
-                    border: 1px solid #777;
-                }
-            }
-        }
+	*:has(> .tooltip):not(:hover) > .tooltip {
+		visibility: hidden;
 	}
 	.tooltip {
+		z-index: 1;
 		pointer-events: none;
+	}
+
+	.plain {
+		padding: 0;
+		margin: 0;
+		background: none;
+		border: none;
 	}
 
 	.sheer {

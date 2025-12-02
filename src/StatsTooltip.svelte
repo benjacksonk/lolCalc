@@ -49,6 +49,16 @@
 
 <style>
     .StatsTooltip {
+        background-color: #1a2a3a;
+        color: #e2e2e2;
+        border: 2px solid #2a3a4a;
+        padding: 10px;
+        outline: 2px solid var(--gold-pale);
+        display: grid;
+
+        grid-template-columns: auto auto;
+        gap: 5px;
+        
         &.shiftedright {
             left: unset;
             transform: unset;
@@ -56,14 +66,14 @@
     }
 
     .itemStat {
-        color: #edb;
+        color: var(--gold-pale);
     }
 
     .affectorName {
         grid-column: span 2;
         text-align: center;
         font-weight: bold;
-        color: #edb;
+        color: var(--gold-pale);
         display: grid;
     }
 

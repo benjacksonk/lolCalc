@@ -16,9 +16,9 @@
 
 
 <div class="AffectorIcon">
-    <div class="iconWrapper">
-        <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
-    </div>
+    <img src={affector.iconURL} alt={affector.name}
+    class={`icon ${size}`}
+    >
 
     {#if hasTooltip}
     <StatsTooltip 
@@ -34,9 +34,19 @@
 
 <style>
     .AffectorIcon {
-    }
+        X&:hover > .iconWrapper {
+            transition: 0.035s ease-out;
+            transform: scale(133%);
+            outline: 1px solid var(--gold-pale);
+            box-shadow: 0 0 17px 12px #111e;
 
-    .iconWrapper {
-        background-color: #222;
+            > .icon {
+                border: 1px solid #777;
+            }
+        }
+
+        > .icon {
+            background-color: #1f1f1f;
+        }
     }
 </style>

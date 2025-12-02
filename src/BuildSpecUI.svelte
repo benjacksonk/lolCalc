@@ -32,34 +32,36 @@
 
 
 
-<div class="sheer BuildSpec">
+<div class="BuildSpec">
     <div class="price">
         <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span><span class="priceUnit">g</span>
         <StatsTooltip stats={derivedGameConfig.statsPostEval} position="right" header={"Initial Stat Totals"}/>
     </div>
 
-    {#each buildConfig.itemSlots as itemConfig, i}
-    <div>
-        <button class="sheer affectorButton slotButton" onmousedown={
-            (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
-        }
-        >
-            <AffectorIcon affector={itemConfig.item} size="min" hasTooltip={true}/>
-        </button>
-        
-        <div 
-        class="popup" 
-        class:REMOVED={popupState.currentPopup != popups[i]}
-        bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}
-        >
-            {#each Item.all as item, j (item.name)}
-            <button class="sheer affectorButton optionButton" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
-                <AffectorIcon affector={item} size="sml" hasTooltip={true}/>
+    <div class="itemSlotGrid">
+        {#each buildConfig.itemSlots as itemConfig, i}
+        <div>
+            <button class="plain affectorButton slotButton" onmousedown={
+                (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
+            }
+            >
+                <AffectorIcon affector={itemConfig.item} size="min" hasTooltip={true}/>
             </button>
-            {/each}
+            
+            <div 
+            class="popup itemGrid" 
+            class:REMOVED={popupState.currentPopup != popups[i]}
+            bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}
+            >
+                {#each Item.all as item, j (item.name)}
+                <button class="plain affectorButton optionButton" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
+                    <AffectorIcon affector={item} size="sml" hasTooltip={true}/>
+                </button>
+                {/each}
+            </div>
         </div>
+        {/each}
     </div>
-    {/each}
 </div>
 
 
@@ -68,23 +70,11 @@
     .BuildSpec {
         display: grid;
         grid-auto-flow: column;
-        grid-template-rows: repeat(2, minmax(0,1fr));
-        grid-template-columns: 4em;
-        grid-auto-columns: minmax(0,1fr);
-
-        .popup {
-            background: #111;
-            border: 2px solid #555;
-            grid-auto-rows: max-content;
-            grid-template-columns: repeat(11, max-content);
-            
-            left: unset;
-            transform: unset;
-        }
+        grid-template-columns: auto;
+        grid-auto-columns: max-content;
     }
 
     .price {
-        grid-row: span 2;
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
@@ -95,7 +85,26 @@
         gap: 0 0.2em;
     }
 
+    .itemSlotGrid {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template: repeat(2, minmax(0,1fr)) / repeat(3, minmax(0,1fr));
+        gap: 1px;
+    }
+
     .affectorButton {
         display: flex;
+    }
+
+    .itemGrid {
+        background: #111;
+        border: 2px solid #333;
+        display: grid;
+        grid-auto-rows: max-content;
+        grid-template-columns: repeat(11, max-content);
+        gap: 1px;
+        
+        /* left: unset;
+        transform: unset; */
     }
 </style>

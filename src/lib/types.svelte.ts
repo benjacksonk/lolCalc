@@ -675,7 +675,7 @@ export class GameOrigin {
         let gameConfig = this.initialGameConfig;
         
         this.effectQueue.forEach(effect => {
-            gameConfig = effect.implement(this.initialGameConfig);
+            gameConfig = effect.implement(gameConfig);
             effect.aftereffects.forEach(aftereffect => {
                 gameConfig = aftereffect.implement(gameConfig);
             });
