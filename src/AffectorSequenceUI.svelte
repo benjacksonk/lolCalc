@@ -45,15 +45,17 @@
         <button onmousedown={handlemousedownOnPopupAnchor}>＋</button>
         
         <div 
-        class="popup" 
+        class="onPopup alignRightEdge" 
         class:REMOVED={popupState.currentPopup != popup}
         bind:this={popup} style:display={popupState.currentPopup == popup ? "grid" : "none"}
         >
-            {#each affectorOptions as affector, j (affector.name)}
-            <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
-                <AffectorIcon {affector} size={"sml"} hasTooltip={false}/>
-            </button>
-            {/each}
+            <div class="affectorOptions">
+                {#each affectorOptions as affector, j (affector.name)}
+                <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
+                    <AffectorIcon {affector} size={"sml"} hasTooltip={false}/>
+                </button>
+                {/each}
+            </div>
         </div>
     </div>
 </div>
@@ -70,14 +72,11 @@
             display: grid;
         }
 
-        .popup {
+        .affectorOptions {
             background: #111;
             border: 2px solid #555;
             grid-auto-rows: max-content;
             grid-template-columns: repeat(6, max-content);
-            
-            left: 100%;
-            transform: translateX(-100%);
         }
     }
 

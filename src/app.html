@@ -20,11 +20,11 @@
 	}
 
 	:root {
-		--zoomScale: 1.15;
+		--zoomScale: 1.3;
 		--unzoomScale: calc(1 / var(--zoomScale));
-		--shadow-small: 0 0px 4px 4px #000000af;
-		--shadow-medium: 0 0px 12px 6px #000000af;
-		--shadow-large: 0 0px 32px 8px #000000af;
+		--shadow-min: 0 0px 4px 2px #0000007f;
+		--shadow-med: 0 0px 8px 2px #00000097;
+		--shadow-max: 0 0px 16px 2px #000000af;
 		--gold: #fd9;
 		--gold-pale: #edb;
 	}
@@ -66,56 +66,81 @@
 
 	button {
 		display: inline-block;
-		transition: 0.035s ease-out;
 
 		&:not([disabled]) {
 			cursor: pointer;
 		}
 	}
+	
 	button:not([disabled]):hover,
-	*:has(> .popup:not(.REMOVED):not(.tooltip)) {
-		z-index: 1;
-		outline: 2px solid var(--gold-pale);
-		box-shadow: var(--shadow-medium);
-		transform: scale(var(--zoomScale));
-
-		&:has(> .popup:not(.REMOVED):not(.tooltip)) {
-			outline: 2px solid var(--gold);
-		}
-
-		.popup {
-			top: calc(50% * (1 + var(--unzoomScale)));
-			left: calc(50% * (1 - var(--unzoomScale)));
-			transform-origin: top left;
-			transform: scale(var(--unzoomScale));
-		}
-	}
-
-	*:has(> .popup) {
-		position: relative;
-
-		&:hover {
-			z-index: 1;
+	*:has(> .onPopup:not(.REMOVED)),
+	*:has(> .onHover):hover {
+		> img {
+			transition: 0.11s ease-out;
+			transform: scale(var(--zoomScale));
+			box-shadow: var(--shadow-med);
 			outline: 2px solid var(--gold-pale);
 		}
+
+		& > .onPopup,
+		& > .onHover {
+			top: 100%;
+			left: 50%;
+			transform: translate(-50%, 0);
+
+			&.alignLeftEdge {
+				left: 0;
+				right: unset;
+				transform: unset;
+			}
+			&.alignRightEdge {
+				left: unset;
+				right: 0;
+				transform: unset;
+			}
+		}
+
+		&:has(> img) > .onPopup,
+		&:has(> img) > .onHover {
+			--zoomMargin: calc(50% * (var(--zoomScale) - 1));
+			margin-bottom: calc(-1 * var(--zoomMargin));
+
+			&.alignLeftEdge {
+				margin-left: calc(-1 * var(--zoomMargin) - 2px);
+			}
+			&.alignRightEdge {
+				margin-right: calc(-1 * var(--zoomMargin) - 2px);
+			}
+		}
 	}
-    .popup {
-        z-index: 1;
-        position: absolute;
+	button:not([disabled]):hover,
+	*:has(button:not([disabled]):hover),
+	*:has(.onPopup:not(.REMOVED)) {
+		position: relative;
+		z-index: 1;
+	}
+    .onPopup {
+		position: absolute !important;
+		z-index: 1;
         width: max-content;
         height: max-content;
-        box-shadow: var(--shadow-medium);
-
-		&.tooltip {
-			box-shadow: var(--shadow-medium);
-		}
+        box-shadow: var(--shadow-med);
     }
-	*:has(> .tooltip):not(:hover) > .tooltip {
-		visibility: hidden;
+
+	*:has(.onHover):hover {
+		z-index: 2 !important;
+		position: relative;
 	}
-	.tooltip {
-		z-index: 1;
+	.onHover {
+		position: absolute !important;
+		z-index: 2 !important;
+        width: max-content;
+        height: max-content;
+		box-shadow: var(--shadow-med);
 		pointer-events: none;
+	}
+	*:has(> .onHover):not(:hover) > .onHover {
+		visibility: hidden;
 	}
 
 	.plain {

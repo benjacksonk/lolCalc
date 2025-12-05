@@ -35,7 +35,11 @@
 <div class="BuildSpec">
     <div class="price">
         <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span><span class="priceUnit">g</span>
-        <StatsTooltip stats={derivedGameConfig.statsPostEval} position="right" header={"Initial Stat Totals"}/>
+        <StatsTooltip
+        stats={derivedGameConfig.statsPostEval}
+        edgeAlignment="left"
+        header={"Initial Stat Totals"}
+        />
     </div>
 
     <div class="itemSlotGrid">
@@ -49,15 +53,20 @@
             </button>
             
             <div 
-            class="popup itemGrid" 
+            class="onPopup alignLeftEdge" 
             class:REMOVED={popupState.currentPopup != popups[i]}
             bind:this={popups[i]} style:display={popupState.currentPopup == popups[i] ? "grid" : "none"}
             >
-                {#each Item.all as item, j (item.name)}
-                <button class="plain affectorButton optionButton" onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}>
-                    <AffectorIcon affector={item} size="sml" hasTooltip={true}/>
-                </button>
-                {/each}
+                <div class="itemGrid">
+                    {#each Item.all as item, j (item.name)}
+                    <button 
+                    class="plain affectorButton optionButton" 
+                    onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}
+                    >
+                        <AffectorIcon affector={item} size="sml" hasTooltip={true}/>
+                    </button>
+                    {/each}
+                </div>
             </div>
         </div>
         {/each}
@@ -103,8 +112,5 @@
         grid-auto-rows: max-content;
         grid-template-columns: repeat(11, max-content);
         gap: 1px;
-        
-        /* left: unset;
-        transform: unset; */
     }
 </style>
