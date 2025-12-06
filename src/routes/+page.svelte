@@ -75,7 +75,7 @@
         >
             {#each buildConfigs as buildConfig, i}
             <div class="buildContainer">
-                <button class="button_deleteBuild"
+                <button class="button_deleteBuild plainTextButton"
                 onmousedown={(event) => handleOnClickDeleteBuild(event, buildConfig)}
                 disabled={buildConfigs.length <= 1}
                 >𐌢</button>
@@ -87,7 +87,7 @@
             </div>
             {/each}
 
-            <button style:display="grid"
+            <button class="plainTextButton" style:display="grid"
             onmousedown={(event) => handleOnClickAddBuild(event, buildConfigs[buildConfigs.length - 1] ?? null)}
             >
             ＋
@@ -136,9 +136,10 @@
     main {
         width: 100%;
         height: 100%;
+		font-family: var(--font-family-sans);
         color: #ccc;
         background-color: #111;
-        /* overflow: hidden; */
+        overflow: hidden auto;
         display: grid;
 
         gap: 10px;
@@ -159,7 +160,8 @@
 
         gap: 10px;
         grid-auto-rows: max-content;
-        grid-auto-columns: max-content;
+        grid-template-columns: repeat(6, max-content);
+        justify-content: stretch;
     }
 
     .diffTableAbilities {
@@ -193,11 +195,22 @@
     .button_deleteBuild {
         display: grid;
         padding: 0 5px;
+        color: #500;
         background-color: #a55;
         border: 2px solid #944;
-        color: #722;
         align-content: center;
         text-align: center;
+        transition: 0.05s ease-out;
+
+        &[disabled] {
+            filter: saturate(0);
+        }
+
+        &:not([disabled]):hover {
+            background-color: #722;
+            border-color: #944;
+            color: #faa;
+        }
     }
 
     .diffsPerBuildPerAbility,

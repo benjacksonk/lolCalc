@@ -5,34 +5,28 @@
     let {
         affector,
         size,
-        hasTooltip
+        showNameOnHover,
+        showStatsOnHover
     } : {
         affector: Affector,
         size: "max"|"med"|"sml"|"min",
-        hasTooltip: boolean
+        showNameOnHover: boolean,
+        showStatsOnHover: boolean
     } = $props();
     
-    let tooltipParentWidth = $state();
-    let tooltipParentHeight = $state();
-    let tooltipParentOffsetX = $state();
-    let tooltipParentOffsetY = $state();
+    let hasTooltip = $derived(showNameOnHover || showStatsOnHover);
 </script>
 
 
 
-<div class="AffectorIcon" 
-bind:clientWidth={tooltipParentWidth} 
-bind:clientHeight={tooltipParentHeight} 
-bind:offsetWidth={tooltipParentOffsetX} 
-bind:offsetHeight={tooltipParentOffsetY}
->
+<div class="AffectorIcon">
     <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
 
     {#if hasTooltip}
     <StatsTooltip 
-    header={affector.name} 
+    header={showNameOnHover ? affector.name : undefined} 
     leaders={affector instanceof Item ? [["Gold", affector.price.toFixed(0)]] : []}
-    stats={affector.stats}
+    stats={showStatsOnHover ? affector.stats : []}
     />
     {/if}
 </div>

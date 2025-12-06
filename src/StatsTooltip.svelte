@@ -52,26 +52,34 @@
 
 <style>
     .StatsTooltip {
-        background-color: #1a2a3a;
         color: #e2e2e2;
-        box-shadow: inset 0 0 0 2px #2a3a4a;
-        padding: 10px;
-        border: 2px solid var(--gold-pale);
+        font-family: var(--font-family-sans);
+        background: var(--blue-aqua-vivid);
+        padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
+        border: 2px solid var(--brass);
+        border-image: var(--gradient-0) 1;
         display: grid;
+        
+        &::before {
+            mix-blend-mode: soft-light;
+            opacity: 0.5;
+            top: 2px;
+            right: 2px;
+        }
 
         grid-template-columns: auto auto;
         gap: 5px;
     }
 
     .itemStat {
-        color: var(--gold-pale);
+        color: var(--goldPale);
     }
 
     .affectorName {
         grid-column: span 2;
         text-align: center;
         font-weight: bold;
-        color: var(--gold-pale);
+        color: var(--goldPale);
         display: grid;
     }
 

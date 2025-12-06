@@ -36,13 +36,13 @@
 
 <div class="sheer AffectorSequenceUI">
     {#each affectorQueue as affector, i}
-    <button class="sheer entityButton" onmousedown={(event) => removeAffector(event, i)}>
-        <AffectorIcon {affector} size="min" hasTooltip={false}/>
+    <button class="entityButton" onmousedown={(event) => removeAffector(event, i)}>
+        <AffectorIcon {affector} size="min" showNameOnHover={true} showStatsOnHover={false}/>
     </button>
     {/each}
     
     <div class="addAffectorButtonWrapper">
-        <button onmousedown={handlemousedownOnPopupAnchor}>＋</button>
+        <button class="plainTextButton" onmousedown={handlemousedownOnPopupAnchor}>＋</button>
         
         <div 
         class="onPopup alignRightEdge" 
@@ -51,8 +51,8 @@
         >
             <div class="affectorOptions">
                 {#each affectorOptions as affector, j (affector.name)}
-                <button class="sheer entityBtn" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
-                    <AffectorIcon {affector} size={"sml"} hasTooltip={false}/>
+                <button class="entityBtn plain" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
+                    <AffectorIcon {affector} size={"sml"} showNameOnHover={true} showStatsOnHover={false}/>
                 </button>
                 {/each}
             </div>
@@ -64,8 +64,10 @@
 
 <style>
     .AffectorSequenceUI {
-        display: flex;
-        flex-flow: row nowrap;
+        display: grid;
+        grid-template-rows: repeat(2, minmax(0,1fr));
+        grid-template-columns: repeat(auto-fill, var(--iconSizeMin));
+        grid-auto-rows: minmax(0,1fr);
         gap: 1px;
 
         .addAffectorButtonWrapper {
@@ -73,8 +75,9 @@
         }
 
         .affectorOptions {
+            display: grid;
             background: #111;
-            border: 2px solid #555;
+            border: 2px solid #2e2e2e;
             grid-auto-rows: max-content;
             grid-template-columns: repeat(6, max-content);
         }

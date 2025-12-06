@@ -49,7 +49,7 @@
                 (event) => handlemousedownOnPopupAnchor(event, popups[i]!)
             }
             >
-                <AffectorIcon affector={itemConfig.item} size="min" hasTooltip={true}/>
+                <AffectorIcon affector={itemConfig.item} size="min" showNameOnHover={true} showStatsOnHover={true}/>
             </button>
             
             <div 
@@ -63,7 +63,7 @@
                     class="plain affectorButton optionButton" 
                     onmousedown={(event) => handleMouseDownOnItemOption(event, popups[i]!, itemConfig, item)}
                     >
-                        <AffectorIcon affector={item} size="sml" hasTooltip={true}/>
+                        <AffectorIcon affector={item} size="sml" showNameOnHover={true} showStatsOnHover={true}/>
                     </button>
                     {/each}
                 </div>
@@ -81,6 +81,7 @@
         grid-auto-flow: column;
         grid-template-columns: auto;
         grid-auto-columns: max-content;
+        align-content: center;
     }
 
     .price {
@@ -107,7 +108,7 @@
 
     .itemGrid {
         background: #111;
-        border: 2px solid #333;
+        border: 2px solid #2e2e2e;
         display: grid;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(11, max-content);
