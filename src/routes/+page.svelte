@@ -139,7 +139,7 @@
 		font-family: var(--font-family-sans);
         color: #ccc;
         background-color: #111;
-        overflow: hidden auto;
+        overflow: hidden hidden;
         display: grid;
 
         gap: 10px;
@@ -156,6 +156,7 @@
     }
     
     .diffTable {
+        overflow: hidden auto;
         display: grid;
 
         gap: 10px;
@@ -200,7 +201,6 @@
         border: 2px solid #944;
         align-content: center;
         text-align: center;
-        transition: 0.05s ease-out;
 
         &[disabled] {
             filter: saturate(0);

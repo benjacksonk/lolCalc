@@ -51,7 +51,7 @@
         >
             <div class="affectorOptions">
                 {#each affectorOptions as affector, j (affector.name)}
-                <button class="entityBtn plain" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
+                <button class="entityButton plain" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
                     <AffectorIcon {affector} size={"sml"} showNameOnHover={true} showStatsOnHover={false}/>
                 </button>
                 {/each}
@@ -84,6 +84,7 @@
     }
 
     .entityButton {
+		transform-origin: bottom center;
         display: grid;
         background: none;
         border: none;

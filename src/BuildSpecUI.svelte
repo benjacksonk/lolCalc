@@ -33,8 +33,12 @@
 
 
 <div class="BuildSpec">
-    <div class="price">
-        <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span><span class="priceUnit">g</span>
+    <div class="priceWrapper">
+        <div class="price">
+            <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span>
+            <span class="priceUnit">g</span>
+        </div>
+
         <StatsTooltip
         stats={derivedGameConfig.statsPostEval}
         edgeAlignment="left"
@@ -82,10 +86,15 @@
         grid-template-columns: auto;
         grid-auto-columns: max-content;
         align-content: center;
+        gap: 1px;
     }
 
-    .price {
+    .priceWrapper {
         display: grid;
+    }
+    
+    .price {
+        background-color: #1e1e1e;
         grid-auto-flow: column;
         grid-template-columns: auto;
         grid-auto-columns: max-content;
@@ -104,6 +113,7 @@
 
     .affectorButton {
         display: flex;
+		transform-origin: bottom center;
     }
 
     .itemGrid {

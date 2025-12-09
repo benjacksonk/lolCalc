@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { StatType } from "$lib/types.svelte";
-    import Tooltip from "./Tooltip.svelte";
 
     let {
         stats,
@@ -17,36 +16,37 @@
 
 
 
-<Tooltip edgeAlignment={edgeAlignment}>
-    <div class="StatsTooltip">
-        {#if header}
-        <span class="affectorName">{header}</span>
-        {/if}
+<div class="StatsTooltip onHover"
+class:alignLeftEdge={edgeAlignment == "left"}
+class:alignRightEdge={edgeAlignment == "right"}
+>
+    {#if header}
+    <span class="affectorName">{header}</span>
+    {/if}
 
-        {#if leaders}
-        {#each leaders as leader}
-        <span class="affectorStat itemStat">
-            <span class="affectorStatValue">{leader[1]}</span>
-            <span class="affectorStatName">{leader[0]}</span>
-        </span>
-        {/each}
-        {/if}
+    {#if leaders}
+    {#each leaders as leader}
+    <span class="affectorStat itemStat">
+        <span class="affectorStatValue">{leader[1]}</span>
+        <span class="affectorStatName">{leader[0]}</span>
+    </span>
+    {/each}
+    {/if}
 
-        {#each stats as stat}
-        <span class="affectorStat">
-            <span class="affectorStatValue">
-                {#if stat[0].includes("Ratio")}
-                {stat[1] * 100} %
-                {:else}
-                {stat[1]}
-                {/if}
-            </span>
-            
-            <span class="affectorStatName">{stat[0]}</span>
+    {#each stats as stat}
+    <span class="affectorStat">
+        <span class="affectorStatValue">
+            {#if stat[0].includes("Ratio")}
+            {stat[1] * 100} %
+            {:else}
+            {stat[1]}
+            {/if}
         </span>
-        {/each}
-    </div>
-</Tooltip>
+        
+        <span class="affectorStatName">{stat[0]}</span>
+    </span>
+    {/each}
+</div>
 
 
 
@@ -59,13 +59,6 @@
         border: 2px solid var(--brass);
         border-image: var(--gradient-0) 1;
         display: grid;
-        
-        &::before {
-            mix-blend-mode: soft-light;
-            opacity: 0.5;
-            top: 2px;
-            right: 2px;
-        }
 
         grid-template-columns: auto auto;
         gap: 5px;
