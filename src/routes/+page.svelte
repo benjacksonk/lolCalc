@@ -40,14 +40,14 @@
 
 
 <main>
-    <div class="sheer champSpecs">
+    <div class="sheerBackground champSpecs">
         <ChampSpecUI bind:champ bind:abilityRanks/>
         <TargetSpecUI bind:targetBaseStats/>
     </div>
 
-    <div class="sheer diffTable">
-        {#snippet damageDiff(diff: GameDiff, min_DamageDiffPerGoldDiff: number, min_DamageTotalPerGoldDiff: number)}
-        <div class="sheer effectOutcome">
+    <div class="sheerBackground diffTable">
+        {#snippet damageDiff(diff: GameDiff, min_DamageDiffPerGoldDiff: number, min_DamageTotalPerGoldDiff: number, min_bonusDmgPercent_perGoldDiff: number)}
+        <div class="sheerBackground effectOutcome">
             <div class="absoluteDamagePerGold">
                 <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{diff.totalDamageDiff.toFixed(0)}</span></span>
                 <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span></span>
@@ -55,9 +55,9 @@
             </div>
 
             <div class="relativeDamagePerGold">
-                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageDiff_per_goldDiff / min_DamageDiffPerGoldDiff - 1)).toFixed(1)} % Δ</span></span>
-                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (diff.damageTotal_per_goldDiff/ min_DamageTotalPerGoldDiff - 1)).toFixed(1)} % Σ</span></span>
-                <span class="unit">d∕g</span>
+                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (1000 * diff.bonusDmgPercent_perGoldDiff)).toFixed(1)} % AbsΔ</span></span>
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * ((1 + 1000 * diff.bonusDmgPercent_perGoldDiff) / (1 + 1000 * min_bonusDmgPercent_perGoldDiff) - 1)).toFixed(1)} % RelΔ</span></span>
+                <span class="unit">d∕kg</span>
             </div>
         </div>
         {/snippet}
@@ -66,7 +66,7 @@
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability, i (ability.name)}
-            <img src={ability.iconURL} alt={ability.name} class="sheer icon med">
+            <img src={ability.iconURL} alt={ability.name} class="sheerBackground icon med">
             {/each}
         </div>
 
@@ -82,7 +82,7 @@
 
                 <BuildSpecUI 
                 bind:buildConfig={buildConfigs[i]} 
-                derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtEndGameConfig.origin.initialGameConfig}
+                derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtInitialGameConfig}
                 />
             </div>
             {/each}
@@ -103,7 +103,7 @@
             style:grid-row={`span ${buildConfigs.length}`}
             >
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).min_DamageDiffPerGoldDiff, diffAtlas.get(ability).min_DamageTotalPerGoldDiff)}
+                {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).min_DamageDiffPerGoldDiff, diffAtlas.get(ability).min_DamageTotalPerGoldDiff, diffAtlas.get(ability).min_bonusDmgPercent_perGoldDiff)}
                 {/each}
             </div>
             {/each}
@@ -115,7 +115,7 @@
         >
             <div class="sheer diffColumn" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).min_DamageDiffPerGoldDiff, diffAtlas.get(null).min_DamageTotalPerGoldDiff)}
+                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).min_DamageDiffPerGoldDiff, diffAtlas.get(null).min_DamageTotalPerGoldDiff, diffAtlas.get(null).min_bonusDmgPercent_perGoldDiff)}
                 {/each}
             </div>
 
@@ -142,11 +142,12 @@
         overflow: hidden hidden;
         display: grid;
 
-        gap: 10px;
+        gap: 2px;
         grid-template-rows: max-content;
     }
 
     .champSpecs {
+        padding: 10px;
         display: grid;
 
         grid-auto-flow: column;
@@ -157,6 +158,7 @@
     
     .diffTable {
         overflow: hidden auto;
+        padding: 10px 0;
         display: grid;
 
         gap: 10px;
