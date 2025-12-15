@@ -54,26 +54,28 @@ class:alignRightEdge={edgeAlignment == "right"}
     .StatsTooltip {
         color: #e2e2e2;
         font-family: var(--font-family-sans);
-        background: var(--blue-aqua-vivid);
+        background: var(--aqua);
         padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
-        border: 2px solid var(--brass);
-        border-image: var(--gradient-0) 1;
+        border-width: 1px 2px 2px;
+        border-style: solid;
+        border-color: var(--brass);
+        border-image: linear-gradient(in oklab to bottom, var(--gold-pale), var(--brass), var(--aqua-pale)) 1;
         display: grid;
 
         grid-template-columns: auto auto;
         gap: 5px;
     }
 
-    .itemStat {
-        color: var(--goldPale);
-    }
-
     .affectorName {
         grid-column: span 2;
         text-align: center;
         font-weight: bold;
-        color: var(--goldPale);
+        color: var(--gold-pale);
         display: grid;
+    }
+
+    .itemStat {
+        color: var(--gold-pale);
     }
 
     .affectorStat {

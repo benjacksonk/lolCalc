@@ -25,7 +25,7 @@
         --phi: calc(sqrt(1.25) + 0.5);
 
         --font-family-sans: 'Comme','Lato','Radio Canada',sans-serif;
-		--font-family-script: 'Ruluko',var(var(--font-family-sans));
+		--font-family-script: 'Ruluko',var(--font-family-sans);
 
         --font-size-0: calc(1rem * sqrt(pow(var(--phi), -1)));
         --font-size-1: calc(1rem * sqrt(pow(var(--phi), -0.5)));
@@ -49,7 +49,7 @@
         --space-8: calc(var(--space-0) * pow(var(--phi), 8));
         --space-9: calc(var(--space-0) * pow(var(--phi), 9));
 
-		--zoomScale: 1.15;
+		--zoomScale: 1.08;
 		--unzoomScale: calc(1 / var(--zoomScale));
 
 		--iconSizeMax: 92px;
@@ -57,17 +57,27 @@
 		--iconSizeSml: 48px;
 		--iconSizeMin: 42px;
 
-		--gold: #fc8 /*#fd9*/;
-		--goldPale: #edb;
-        --blue-aqua: #1b2a34;
-        --blue-aqua-light: #293943;
-        --blue-aqua-vivid: #1f3442;
+		--gold-pale: #edb;
+		--gold: #fd9;
+		--gold-deep: #fc8;
+        --aqua-pale: #293943;
+        --aqua: #1f3442;
+        --aqua-deep: #1b2a34;
         --brass: #525244;
 
-        --gradient-0: linear-gradient(in oklab to bottom, var(--brass), var(--blue-aqua-light));
-        --gradient-1: linear-gradient(in oklab to bottom, var(--blue-aqua-light), var(--brass));
-        --gradient-2: linear-gradient(in oklab to bottom, var(--blue-aqua-light), var(--blue-aqua));
-        --gradient-3: linear-gradient(in oklab to bottom, var(--blue-aqua-vivid), var(--blue-aqua));
+        --gradient-0: linear-gradient(in oklab to bottom, var(--brass), var(--aqua-pale));
+        --gradient-1: linear-gradient(in oklab to bottom, var(--aqua-pale), var(--brass));
+        --gradient-2: linear-gradient(in oklab to bottom, var(--aqua-pale), var(--aqua-deep));
+        --gradient-3: linear-gradient(in oklab to bottom, var(--aqua), var(--aqua-deep));
+
+		--box-shadow:	
+			0px 0px 3px 1px #000000d2, 
+			0px 3px 13px 5px #111111c5;
+		
+		--box-shadow-focus:
+			0px 0px 0px 2px var(--gold-pale),
+			0px 0px 3px 3px #000000d2, 
+			0px 3px 13px 7px #111111c5
 	}
 
 	body {
@@ -123,9 +133,7 @@
 	*:has(+ .onPopup:not(.REMOVED)),
 	button:not([disabled]):hover {
 		scale: var(--zoomScale);
-		box-shadow:	0px 0px 0px 1px var(--goldPale),
-					0px 1px 3px 3px #0007,
-					0px 0px 21px 14px #0004;
+		box-shadow:	var(--box-shadow-focus);
 		
 		& & {
 			scale: 1;
@@ -168,8 +176,7 @@
 		z-index: 1;
         width: max-content;
         height: max-content;
-		box-shadow:	0px 1px 3px 2px #0007,
-					0px 0px 21px 13px #0004;
+		box-shadow:	var(--box-shadow);
     }
 
 	*:has(.onHover):hover {
@@ -180,8 +187,8 @@
 		z-index: 2 !important;
         width: max-content;
         height: max-content;
-		box-shadow:	0px 2px 8px 3px #000f, 0px 5px 21px 8px #0007;
-					
+		box-shadow:	var(--box-shadow);
+
 		pointer-events: none;
 	}
 	*:has(> .onHover):not(:hover) > .onHover {

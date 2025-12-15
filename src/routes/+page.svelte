@@ -158,7 +158,7 @@
     
     .diffTable {
         overflow: hidden auto;
-        padding: 10px 0;
+        padding: 10px 10px;
         display: grid;
 
         gap: 10px;
