@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Ability, BuildConfig, DefiniteNumberMap, StatType, type GameDiff, Champion, DiffAtlas, Affector, Rune } from "$lib/types.svelte";
+    import { Ability, BuildConfig, DefiniteNumberMap, StatType, type GameDiff, Champion, DiffAtlas, Affector, Rune, DiffMap } from "$lib/types.svelte";
     import BuildSpecUI from "../BuildSpecUI.svelte";
     import ChampSpecUI from "../ChampSpecUI.svelte";
     import TargetSpecUI from "../TargetSpecUI.svelte";
@@ -46,18 +46,25 @@
     </div>
 
     <div class="sheerBackground diffTable">
-        {#snippet damageDiff(diff: GameDiff, min_DamageDiffPerGoldDiff: number, min_DamageTotalPerGoldDiff: number, min_bonusDmgPercent_perGoldDiff: number)}
+        {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff)}
         <div class="sheerBackground effectOutcome">
             <div class="absoluteDamagePerGold">
-                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{diff.totalDamageDiff.toFixed(0)}</span></span>
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{diff.damageDiff.toFixed(0)}</span></span>
                 <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span></span>
                 <span class="unit">damage</span>
             </div>
 
             <div class="relativeDamagePerGold">
-                <span class="diffPart totalDiff"><span class="operator">＋</span><span class="amount">{(100 * (1000 * diff.bonusDmgPercent_perGoldDiff)).toFixed(1)} % AbsΔ</span></span>
-                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{(100 * ((1 + 1000 * diff.bonusDmgPercent_perGoldDiff) / (1 + 1000 * min_bonusDmgPercent_perGoldDiff) - 1)).toFixed(1)} % RelΔ</span></span>
-                <span class="unit">d∕kg</span>
+                <span class="diffPart deltaDiff">
+                    <span class="operator" class:negative={diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold < 0}>{diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold < 0 ? "－" : "＋"}</span>
+                    <span class="amount" class:negative={(diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold < 0}>{Math.abs(100 * ((diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold)).toFixed(0)} % <span class="totalDiff">Δ</span></span>
+                </span>
+
+                <span class="diffPart totalDiff">
+                    <span class="operator" class:negative={diff.damage_perGold < 0}>{diff.damage_perGold < 0 ? "－" : "＋"}</span>
+                    <span class="amount" class:negative={(diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold < 0}>{Math.abs(100 * ((diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold)).toFixed(0)} %  Σ </span>
+                </span>
+                <span class="unit"> d∕kg</span>
             </div>
         </div>
         {/snippet}
@@ -103,7 +110,7 @@
             style:grid-row={`span ${buildConfigs.length}`}
             >
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(ability).get(buildConfig), diffAtlas.get(ability).min_DamageDiffPerGoldDiff, diffAtlas.get(ability).min_DamageTotalPerGoldDiff, diffAtlas.get(ability).min_bonusDmgPercent_perGoldDiff)}
+                {@render damageDiff(diffAtlas.get(ability), diffAtlas.get(ability).get(buildConfig))}
                 {/each}
             </div>
             {/each}
@@ -115,7 +122,7 @@
         >
             <div class="sheer diffColumn" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
-                {@render damageDiff(diffAtlas.get(null).get(buildConfig), diffAtlas.get(null).min_DamageDiffPerGoldDiff, diffAtlas.get(null).min_DamageTotalPerGoldDiff, diffAtlas.get(null).min_bonusDmgPercent_perGoldDiff)}
+                {@render damageDiff(diffAtlas.get(null), diffAtlas.get(null).get(buildConfig))}
                 {/each}
             </div>
 
@@ -270,6 +277,10 @@
         align-items: baseline;
         align-content: center;
         justify-content: stretch;
+    }
+
+    .negative {
+        color: #f88;
     }
 
     .operator {

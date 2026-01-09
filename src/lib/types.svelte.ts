@@ -231,10 +231,10 @@ export class Item extends Affector {
             [[StatType.AbilityPower, 18]]
         ),
         HealthPotion: new Item(
-            50, "Health Potion", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item_Winter.png"
+            50, "Health Potion", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"
         ),
         HealthPotionX2: new Item(
-            100, "2 Health Potions", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item_Winter.png"
+            100, "2 Health Potions", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"
         ),
         RefillablePotion: new Item(
             150, "Refillable Potion", "https://wiki.leagueoflegends.com/en-us/images/Refillable_Potion_item_Winter.png"
@@ -832,24 +832,25 @@ export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
         builtInitialGameConfig: new GameConfig(),
         unbuiltEndGameConfig: new GameConfig(),
         builtEndGameConfig: new GameConfig(),
-        totalDamageDiff: 0,
-        damageTotal_per_goldDiff: 0,
-        damageDiff_per_goldDiff: 0,
-        bonusDmgPercent_perGoldDiff: 0
+        costDiff: 0,
+        damageDiff: 0,
+        damage_perGold: 0,
+        absoluteDamageDiff_perGold: 0,
+        relativeDamageDiff_perGold: 0,
     }
 
-    readonly min_DamageTotalPerGoldDiff: number;
-    readonly min_DamageDiffPerGoldDiff: number;
-    readonly min_bonusDmgPercent_perGoldDiff: number;
+    readonly min_damage_perGold: number;
+    readonly min_absoluteDamageDiff_perGold: number;
+    readonly min_relativeDamageDiff_perGold: number;
     
     constructor(entries: Iterable<readonly [BuildConfig, GameDiff]>) {
         super(DiffMap.zeroDiff, entries);
         
         let diffs = this.values().toArray();
 
-        this.min_DamageTotalPerGoldDiff = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damageTotal_per_goldDiff));
-        this.min_DamageDiffPerGoldDiff = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damageDiff_per_goldDiff));
-        this.min_bonusDmgPercent_perGoldDiff = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.bonusDmgPercent_perGoldDiff));
+        this.min_damage_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damage_perGold));
+        this.min_absoluteDamageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.absoluteDamageDiff_perGold));
+        this.min_relativeDamageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.relativeDamageDiff_perGold));
     }
 
     static #calculatePositiveMinOrZero(values: number[]) {
@@ -934,14 +935,23 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
     }
 
     static calculateDiff(unbuiltEndGameConfig: GameConfig, builtEndGameConfig: GameConfig, builtInitialGameConfig: GameConfig) {
+        let costBuilt       = builtEndGameConfig.origin.build.totalCost;
+        let costUnbuilt     = unbuiltEndGameConfig.origin.build.totalCost;
+        let costDiff        = costBuilt - costUnbuilt
+        let damageBuilt     = builtEndGameConfig.damageAggregate;
+        let damageUnbuilt   = unbuiltEndGameConfig.damageAggregate;
+        let damageDiff      = damageBuilt - damageUnbuilt;
+        
         return {
             builtInitialGameConfig,
             unbuiltEndGameConfig,
             builtEndGameConfig,
-            totalDamageDiff: builtEndGameConfig.damageAggregate - unbuiltEndGameConfig.damageAggregate,
-            damageTotal_per_goldDiff: builtEndGameConfig.damageAggregate / builtEndGameConfig.origin.build.totalCost,
-            damageDiff_per_goldDiff: (builtEndGameConfig.damageAggregate - unbuiltEndGameConfig.damageAggregate) / (builtEndGameConfig.origin.build.totalCost - unbuiltEndGameConfig.origin.build.totalCost),
-            bonusDmgPercent_perGoldDiff: ((builtEndGameConfig.damageAggregate - unbuiltEndGameConfig.damageAggregate) / unbuiltEndGameConfig.damageAggregate) / (builtEndGameConfig.origin.build.totalCost - unbuiltEndGameConfig.origin.build.totalCost)
+            costDiff,
+            damageDiff,
+            
+            damage_perGold: damageBuilt / costBuilt,
+            absoluteDamageDiff_perGold: damageDiff / costDiff,
+            relativeDamageDiff_perGold: (damageBuilt - damageUnbuilt) / damageUnbuilt / costDiff
         };
     }
 }
