@@ -31,6 +31,7 @@ export enum StatType {
     ManaRegenRatio                  = "Mana Regeneration Ratio",
     MoveSpeedFlat                   = "Move Speed",
     MoveSpeedRatio                  = "Move Speed Ratio",
+    Omnivamp                        = "Omnivamp",
 }
 
 export class DefiniteMap<K,V> extends SvelteMap<K,V> {
@@ -255,53 +256,49 @@ export class Item extends Affector {
             1000, "Boots of Swiftness", "https://wiki.leagueoflegends.com/en-us/images/Boots_of_Swiftness_item.png", 
             [[StatType.MoveSpeedFlat,55]]
         ),
+        Swiftmarch: new Item(
+            1000, "Swiftmarch", "https://wiki.leagueoflegends.com/en-us/images/Swiftmarch_item.png", 
+            [[StatType.MoveSpeedFlat,65]]
+        ),
+        BerserkersGreaves: new Item(
+            1100, "Berserker's Greaves", "https://wiki.leagueoflegends.com/en-us/images/Berserker%27s_Greaves_item.png", 
+            [[StatType.MoveSpeedFlat,45]]
+        ),
+        GunmetalGreaves: new Item(
+            1100, "Gunmetal Greaves", "https://wiki.leagueoflegends.com/en-us/images/Gunmetal_Greaves_item.png", 
+            [[StatType.MoveSpeedFlat,45]]
+        ),
         PlatedSteelcaps: new Item(
             1200, "Plated Steelcaps", "https://wiki.leagueoflegends.com/en-us/images/Plated_Steelcaps_item.png", 
             [[StatType.Armor,25],[StatType.MoveSpeedFlat,45]]
         ),
-        TriumphantPlatedSteelcaps: new Item(
-            1200, "Triumphant Plated Steelcaps", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Plated_Steelcaps_item.png", 
-            [[StatType.Armor,30],[StatType.MoveSpeedFlat,45]]
-        ),
         ArmoredAdvance: new Item(
-            1700, "Armored Advance", "https://wiki.leagueoflegends.com/en-us/images/Armored_Advance_item.png", 
-            [[StatType.Armor,40],[StatType.MoveSpeedFlat,50]]
+            1200, "Armored Advance", "https://wiki.leagueoflegends.com/en-us/images/Armored_Advance_item.png", 
+            [[StatType.Armor,35],[StatType.MoveSpeedFlat,45]]
         ),
         MercurysTreads: new Item(
             1250, "Mercury's Treads", "https://wiki.leagueoflegends.com/en-us/images/Mercury%27s_Treads_item.png", 
             [[StatType.MagicResistance,20],[StatType.MoveSpeedFlat,45]]
         ),
-        TriumphantMercurysTreads: new Item(
-            1250, "Triumphant Mercury's Treads", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Mercury%27s_Treads_item.png", 
-            [[StatType.MagicResistance,25],[StatType.MoveSpeedFlat,45]]
-        ),
         ChainlacedCrushers: new Item(
-            1750, "Chainlaced Crushers", "https://wiki.leagueoflegends.com/en-us/images/Chainlaced_Crushers_item.png", 
-            [[StatType.MagicResistance,35],[StatType.MoveSpeedFlat,50]]
+            1250, "Chainlaced Crushers", "https://wiki.leagueoflegends.com/en-us/images/Chainlaced_Crushers_item.png", 
+            [[StatType.MagicResistance,30],[StatType.MoveSpeedFlat,45]]
         ),
         IonianBootsOfLucidity: new Item(
             900, "Ionian Boots of Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Ionian_Boots_of_Lucidity_item.png", 
             [[StatType.AbilityHaste,10],[StatType.MoveSpeedFlat,45]]
         ),
-        TriumphantIonianBootsOfLucidity: new Item(
-            900, "Triumphant Ionian Boots of Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Ionian_Boots_of_Lucidity_item.png", 
-            [[StatType.AbilityHaste,15],[StatType.MoveSpeedFlat,45]]
-        ),
         CrimsonLucidity: new Item(
-            1400, "Crimson Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Crimson_Lucidity_item.png", 
-            [[StatType.AbilityHaste,25],[StatType.MoveSpeedFlat,50]]
+            900, "Crimson Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Crimson_Lucidity_item.png", 
+            [[StatType.AbilityHaste,20],[StatType.MoveSpeedFlat,45]]
         ),
         SorcerersShoes: new Item(
             1100, "Sorcerer's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Sorcerer%27s_Shoes_item.png", 
             [[StatType.MagicPenetrationFlat,12],[StatType.MoveSpeedFlat,45]]
         ),
-        TriumphantSorcerersShoes: new Item(
-            1100, "Triumphant Sorcerer's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Triumphant_Sorcerer%27s_Shoes_item.png", 
-            [[StatType.MagicPenetrationFlat,14],[StatType.MoveSpeedFlat,45]]
-        ),
         SpellslingersShoes: new Item(
-            1600, "Spellslinger's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item.png", 
-            [[StatType.MagicPenetrationFlat,18],[StatType.MagicPenetrationRatio,0.07],[StatType.MoveSpeedFlat,50]]
+            1100, "Spellslinger's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item.png", 
+            [[StatType.MagicPenetrationFlat,18],[StatType.MagicPenetrationRatio,0.08],[StatType.MoveSpeedFlat,45]]
         ),
         SapphireCrystal: new Item(
             300, "Sapphire Crystal", "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item.png", 
@@ -326,6 +323,10 @@ export class Item extends Affector {
         LostChapter: new Item(
             1200, "Lost Chapter", "https://wiki.leagueoflegends.com/en-us/images/Lost_Chapter_item.png", 
             [[StatType.AbilityHaste,10],[StatType.AbilityPower,40],[StatType.Mana,300]]
+        ),
+        Actualizer: new Item(
+            3100, "Actualizer", "https://wiki.leagueoflegends.com/en-us/images/Actualizer_item.png",
+            [[StatType.AbilityHaste,10],[StatType.AbilityPower,90],[StatType.Mana,300]]
         ),
         ArchangelsStaff: new Item(
             2900, "Archangel's Staff", "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item.png", 
@@ -375,9 +376,27 @@ export class Item extends Affector {
             2500, "Dawncore", "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item.png",
             [[StatType.AbilityPower,45],[StatType.HealAndShieldPowerRatio,0.16],[StatType.ManaRegenRatio,1]]
         ),
+        DuskAndDawn: new Item(
+            3100, "Dusk and Dawn", "https://wiki.leagueoflegends.com/en-us/images/Dusk_and_Dawn_item.png",
+            [[StatType.AbilityHaste,20],[StatType.AbilityPower,70],[StatType.Health,300]],
+            [[
+                Effect.createDamageEffect(DamageType.Magic, 0, 
+                    [[StatType.BaseAttackDamage,1],[StatType.AbilityPower,0.1]]
+                )
+            ]]
+        ),
         EchoesOfHelia: new Item(
             2200, "Echoes of Helia", "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,35],[StatType.Health,200],[StatType.HealAndShieldPowerRatio,1.25]]
+            [[StatType.AbilityHaste,20],[StatType.AbilityPower,35],[StatType.Health,200],[StatType.ManaRegenRatio,1.25]]
+        ),
+        HextechGunblade: new Item(
+            3000, "Hextech Gunblade", "https://wiki.leagueoflegends.com/en-us/images/Hextech_Gunblade_item.png",
+            [[StatType.AttackDamageBonus,40],[StatType.AbilityPower,80],[StatType.Omnivamp, 0.1]],
+            [[
+                Effect.createDamageEffect(DamageType.Magic, 175,
+                    [[StatType.ChampionLevelUps,(175-253)/17],[StatType.AbilityPower,0.3]]
+                )
+            ]]
         ),
         HextechRocketbelt: new Item(
             2650, "Hextech Rocketbelt", "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item.png",
@@ -385,8 +404,17 @@ export class Item extends Affector {
             [[Effect.createDamageEffect(DamageType.Magic, 100, [[StatType.AbilityPower,0.1]])]]
         ),
         HorizonFocus: new Item(
-            2750, "Horizon Focus", "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item.png",
-            [[StatType.AbilityHaste,25],[StatType.AbilityPower,125]]
+            2700, "Horizon Focus", "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item.png",
+            [[StatType.AbilityHaste,25],[StatType.AbilityPower,75]],
+            [[
+                new Effect(
+                    (gameConfig : GameConfig): GameConfig => {
+                        return new GameConfig(gameConfig, {
+                            damageAggregate: gameConfig.damageAggregate * 1.1
+                        });
+                    }
+                )
+            ]]
         ),
         ImperialMandate: new Item(
             2250, "Imperial Mandate", "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item.png",
@@ -414,7 +442,7 @@ export class Item extends Affector {
             [[Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.AbilityPower,0.4],[StatType.BaseAttackDamage,0.75]])]]
         ),
         LudensCompanion: new Item(
-            2750, "Luden's Companion", "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Companion_item.png", 
+            2750, "Luden's Echo", "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Tempest_item.png", 
             [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.Mana,600]],
             [[Effect.createDamageEffect(DamageType.Magic, 150, [[StatType.AbilityPower,0.1]])]]
         ),
@@ -452,6 +480,22 @@ export class Item extends Affector {
         RabadonsDeathcap: new Item(
             3500, "Rabadon's Deathcap", "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item.png",
             [[StatType.AbilityPower,130],[StatType.AbilityPowerAmpRatio,0.3]]
+        ),
+        Redemption: new Item(
+            2250, "Redemption", "https://wiki.leagueoflegends.com/en-us/images/Redemption_item.png",
+            [[StatType.AbilityHaste,15],[StatType.AbilityPower,30],[StatType.HealAndShieldPowerRatio,0.1],[StatType.ManaRegenRatio,1]],
+            [
+                [
+                    new Effect((gameConfig: GameConfig): GameConfig => {
+                        let rawDamage = new Damage(gameConfig.targetStatsPostEval.get(StatType.Health) * 0.1, 0, 0);
+                        let effectiveDamage = Damage.multiply(rawDamage, gameConfig.defenseCoefficients);
+                        
+                        return new GameConfig(gameConfig, {
+                            damageAggregate: gameConfig.damageAggregate + effectiveDamage.total
+                        });
+                    })
+                ]
+            ]
         ),
         Riftmaker: new Item(
             3100, "Riftmaker", "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item.png",
