@@ -628,7 +628,7 @@ export class Champion implements Entity {
     static readonly champs = {
         Ahri: new Champion(
             "Ahri", 
-            "https://wiki.leagueoflegends.com/en-us/images/thumb/Ahri_OriginalSquare.png/92px-Ahri_OriginalSquare.png", 
+            "https://wiki.leagueoflegends.com/en-us/images/Ahri_OriginalSquare.png", 
             [
                 new Ability("Orb of Deception", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Orb_of_Deception_HD.png", [], [
                     [
@@ -693,6 +693,29 @@ export class Champion implements Entity {
                 [StatType.ManaRegenPer5sec, 0.8],
                 [StatType.Armor, 4.2],
                 [StatType.MagicResistance, 1.3],
+                [StatType.AttackDamageBase, 3],
+            ]
+        ),
+        Sylas: new Champion(
+            "Sylas", 
+            "https://wiki.leagueoflegends.com/en-us/images/Sylas_OriginalSquare.png", 
+            [], 
+            [
+                [StatType.Health, 600],
+                [StatType.HealthRegenPer5sec, 9],
+                [StatType.Mana, 400],
+                [StatType.ManaRegenPer5sec, 8],
+                [StatType.Armor, 29],
+                [StatType.MagicResistance, 32],
+                [StatType.AttackDamageBase, 61]
+            ], 
+            [
+                [StatType.Health, 122],
+                [StatType.HealthRegenPer5sec, 0.9],
+                [StatType.Mana, 70],
+                [StatType.ManaRegenPer5sec, 0.8],
+                [StatType.Armor, 5.2],
+                [StatType.MagicResistance, 2.55],
                 [StatType.AttackDamageBase, 3],
             ]
         ),
@@ -903,6 +926,24 @@ export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
     }
 }
 
+export function CalculateBaseStats(champ: Champion, level: number): DefiniteNumberMap<StatType> {
+    let champLevelUps = Math.max(0, level - 1);
+    let growthCoeffecient = champLevelUps * (0.7025 + (0.0175 * champLevelUps));
+    
+    let growthStats 
+    = new DefiniteNumberMap(champ.statGrowthCoefficients.entries().map(statType_statCoefficient => {
+        let statType = statType_statCoefficient[0];
+        let statCoefficient = statType_statCoefficient[1];
+        
+        return [statType, statCoefficient * growthCoeffecient]
+    }));
+    
+    let champBaseStats 
+    = DefiniteNumberMap.sumPerKey(new DefiniteNumberMap<StatType>([[StatType.ChampionLevelUps, champLevelUps]]), champ.baseStats, growthStats);
+
+    return champBaseStats;
+}
+
 export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
     constructor(
         champ: Champion,
@@ -911,20 +952,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
         buildConfigs: BuildConfig[]
     ) {
         let champLevel = abilityRanks.values().reduce((a,b) => a+b, 0);
-        let champLevelUps = Math.max(0, champLevel - 1);
-        let growthCoeffecient = champLevelUps * (0.7025 + (0.0175 * champLevelUps));
-        
-        let growthStats 
-        = new DefiniteNumberMap(champ.statGrowthCoefficients.entries().map(statType_statCoefficient => {
-            let statType = statType_statCoefficient[0];
-            let statCoefficient = statType_statCoefficient[1];
-            
-            return [statType, statCoefficient * growthCoeffecient]
-        }));
-        
-        let champBaseStats 
-        = DefiniteNumberMap.sumPerKey(new DefiniteNumberMap<StatType>([[StatType.ChampionLevelUps, champLevelUps]]), champ.baseStats, growthStats);
-        // totalBaseStats.set(StatType.ChampionLevel, champLevel);
+        let champBaseStats = CalculateBaseStats(champ, champLevel);
         
         let effectsPerAbility 
         = new DefiniteMap<Ability,Effect[]>([], champ.abilities.map(
