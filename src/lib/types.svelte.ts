@@ -17,6 +17,9 @@ export enum StatType {
     ArmorReductionDebuffRatio       = "Armor Reduction Ratio",
     BaseAttackDamage                = "Base Attack Damage",
     BonusAttackDamage               = "Bonus Attack Damage",
+    DamageMagicAmpRatio             = "Magic Damage Amp Ratio",
+    DamagePhysicalAmpRatio          = "Physical Damage Amp Ratio",
+    DamageTrueAmpRatio              = "True Damage Amp Ratio",
     HealAndShieldPowerRatio         = "Heal & Shield Power Ratio",
     Health                          = "Health",
     HealthRegenPer5sec              = "Health Regeneration per 5 sec",
@@ -148,6 +151,15 @@ export class Effect {
                         break;
                 }
 
+                recentDamage = Damage.multiply(
+                    recentDamage, 
+                    new Damage(
+                        1 + gameConfig.statsPostEval.get(StatType.DamageTrueAmpRatio),
+                        1 + gameConfig.statsPostEval.get(StatType.DamagePhysicalAmpRatio),
+                        1 + gameConfig.statsPostEval.get(StatType.DamageMagicAmpRatio)
+                    )
+                );
+
                 recentDamage = Damage.multiply(recentDamage, gameConfig.defenseCoefficients);
 
                 return new GameConfig(gameConfig, {
@@ -195,6 +207,20 @@ export class Affector implements Entity {
                         [StatType.BonusAttackDamage, 0],
                     ]
                 )
+            ],
+        ]),
+        new Affector("Ignite", "https://wiki.leagueoflegends.com/en-us/images/Ignite.png", [], [
+            [
+                new Effect((gameConfig: GameConfig): GameConfig => {
+                    let levelUps = gameConfig.statsPostEval.get(StatType.ChampionLevelUps);
+                    let lateLevelUps = Math.max(0, levelUps - 4);
+                    let earlyLevelUps = levelUps - lateLevelUps;
+                    let trueDamage = 70 + (20 * earlyLevelUps) + (25 * lateLevelUps);
+                    
+                    return new GameConfig(gameConfig, {
+                        damageAggregate: gameConfig.damageAggregate + trueDamage
+                    });
+                })
             ],
         ]),
     ] as const;
@@ -326,7 +352,25 @@ export class Item extends Affector {
         ),
         Actualizer: new Item(
             3100, "Actualizer", "https://wiki.leagueoflegends.com/en-us/images/Actualizer_item.png",
-            [[StatType.AbilityHaste,10],[StatType.AbilityPower,90],[StatType.Mana,300]]
+            [[StatType.AbilityHaste,10],[StatType.AbilityPower,90],[StatType.Mana,300]],
+            [
+                [
+                    new Effect((gameConfig: GameConfig): GameConfig => {
+                        let damageAmp = 0.15 + 0.00005 * gameConfig.champStatModifiers.get(StatType.Mana);
+
+                        return new GameConfig(gameConfig, {
+                            champStatModifiers: DefiniteNumberMap.sumPerKey(
+                                gameConfig.champStatModifiers,
+                                new DefiniteNumberMap<StatType>([
+                                    [StatType.DamageMagicAmpRatio, damageAmp],
+                                    [StatType.DamagePhysicalAmpRatio, damageAmp],
+                                    [StatType.DamageTrueAmpRatio, damageAmp]
+                                ])
+                            )
+                        });
+                    })
+                ]
+            ]
         ),
         ArchangelsStaff: new Item(
             2900, "Archangel's Staff", "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item.png", 
@@ -511,8 +555,16 @@ export class Item extends Affector {
             [
                 [
                     new Effect((gameConfig: GameConfig): GameConfig => {
+                        let damageAmp = 0.2;
+
                         return new GameConfig(gameConfig, {
-                            damageAggregate: gameConfig.damageAggregate * 1.2
+                            champStatModifiers: DefiniteNumberMap.sumPerKey(
+                                gameConfig.champStatModifiers,
+                                new DefiniteNumberMap<StatType>([
+                                    [StatType.DamageMagicAmpRatio, damageAmp],
+                                    [StatType.DamageTrueAmpRatio, damageAmp]
+                                ])
+                            )
                         });
                     })
                 ]
