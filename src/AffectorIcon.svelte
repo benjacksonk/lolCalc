@@ -13,23 +13,24 @@
         showNameOnHover: boolean,
         showStatsOnHover: boolean
     } = $props();
-    
-    let hasTooltip = $derived(showNameOnHover || showStatsOnHover);
+
+    let statsTooltip = $state<StatsTooltip>();
 </script>
 
 
 
-<div class="AffectorIcon">
+<button class="AffectorIcon" interestfor={statsTooltip?.uid}>
     <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
+</button>
 
-    {#if hasTooltip}
-    <StatsTooltip 
-    header={showNameOnHover ? affector.name : undefined} 
-    leaders={affector instanceof Item ? [["Gold", affector.price.toFixed(0)]] : []}
-    stats={showStatsOnHover ? affector.stats : []}
-    />
-    {/if}
-</div>
+{#if showNameOnHover || showStatsOnHover}
+<StatsTooltip
+bind:this={statsTooltip}
+header={showNameOnHover ? affector.name : undefined} 
+leaders={affector instanceof Item ? [["Gold", affector.price.toFixed(0)]] : []}
+stats={showStatsOnHover ? affector.stats : []}
+/>
+{/if}
 
 
 

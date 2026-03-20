@@ -127,76 +127,27 @@
 			cursor: pointer;
 		}
 	}
-	
-	/* *:has(+ .onHover), */
-	*:has(+ .onPopup),
-	button:not([disabled]) {
+
+	button:not([disabled]):not([interestfor]) {
 		transition: 0.06s ease-out;
-	}
-	/* *:has(+ .onHover):hover, */
-	*:has(+ .onPopup:not(.REMOVED)),
-	button:not([disabled]):hover {
-		scale: var(--zoomScale);
-		box-shadow:	var(--box-shadow-focus);
 		
-		& & {
-			scale: 1;
-		}
-		
-		/* .onHover, */
-		.onPopup {
-			transform-origin: top center;
-			scale: var(--unzoomScale);
+		&:hover {
+			scale: var(--zoomScale);
+			box-shadow:	var(--box-shadow-focus);
 		}
 	}
-
-	.onPopup,
-	.onHover {
-		position: absolute !important;
-		top: 100%;
-		left: 50%;
-		translate: -50% 0;
-
-		&.alignLeftEdge {
-			left: 0;
-			right: unset;
-			translate: unset;
-		}
-		
-		&.alignRightEdge {
-			left: unset;
-			right: 0;
-			translate: unset;
-		}
+	button:not([disabled]):not([interestfor]):hover,
+	*:has(button:not([disabled]):not([interestfor]):hover) {
+		position: relative;
+		z-index: 1;
 	}
 	
-	button:not([disabled]):hover,
-	*:has(button:not([disabled]):hover),
-	*:has(.onPopup:not(.REMOVED)) {
-		position: relative;
-		z-index: 1;
-	}
-    .onPopup {
-		z-index: 1;
-        width: max-content;
-        height: max-content;
-		box-shadow:	var(--box-shadow);
-    }
-
-	*:has(.onHover):hover {
-		z-index: 2 !important;
-		position: relative;
-	}
-	.onHover {
-		z-index: 2 !important;
-        width: max-content;
-        height: max-content;
-		box-shadow:	var(--box-shadow);
-
-		pointer-events: none;
-	}
-	*:has(> .onHover):not(:hover) > .onHover {
-		visibility: hidden;
+	a[interestfor],
+	button[interestfor] {
+		/* color: inherit; */
+		/* text-decoration: none; */
+		all: unset;
+        interest-delay: 0s;
 	}
 
 	.plain {

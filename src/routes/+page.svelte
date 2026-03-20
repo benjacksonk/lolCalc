@@ -88,7 +88,7 @@
                 >𐌢</button>
 
                 <BuildSpecUI 
-                bind:buildConfig={buildConfigs[i]} 
+                bind:buildConfig={buildConfigs[i]} buildIndex={i}
                 derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtInitialGameConfig}
                 />
             </div>
