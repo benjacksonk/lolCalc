@@ -684,28 +684,28 @@ export class Champion implements Entity {
             [
                 new Ability("Orb of Deception", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Orb_of_Deception_HD.png", [], [
                     [
-                        Effect.createDamageEffect(DamageType.Magic, 40, [[StatType.AbilityPower, 0.5]], 
-                            Effect.createDamageEffect(DamageType.True, 40, [[StatType.AbilityPower, 0.5]])
+                        Effect.createDamageEffect(DamageType.Magic, 35, [[StatType.AbilityPower, 0.5]], 
+                            Effect.createDamageEffect(DamageType.True, 35, [[StatType.AbilityPower, 0.5]])
                         )
                     ],
                     [
-                        Effect.createDamageEffect(DamageType.Magic, 65, [[StatType.AbilityPower, 0.5]],
-                            Effect.createDamageEffect(DamageType.True, 65, [[StatType.AbilityPower, 0.5]])
+                        Effect.createDamageEffect(DamageType.Magic, 60, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 60, [[StatType.AbilityPower, 0.5]])
                         )
                     ],
                     [
-                        Effect.createDamageEffect(DamageType.Magic, 90, [[StatType.AbilityPower, 0.5]],
-                            Effect.createDamageEffect(DamageType.True, 90, [[StatType.AbilityPower, 0.5]])
+                        Effect.createDamageEffect(DamageType.Magic, 85, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 85, [[StatType.AbilityPower, 0.5]])
                         )
                     ],
                     [
-                        Effect.createDamageEffect(DamageType.Magic, 115, [[StatType.AbilityPower, 0.5]],
-                            Effect.createDamageEffect(DamageType.True, 115, [[StatType.AbilityPower, 0.5]])
+                        Effect.createDamageEffect(DamageType.Magic, 110, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 110, [[StatType.AbilityPower, 0.5]])
                         )
                     ],
                     [
-                        Effect.createDamageEffect(DamageType.Magic, 140, [[StatType.AbilityPower, 0.5]],
-                            Effect.createDamageEffect(DamageType.True, 140, [[StatType.AbilityPower, 0.5]])
+                        Effect.createDamageEffect(DamageType.Magic, 135, [[StatType.AbilityPower, 0.5]],
+                            Effect.createDamageEffect(DamageType.True, 135, [[StatType.AbilityPower, 0.5]])
                         )
                     ]
                 ]),
