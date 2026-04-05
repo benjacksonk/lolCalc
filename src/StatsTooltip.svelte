@@ -63,7 +63,11 @@ class:alignRightEdge={edgeAlignment == "right"}
         translate: -50%;
         color: #e2e2e2;
         font-family: var(--font-family-sans);
-        background: linear-gradient(in oklab to right, var(--aqua-deep), var(--aqua), var(--aqua-deep));
+        background: linear-gradient(in oklab to bottom,
+            oklab(from var(--aqua) l a b / 100%),
+            oklab(from var(--aqua-deep) l a b / 80%)
+        );
+        backdrop-filter: blur(23px);
         padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
         border-width: 2px 1px 2px;
         border-style: solid;

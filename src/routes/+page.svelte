@@ -42,6 +42,7 @@
 <main>
     <div class="sheerBackground champSpecs">
         <ChampSpecUI bind:champ bind:abilityRanks/>
+        vs
         <TargetSpecUI bind:targetBaseStats/>
     </div>
 
@@ -158,9 +159,10 @@
         display: grid;
 
         grid-auto-flow: column;
-        grid-template-columns: repeat(auto-fit, minmax(0,1fr));
+        grid-template-columns: minmax(0,1fr) max-content minmax(0,1fr);
         justify-content: center;
-        gap: 40px;
+        align-items: center;
+        gap: 20px;
     }
     
     .diffTable {
