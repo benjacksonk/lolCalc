@@ -61,18 +61,21 @@ class:alignRightEdge={edgeAlignment == "right"}
         left: anchor(50%);
         right: unset;
         translate: -50%;
-        color: #e2e2e2;
+        color: var(--color-grey-29);
         font-family: var(--font-family-sans);
-        background: linear-gradient(in oklab to bottom,
-            oklab(from var(--aqua) l a b / 100%),
-            oklab(from var(--aqua-deep) l a b / 80%)
+        background: linear-gradient(in oklab to bottom, 
+            oklch(from var(--color-blue-9) l calc(c * 0.71) h), 
+            oklch(from var(--color-aqua-9) l calc(c * 0.79) h / 79%)
         );
         backdrop-filter: blur(23px);
         padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
         border-width: 2px 1px 2px;
         border-style: solid;
-        border-color: var(--brass);
-        border-image: linear-gradient(in oklab to bottom, var(--gold-pale), var(--aqua-pale)) 1;
+        border-color: var(--color-honey-27);
+        border-image: linear-gradient(in oklab to bottom, 
+            var(--color-honey-27), 
+            oklch(from var(--color-aqua-12) l calc(c * 0.5) h)
+        ) 1;
         grid-template-columns: auto auto;
         gap: 5px;
         overflow: visible;
@@ -91,7 +94,7 @@ class:alignRightEdge={edgeAlignment == "right"}
                 translate: 0%;
             }
             &::after {
-                background: var(--aqua-deep);
+                background: oklch(from var(--color-blue-9) l calc(c * 0.71) h);
             }
         }
 
@@ -105,7 +108,7 @@ class:alignRightEdge={edgeAlignment == "right"}
                 translate: 0%;
             }
             &::after {
-                background: var(--aqua-deep);
+                background: oklch(from var(--color-blue-9) l calc(c * 0.71) h);
             }
         }
 
@@ -120,11 +123,11 @@ class:alignRightEdge={edgeAlignment == "right"}
         }
         &::before {
             top: calc((-12px * (1 / 2)) - 2px);
-            background: var(--gold-pale);
+            background: var(--color-honey-27);
         }
         &::after {
             top: calc((-12px * (1 / 2)) + (2px * (sqrt(2) - 1)));
-            background: var(--aqua);
+            background: oklch(from var(--color-blue-9) l calc(c * 0.71) h);
         }
     }
 
@@ -132,12 +135,13 @@ class:alignRightEdge={edgeAlignment == "right"}
         grid-column: span 2;
         text-align: center;
         font-weight: bold;
-        color: var(--gold-pale);
+        color: var(--color-honey-28);
         display: grid;
     }
 
     .itemStat {
-        color: var(--gold-pale);
+        color: var(--color-honey-28);
+        font-weight: 600;
     }
 
     .affectorStat {
