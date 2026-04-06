@@ -1,9 +1,9 @@
 <script lang="ts">
     import { Ability, BuildConfig, DefiniteNumberMap, StatType, type GameDiff, Champion, DiffAtlas, Affector, Rune, DiffMap } from "$lib/types.svelte";
-    import BuildSpecUI from "../BuildSpecUI.svelte";
-    import ChampSpecUI from "../ChampSpecUI.svelte";
-    import TargetSpecUI from "../TargetSpecUI.svelte";
-    import AffectorSequenceUI from "../AffectorSequenceUI.svelte";
+    import UiAffectorSequence from "../UiAffectorSequence.svelte";
+    import UiBuildSpec from "../UiBuildSpec.svelte";
+    import UiChampSpec from "../UiChampSpec.svelte";
+    import UiTargetSpec from "../UiTargetSpec.svelte";
 
     let champ: Champion 
     = $state(Champion.all[0]);
@@ -41,9 +41,9 @@
 
 <main>
     <div class="sheerBackground champSpecs">
-        <ChampSpecUI bind:champ bind:abilityRanks/>
+        <UiChampSpec bind:champ bind:abilityRanks/>
         vs
-        <TargetSpecUI bind:targetBaseStats/>
+        <UiTargetSpec bind:targetBaseStats/>
     </div>
 
     <div class="sheerBackground diffTable">
@@ -88,7 +88,7 @@
                 disabled={buildConfigs.length <= 1}
                 >𐌢</button>
 
-                <BuildSpecUI 
+                <UiBuildSpec 
                 bind:buildConfig={buildConfigs[i]} buildIndex={i}
                 derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtInitialGameConfig}
                 />
@@ -129,7 +129,7 @@
 
             <div class="sequencesPerBuild" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
-                <AffectorSequenceUI bind:affectorQueue={buildConfig.affectorQueue}
+                <UiAffectorSequence bind:affectorQueue={buildConfig.affectorQueue}
                 affectorOptions={[...Affector.allBasicAffectors, ...champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0), ...Rune.all]}
                 />
                 {/each}

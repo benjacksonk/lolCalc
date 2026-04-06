@@ -15,7 +15,7 @@
 
 
 
-<div class="ChampSpecUI">
+<div class="UiChampSpec">
     <div class="champHerald">
         <div class="champOverview">
             <span class="champName">{champ.name}</span>
@@ -44,7 +44,7 @@
 
 
 <style>
-    .ChampSpecUI {
+    .UiChampSpec {
         display: flex;
 
         flex-flow: row-reverse wrap;

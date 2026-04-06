@@ -18,7 +18,7 @@
 
 
 
-<div popover="hint" id={uid} class="StatsTooltip"
+<div popover="hint" id={uid} class="UiStatsTooltip"
 class:alignLeftEdge={edgeAlignment == "left"}
 class:alignRightEdge={edgeAlignment == "right"}
 >
@@ -53,14 +53,9 @@ class:alignRightEdge={edgeAlignment == "right"}
 
 
 <style>
-    .StatsTooltip {
+    .UiStatsTooltip {
 		box-shadow:	var(--box-shadow);
         pointer-events: none;
-        position: absolute;
-        top: anchor(100%);
-        left: anchor(50%);
-        right: unset;
-        translate: -50%;
         color: var(--color-grey-29);
         font-family: var(--font-family-sans);
         background: linear-gradient(in oklab to bottom, 
@@ -84,31 +79,15 @@ class:alignRightEdge={edgeAlignment == "right"}
             display: grid;
         }
 
-        &.alignLeftEdge {            
-            left: anchor(0%);
-            translate: 0%;
-
+        &.alignLeftEdge {
             &::before, &::after {
-                left: 4px;
-                right: unset;
-                translate: 0%;
-            }
-            &::after {
-                background: oklch(from var(--color-blue-9) l calc(c * 0.71) h);
+                left: 9px;
             }
         }
 
         &.alignRightEdge {
-            left: anchor(100%);
-            translate: -100%;
-
             &::before, &::after {
-                left: unset;
-                right: 4px;
-                translate: 0%;
-            }
-            &::after {
-                background: oklch(from var(--color-blue-9) l calc(c * 0.71) h);
+                right: 9px;
             }
         }
 

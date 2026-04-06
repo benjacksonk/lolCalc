@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Item, type Affector } from "$lib/types.svelte";
-    import StatsTooltip from "./StatsTooltip.svelte";
+    import UiStatsTooltip from "./UiStatsTooltip.svelte";
 
     let {
         affector,
@@ -14,17 +14,17 @@
         showStatsOnHover: boolean
     } = $props();
 
-    let statsTooltip = $state<StatsTooltip>();
+    let statsTooltip = $state<UiStatsTooltip>();
 </script>
 
 
 
-<button class="AffectorIcon" interestfor={statsTooltip?.uid}>
+<button class="UiAffectorIcon" interestfor={statsTooltip?.uid}>
     <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
 </button>
 
 {#if showNameOnHover || showStatsOnHover}
-<StatsTooltip
+<UiStatsTooltip
 bind:this={statsTooltip}
 header={showNameOnHover ? affector.name : undefined} 
 leaders={affector instanceof Item ? [["Gold", affector.price.toFixed(0)]] : []}
@@ -35,7 +35,7 @@ stats={showStatsOnHover ? affector.stats : []}
 
 
 <style>
-    .AffectorIcon {
+    .UiAffectorIcon {
         > .icon {
             background-color: #1f1f1f;
         }

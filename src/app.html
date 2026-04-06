@@ -450,4 +450,21 @@
 	.sheer, .sheerBorder {
 		border: 1px solid #7771;
 	}
+
+	*[popover] {
+        position: absolute;
+		top: anchor(100%);
+		
+		&:not(.alignLeftEdge):not(.alignRightEdge) {
+			left: anchor(50%);
+			translate: -50%;
+		}
+		&.alignLeftEdge {
+			left: anchor(0%);
+		}
+		&.alignRightEdge {
+			left: anchor(100%);
+            translate: -100%;
+		}
+	}
 </style>

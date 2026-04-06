@@ -27,7 +27,7 @@
 
 
 
-<div class="TargetSpecUI">
+<div class="UiTargetSpec">
     <button popovertarget="targetSelectorOptions" id="targetSelector" class="targetChampIconWrapper">
         <img class:targetChampIconOverlay={true || usesCustomProfile} src={targetChampProfile?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
     </button>
@@ -90,7 +90,7 @@
 
 
 <style>
-    .TargetSpecUI {
+    .UiTargetSpec {
         display: flex;
 
         flex-flow: row nowrap;

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { BuildConfig, GameConfig, Item, ItemSlotConfig } from "$lib/types.svelte";
-    import AffectorIcon from "./AffectorIcon.svelte";
-    import StatsTooltip from "./StatsTooltip.svelte";
+    import UiAffectorIcon from "./UiAffectorIcon.svelte";
+    import UiStatsTooltip from "./UiStatsTooltip.svelte";
 
     let {
         buildConfig = $bindable(),
@@ -13,7 +13,7 @@
         derivedGameConfig: GameConfig
     } = $props();
 
-    let statsTooltip = $state<StatsTooltip>();
+    let statsTooltip = $state<UiStatsTooltip>();
 
     function handleMouseDownOnItemOption(event: MouseEvent, itemConfig: ItemSlotConfig, item: Item) {
         event.preventDefault();
@@ -23,13 +23,13 @@
 
 
 
-<div class="BuildSpec">
+<div class="UiBuildSpec">
     <button class="price" interestfor={statsTooltip?.uid}>
         <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span>
         <span class="priceUnit">g</span>
     </button>
 
-    <StatsTooltip
+    <UiStatsTooltip
     bind:this={statsTooltip}
     stats={derivedGameConfig.statsPostEval}
     edgeAlignment="left"
@@ -40,7 +40,7 @@
         {#each buildConfig.itemSlots as itemConfig, i}
         <div>
             <button class="plain affectorButton slotButton" popovertarget={`itemSelector-${buildIndex}-${i}`}>
-                <AffectorIcon affector={itemConfig.item} size="min" showNameOnHover={true} showStatsOnHover={true}/>
+                <UiAffectorIcon affector={itemConfig.item} size="min" showNameOnHover={true} showStatsOnHover={true}/>
             </button>
             
             <div popover id={`itemSelector-${buildIndex}-${i}`} class="itemSelector">
@@ -48,7 +48,7 @@
                 <button class="plain affectorButton optionButton" 
                 onmousedown={(event) => handleMouseDownOnItemOption(event, itemConfig, item)}
                 >
-                    <AffectorIcon affector={item} size="sml" showNameOnHover={true} showStatsOnHover={true}/>
+                    <UiAffectorIcon affector={item} size="sml" showNameOnHover={true} showStatsOnHover={true}/>
                 </button>
                 {/each}
             </div>
@@ -60,7 +60,7 @@
 
 
 <style>
-    .BuildSpec {
+    .UiBuildSpec {
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
