@@ -143,7 +143,7 @@
 <style>
     main {
         width: 100%;
-        height: 100%;
+        height: 100dvh;
 		font-family: var(--font-family-sans);
         color: #ccc;
         background-color: #111;

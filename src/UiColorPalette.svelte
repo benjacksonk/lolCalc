@@ -1,17 +1,22 @@
 <script lang="ts">
-    let colorNames = $state<string[]>(["grey", "aqua", "blue", "honey", "coral"]);
+    let isZeroIndexed = $state<boolean>(true);
+    let maxIndex = $state<number>(50);
+    let hueNames = $state<string[]>(["grey", "aqua", "blue", "honey"]);
+    let dummys = $derived(Array(maxIndex + (isZeroIndexed ? 1 : 0)));
 </script>
 
 
 
-<div class="UiColorPalette">
-    {#each colorNames as colorName}
+<div class="UiColorPalette" style:grid-template-rows={`repeat(${dummys.length + 2}, minmax(0,1fr))`};>
+    {#each hueNames as hueName, i}
     <div class="hue">
-        <p class="name">{colorName}</p>
+        <div class="name" style:color="#777" style:background-color={"white"}></div>
         
-        {#each Array(31) as undefinedItem, i}
-        <div class="color" style:background-color={`var(--color-${colorName}-${30 - i})`}></div>
+        {#each dummys as dummy, j}
+        <div class="color" style:background-color={`var(--color-${hueName}-${dummys.length - j - (isZeroIndexed ? 1 : 0)})`}></div>
         {/each}
+
+        <div class="color" style:color="#7778" style:background-color={"black"}></div>
     </div>
     {/each}
 </div>
@@ -22,13 +27,14 @@
     .UiColorPalette {
         height: stretch;
         display: grid;
-        grid-template-rows: repeat(32, minmax(0,1fr));
         grid-auto-columns: minmax(0,1fr);
     }
 
     .hue, .name, .color {
+        text-align: center;
         display: grid;
         grid-template: subgrid / subgrid;
+        font-weight: 500;
     } 
 
     .hue {
