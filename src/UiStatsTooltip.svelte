@@ -52,7 +52,7 @@ class:alignRightEdge={edgeAlignment == "right"}
 
 
 
-<style>
+<style lang="scss">
     .UiStatsTooltip {
 		box-shadow:	var(--box-shadow);
         pointer-events: none;

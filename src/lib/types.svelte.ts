@@ -438,7 +438,7 @@ export class Item extends Affector {
             [[StatType.AttackDamageBonus,40],[StatType.AbilityPower,80],[StatType.Omnivamp, 0.1]],
             [[
                 Effect.createDamageEffect(DamageType.Magic, 175,
-                    [[StatType.ChampionLevelUps,(175-253)/17],[StatType.AbilityPower,0.3]]
+                    [[StatType.ChampionLevelUps,(253-175)/17],[StatType.AbilityPower,0.3]]
                 )
             ]]
         ),
@@ -580,7 +580,7 @@ export class Item extends Affector {
         ),
         Stormsurge: new Item(
             2800, "Stormsurge", "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item.png",
-            [[StatType.AbilityPower,80],[StatType.MagicPenetrationFlat,15],[StatType.MoveSpeedRatio,0.06]],
+            [[StatType.AbilityPower,90],[StatType.MagicPenetrationFlat,15],[StatType.MoveSpeedRatio,0.06]],
             [[Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower,0.1]])]]
         ),
         VoidStaff: new Item(

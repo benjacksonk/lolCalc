@@ -43,7 +43,7 @@
                 <UiAffectorIcon affector={itemConfig.item} size="min" showNameOnHover={true} showStatsOnHover={true}/>
             </button>
             
-            <div popover id={`itemSelector-${buildIndex}-${i}`} class="itemSelector">
+            <div popover id={`itemSelector-${buildIndex}-${i}`} class="itemSelector alignLeftEdge">
                 {#each Item.all as item, j (item.name)}
                 <button class="plain affectorButton optionButton" 
                 onmousedown={(event) => handleMouseDownOnItemOption(event, itemConfig, item)}
@@ -97,8 +97,6 @@
         background: #111;
         border: 2px solid #2e2e2e;
 		box-shadow:	var(--box-shadow);
-        top: anchor(100%);
-        left: anchor(0%);
         grid-auto-rows: max-content;
         grid-template-columns: repeat(11, max-content);
         gap: 1px;
