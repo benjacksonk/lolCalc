@@ -29,7 +29,7 @@
 
 <div class="UiTargetSpec">
     <button popovertarget="targetSelectorOptions" id="targetSelector" class="targetChampIconWrapper">
-        <img class:targetChampIconOverlay={true || usesCustomProfile} src={targetChampProfile?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
+        <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
     </button>
 
     <div popover id="targetSelectorOptions">
@@ -41,7 +41,7 @@
             UpdateTargetProfileStats();
         }}
         >
-            <img class:targetChampIconOverlay={champ === null} src={champ?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
+            <img class:targetChampIconOverlay={!champ} src={champ?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
         </button>
         {/each}
     </div>
@@ -56,7 +56,6 @@
                     UpdateTargetProfileStats();
                 }
             }
-            disabled={usesCustomProfile}
             />
             Level
         </label>
@@ -133,7 +132,7 @@
         position: relative;
         border: none;
 
-        &:has(> .targetChampIcon)::after {
+        &:has(> .targetChampIconOverlay)::after {
             content: "";
             position: absolute;
             inset: 0;
