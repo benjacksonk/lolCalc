@@ -59,7 +59,7 @@
 
 
 
-<style>
+<style lang="scss">
     .UiBuildSpec {
         display: grid;
         grid-auto-flow: column;
@@ -68,7 +68,7 @@
         align-content: center;
         padding: 1px 1px 1px 0;
         gap: 1px;
-        background-color: oklch(from var(--color-blue-1) l calc(c * 0.5) h);
+        background-color: map.get($colors, blue-1-2);
     }
     
     .price {

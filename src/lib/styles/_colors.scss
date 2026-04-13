@@ -39,7 +39,15 @@ $chroma-b: log($anchor-cr, $anchor-lr / $lr-vertex);
     @return oklch($lightness $chroma $hue);
 }
 
-$l-subdivisions: 51;
+$l-subdivisions: 51; // lightness index ranges 0 through (n - 1) indicate points between (but not including) white and black
+$c-subdivisions: 6; // chroma index ranges 0 through (n - 1)
+
+$colors: ();
+
+// creates "grey-0" through "grey-($l-subdivisions - 1)"
+@for $l-index from 1 through $l-subdivisions {
+    $colors: map.set($colors, "#grey-#{$l-index - 1}", #{calculate-color(calc($l-index / ($l-subdivisions + 1)), 0, 0)});
+}
 
 $hues: (
     "red": 23,
@@ -50,23 +58,19 @@ $hues: (
     "blue": 245.5
 );
 
-$colors: ();
+// creates colors from "(hue)-0-0" for min lightness & saturation through "hue-($l-subdivisions - 1)-($c-subdivisions - 1)"
 @each $name, $value in $hues {
     @for $l-index from 1 through $l-subdivisions {
-        $color: calculate-color(calc($l-index / ($l-subdivisions + 1)), 1, $value);
-        $colors: map.set($colors, "#{$name}-#{$l-index - 1}", $color);
-    }
-}
-
-@mixin create-spectrum() {
-    // @include create-spectrum("grey", 0, 0, $l-subdivisions);
-    @each $name, $value in $hues {
-        @for $l-index from 1 through $l-subdivisions {
-            --color-#{$name}-#{$l-index - 1}: #{map.get($colors, "#{$name}-#{$l-index - 1}")};
+        @for $c-index from 1 through $c-subdivisions {
+            $colors: map.set(
+                $colors, 
+                "#{$name}-#{$l-index - 1}-#{$c-index - 1}", 
+                #{calculate-color(
+                    calc($l-index / ($l-subdivisions + 1)), 
+                    calc($c-index / $c-subdivisions), 
+                    $value
+                )}
+            );
         }
     }
-}
-
-:global(body) {
-    @include create-spectrum();
 }

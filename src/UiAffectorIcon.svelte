@@ -34,7 +34,7 @@ stats={showStatsOnHover ? affector.stats : []}
 
 
 
-<style>
+<style lang="scss">
     .UiAffectorIcon {
         border: none;
         border-radius: 0;
@@ -43,7 +43,7 @@ stats={showStatsOnHover ? affector.stats : []}
         width: max-content;
 
         > .icon {
-            background-color: oklch(from var(--color-aqua-3) l 0.02 h);
+            background-color: map.get($colors, aqua-3-1);
         }
     }
 </style>

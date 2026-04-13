@@ -47,7 +47,7 @@
 
 
 
-<style>
+<style lang="scss">
     .UiAffectorSequence {
         display: grid;
         grid-template-rows: repeat(2, minmax(0,1fr));

@@ -56,18 +56,18 @@ class:alignRightEdge={edgeAlignment == "right"}
     .UiStatsTooltip {
         border-width: 2px;
         border-style: solid;
-        border-color: var(--color-honey-40);
+        border-color: map.get($colors, honey-40-5);
         font-family: var(--font-family-sans);
         font-weight: 500;
         grid-template-columns: auto auto;
         gap: 5px;
 
 		box-shadow:	var(--box-shadow);
-        color: var(--color-coral-3);
+        color: map.get($colors, coral-3-5);
         border-radius: 5px;
         padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
 		overflow: visible;
-		background:	linear-gradient(in oklab to bottom, var(--color-honey-49), var(--color-honey-46));
+		background:	linear-gradient(in oklab to bottom, map.get($colors, honey-49-5), map.get($colors, honey-46-5));
 
         &:popover-open {
             display: grid;
@@ -87,11 +87,11 @@ class:alignRightEdge={edgeAlignment == "right"}
         }
         &X::before {
             top: calc((-12px * (1 / 2)) - 2px);
-            background: var(--color-honey-40);
+            background: map.get($colors, honey-40-5);
         }
         &X::after {
             top: calc((-12px * (1 / 2)) + (2px * (sqrt(2) - 1)));
-            background: var(--color-honey-49);
+            background: map.get($colors, honey-49-5);
         }
     }
 
@@ -103,7 +103,7 @@ class:alignRightEdge={edgeAlignment == "right"}
     }
     .affectorName,
     .itemStat {
-        color: var(--color-honey-14);
+        color: map.get($colors, honey-14-5);
     }
     .itemStat {
         font-weight: 600;

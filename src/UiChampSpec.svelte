@@ -43,7 +43,7 @@
 
 
 
-<style>
+<style lang="scss">
     .UiChampSpec {
         display: flex;
 

@@ -146,14 +146,12 @@
 
 
 <style lang="scss">
-    @use "$lib/styles/colors.scss" as *;
-
     main {
         width: 100%;
         height: 100dvh;
 		font-family: var(--font-family-sans);
         color: #ccc;
-        background-color: oklch(from var(--color-blue-2) l 0.02 h);
+        background-color: map.get($colors, blue-2-1);
         overflow: hidden hidden;
         display: flex;
 
@@ -163,8 +161,8 @@
 
     .champSpecs {
         padding: 10px;
-        // background-color: oklch(from var(--color-blue-4) l 0.02 h);
-        // border-bottom: 2px solid oklch(from var(--color-blue-5) l 0.025 h);
+        background-color: map.get($colors, blue-4-1);
+        border-bottom: 2px solid map.get($colors, blue-5-1);
         display: grid;
 
         grid-auto-flow: column;
@@ -217,11 +215,11 @@
     .button_deleteBuild {
         display: grid;
         padding: 0 5px;
-        color: var(--color-red-42);
-        background-color: var(--color-red-9);
+        color: map.get($colors, red-42-5);
+        background-color: map.get($colors, red-9-5);
         border-width: 2px;
         border-style: solid;
-        border-color: var(--color-red-12) var(--color-red-9) var(--color-red-12);
+        border-color: map.get($colors, red-12-5) map.get($colors, red-9-5) map.get($colors, red-12-5);
         border-radius: 50% 0 0 50%;
         align-content: center;
         text-align: center;
@@ -231,9 +229,9 @@
         }
 
         &:not([disabled]):hover {
-            background-color: var(--color-red-16);
-            border-color: var(--color-red-9);
-            color: var(--color-red-48);
+            background-color: map.get($colors, red-16-5);
+            border-color: map.get($colors, red-9-5);
+            color: map.get($colors, red-48-5);
         }
     }
 

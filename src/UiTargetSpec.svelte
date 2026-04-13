@@ -88,7 +88,7 @@
 
 
 
-<style>
+<style lang="scss">
     .UiTargetSpec {
         display: flex;
 
