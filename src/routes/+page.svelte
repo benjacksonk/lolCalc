@@ -146,61 +146,7 @@
 
 
 <style lang="scss">
-    $lr-vertex: sqrt(1 / 2); // [0-1] lightness (relative to white) where chromas are max
-    $lr-min: 0;
-    $lr-max: 1;
-    $lr-range: $lr-max - $lr-min;
-    $lr-vertex-subdivision: calc(33 / 52); // coordinated with a chroma apex at lr-subdivision-32
-    @function calculate-lr($lr-subdivision) {
-        $lr-p: log(($lr-vertex - $lr-min) / $lr-range, $lr-vertex-subdivision);
-        @return calc($lr-min + ($lr-range * pow($lr-subdivision, $lr-p)));
-    }
-
-    $l-k1: 0.206;
-    $l-k2: 0.03;
-    $l-k3: calc((1 + $l-k1) / (1 + $l-k2));
-    @function lr-to-l($lr) {
-        $l: calc(($lr * ($lr + $l-k1)) / ($l-k3 * ($lr + $l-k2)));
-        @return $l;
-    }
-    
-    $chroma-max: 0.147;                      // [0-1] max chroma safe within all hues of chosen palette
-    $anchor-lr: calculate-lr(calc(11 / 52)); // [0-1] anchor point color's lightness (relative to white)
-    $anchor-cr: 0.52;                        // [0-1] anchor point color's max chroma at $anchor-lr (relative to $chroma-max)
-    $chroma-b: log($anchor-cr, $anchor-lr / $lr-vertex);
-    @function calculate-chroma-limit($lr) {
-        $isBright: $lr-vertex > $lr;
-        $c-ratio: if(
-            sass($isBright): pow($lr / $lr-vertex, $chroma-b);
-            else: sqrt(abs(((1 - $lr) / (1 - $lr-vertex)) * (1 - pow(abs(($lr - $lr-vertex) / (1 - $lr-vertex)), $chroma-b))));
-        );
-        $chroma-limit: $chroma-max * $c-ratio;
-        @return $chroma-limit;
-    }
-
-    @function calculate-color($lr-subdivision, $saturation-mult, $hue) {
-        $lr: calculate-lr($lr-subdivision);
-        $lightness: lr-to-l($lr);
-        $chroma: calculate-chroma-limit($lr) * $saturation-mult;
-        @return oklch($lightness $chroma $hue);
-    }
-
-    @mixin create-spectrum($name, $hue, $saturation-mult, $subdivisions) {
-        @for $i from 1 through $subdivisions {
-            --color-#{$name}-#{$i - 1}: #{calculate-color(calc($i / ($subdivisions + 1)), $saturation-mult, $hue)};
-        }
-    }
-
-    $l-divisions: 51;
-    :global(body) {
-        @include create-spectrum("grey", 0, 0, $l-divisions);
-        @include create-spectrum("red", 23, 1, $l-divisions);
-        @include create-spectrum("coral", 50.8125, 1, $l-divisions);
-        @include create-spectrum("honey", 78.625, 1, $l-divisions);
-        @include create-spectrum("green", 134.25, 1, $l-divisions);
-        @include create-spectrum("aqua", 230.8125, 1, $l-divisions);
-        @include create-spectrum("blue", 245.5, 1, $l-divisions);
-    }
+    @use "$lib/styles/colors.scss" as *;
 
     main {
         width: 100%;
