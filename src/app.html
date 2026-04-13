@@ -13,6 +13,23 @@
 
 
 <style>
+	@font-face {
+		font-family: InterVariable;
+		font-style: normal;
+		font-weight: 100 900;
+		font-display: swap;
+  		src: url('https://rsms.me/inter/font-files/InterVariable.woff2?v=4.1') format('woff2');
+		font-feature-settings: 'liga', 'calt', 'ss01', 'cv05', 'cv08';
+	}
+	@font-face {
+		font-family: InterVariable;
+		font-style: italic;
+		font-weight: 100 900;
+		font-display: swap;
+  		src: url('https://rsms.me/inter/font-files/InterVariable-Italic.woff2?v=4.1') format('woff2');
+		font-feature-settings: 'liga', 'calt', 'ss01', 'cv05', 'cv08';
+	}
+	
 	*, *::before, *::after {
 		box-sizing: border-box;
 		padding: 0;
@@ -21,11 +38,11 @@
 
 	:root {
         font-size: 11.2pt;
-
-        --phi: calc(sqrt(1.25) + 0.5);
-
-        --font-family-sans: 'Comme','Lato','Radio Canada',sans-serif;
-		--font-family-script: 'Ruluko',var(--font-family-sans);
+		--sans: InterVariable, Impact, 'Comme', 'Lato', 'Radio Canada', sans-serif;
+		--serif: 'Foreday Semi Sans', 'Noto Serif', 'Droid Serif', 'Open Serif', 'Roboto Slab', serif;
+		--script: 'Ruluko', cursive;
+		
+		--phi: calc(sqrt(5 / 4) + 1 / 2);
 
         --font-size-0: calc(1rem * sqrt(pow(var(--phi), -1)));
         --font-size-1: calc(1rem * sqrt(pow(var(--phi), -0.5)));
@@ -49,7 +66,7 @@
         --space-8: calc(var(--space-0) * pow(var(--phi), 8));
         --space-9: calc(var(--space-0) * pow(var(--phi), 9));
 
-		--zoomScale: 1.08;
+		--zoomScale: 1.1892;
 		--unzoomScale: calc(1 / var(--zoomScale));
 
 		--iconSizeMax: 92px;
@@ -108,19 +125,19 @@
 	}
 
 	button {
+		font: inherit;
 		display: inline-block;
-
-		&:not([disabled]) {
-			cursor: pointer;
-		}
+		background-color: #eee;
+		color: black;
+		border: 2px solid #aaa;
+		border-radius: 5px;
 	}
-
 	button:not([disabled]):not([interestfor]) {
 		transition: 0.06s ease-out;
 		
 		&:hover {
 			scale: var(--zoomScale);
-			box-shadow:	var(--box-shadow-focus);
+			box-shadow: 0 0 16px 9px #111 !important;
 		}
 	}
 	button:not([disabled]):not([interestfor]):hover,
@@ -133,7 +150,6 @@
 	button[interestfor] {
 		/* color: inherit; */
 		/* text-decoration: none; */
-		all: unset;
         interest-delay: 0s;
 	}
 
@@ -152,19 +168,15 @@
 	}
 
 	*[popover] {
-        position: absolute;
-		top: anchor(100%);
-		
-		&:not(.alignLeftEdge):not(.alignRightEdge) {
-			left: anchor(50%);
-			translate: -50%;
-		}
-		&.alignLeftEdge {
-			left: anchor(0%);
-		}
-		&.alignRightEdge {
-			left: anchor(100%);
-            translate: -100%;
-		}
+		position-area: bottom;
+		position-try-fallbacks: top;
+	}
+	*[popover="hint"] {
+		pointer-events: none;
+	}
+
+	*:interest-source {
+		outline: 1px solid #555 !important;
+		filter: brightness(110%) !important;
 	}
 </style>

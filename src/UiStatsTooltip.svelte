@@ -54,59 +54,44 @@ class:alignRightEdge={edgeAlignment == "right"}
 
 <style lang="scss">
     .UiStatsTooltip {
-		box-shadow:	var(--box-shadow);
-        pointer-events: none;
-        color: var(--color-grey-29);
-        font-family: var(--font-family-sans);
-        background: linear-gradient(in oklab to bottom, 
-            oklch(from var(--color-blue-9) l calc(c * 0.71) h), 
-            oklch(from var(--color-aqua-9) l calc(c * 0.79) h / 79%)
-        );
-        backdrop-filter: blur(23px);
-        padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
-        border-width: 2px 1px 2px;
+        border-width: 2px;
         border-style: solid;
-        border-color: var(--color-honey-27);
-        border-image: linear-gradient(in oklab to bottom, 
-            var(--color-honey-27), 
-            oklch(from var(--color-aqua-12) l calc(c * 0.5) h)
-        ) 1;
+        border-color: var(--color-honey-40);
+        font-family: var(--font-family-sans);
+        font-weight: 500;
         grid-template-columns: auto auto;
         gap: 5px;
-        overflow: visible;
+
+		box-shadow:	var(--box-shadow);
+        color: var(--color-coral-3);
+        border-radius: 5px;
+        padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
+		overflow: visible;
+		background:	linear-gradient(in oklab to bottom, var(--color-honey-49), var(--color-honey-46));
 
         &:popover-open {
             display: grid;
         }
 
-        &.alignLeftEdge {
-            &::before, &::after {
-                left: 9px;
-            }
-        }
-
-        &.alignRightEdge {
-            &::before, &::after {
-                right: 9px;
-            }
-        }
-
-        &::before, &::after {
+        &X::before, 
+        &X::after {
             content: "";
             position: absolute;
-            left: 50%;
-            translate: -50%;
+            position-anchor: inherit;
+            position-area: top;
+            // left: 50%;
+            // translate: -50%;
             rotate: 45deg;
             width: 12px;
             height: 12px;
         }
-        &::before {
+        &X::before {
             top: calc((-12px * (1 / 2)) - 2px);
-            background: var(--color-honey-27);
+            background: var(--color-honey-40);
         }
-        &::after {
+        &X::after {
             top: calc((-12px * (1 / 2)) + (2px * (sqrt(2) - 1)));
-            background: oklch(from var(--color-blue-9) l calc(c * 0.71) h);
+            background: var(--color-honey-49);
         }
     }
 
@@ -114,12 +99,13 @@ class:alignRightEdge={edgeAlignment == "right"}
         grid-column: span 2;
         text-align: center;
         font-weight: bold;
-        color: var(--color-honey-28);
         display: grid;
     }
-
+    .affectorName,
     .itemStat {
-        color: var(--color-honey-28);
+        color: var(--color-honey-14);
+    }
+    .itemStat {
         font-weight: 600;
     }
 

@@ -24,7 +24,7 @@
 
 
 <div class="UiBuildSpec">
-    <button class="price" interestfor={statsTooltip?.uid}>
+    <button class="price sheerBackground" interestfor={statsTooltip?.uid}>
         <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span>
         <span class="priceUnit">g</span>
     </button>
@@ -66,11 +66,12 @@
         grid-template-columns: auto;
         grid-auto-columns: max-content;
         align-content: center;
+        padding: 1px 1px 1px 0;
         gap: 1px;
+        background-color: oklch(from var(--color-blue-1) l calc(c * 0.5) h);
     }
     
     .price {
-        background-color: #1e1e1e;
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
@@ -79,6 +80,9 @@
         text-align: right;
         padding: 0 5px;
         gap: 0 0.2em;
+        border: none;
+        border-radius: 0;
+        color: white;
     }
 
     .itemSlotGrid {

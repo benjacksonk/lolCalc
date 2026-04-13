@@ -3,6 +3,7 @@
     import UiAffectorSequence from "../UiAffectorSequence.svelte";
     import UiBuildSpec from "../UiBuildSpec.svelte";
     import UiChampSpec from "../UiChampSpec.svelte";
+    import UiColorPalette from "../UiColorPalette.svelte";
     import UiTargetSpec from "../UiTargetSpec.svelte";
 
     let champ: Champion 
@@ -40,15 +41,18 @@
 
 
 <main>
-    <div class="sheerBackground champSpecs">
+    {#if false}
+    <UiColorPalette/>
+    {:else}
+    <div class="champSpecs sheerBackground">
         <UiChampSpec bind:champ bind:abilityRanks/>
         vs
         <UiTargetSpec bind:targetBaseStats/>
     </div>
 
-    <div class="sheerBackground diffTable">
+    <div class="diffTable sheerBackground">
         {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff)}
-        <div class="sheerBackground effectOutcome">
+        <div class="effectOutcome sheerBackground">
             <div class="absoluteDamagePerGold">
                 <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{diff.damageDiff.toFixed(0)}</span></span>
                 <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span></span>
@@ -74,7 +78,7 @@
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability, i (ability.name)}
-            <img src={ability.iconURL} alt={ability.name} class="sheerBackground icon med">
+            <img src={ability.iconURL} alt={ability.name} class="icon med">
             {/each}
         </div>
 
@@ -83,7 +87,7 @@
         >
             {#each buildConfigs as buildConfig, i}
             <div class="buildContainer">
-                <button class="button_deleteBuild plainTextButton"
+                <button class="button_deleteBuild"
                 onmousedown={(event) => handleOnClickDeleteBuild(event, buildConfig)}
                 disabled={buildConfigs.length <= 1}
                 >𐌢</button>
@@ -95,7 +99,7 @@
             </div>
             {/each}
 
-            <button class="plainTextButton" style:display="grid"
+            <button class="addBuild"
             onmousedown={(event) => handleOnClickAddBuild(event, buildConfigs[buildConfigs.length - 1] ?? null)}
             >
             ＋
@@ -107,7 +111,7 @@
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability}
-            <div class="sheer diffColumn"
+            <div class="diffColumn"
             style:grid-row={`span ${buildConfigs.length}`}
             >
                 {#each buildConfigs as buildConfig}
@@ -121,7 +125,7 @@
         style:grid-row-end={`span ${buildConfigs.length}`}
         style:grid-column-start={2 + champ.abilities.length}
         >
-            <div class="sheer diffColumn" style:grid-row={`span ${buildConfigs.length}`}>
+            <div class="diffColumn" style:grid-row={`span ${buildConfigs.length}`}>
                 {#each buildConfigs as buildConfig}
                 {@render damageDiff(diffAtlas.get(null), diffAtlas.get(null).get(buildConfig))}
                 {/each}
@@ -136,6 +140,7 @@
             </div>
         </div>
     </div>
+    {/if}
 </main>
 
 
@@ -202,16 +207,18 @@
         height: 100dvh;
 		font-family: var(--font-family-sans);
         color: #ccc;
-        background-color: #111;
+        background-color: oklch(from var(--color-blue-2) l 0.02 h);
         overflow: hidden hidden;
-        display: grid;
+        display: flex;
 
+        flex-flow: column nowrap;
         gap: 2px;
-        grid-template-rows: max-content;
     }
 
     .champSpecs {
         padding: 10px;
+        // background-color: oklch(from var(--color-blue-4) l 0.02 h);
+        // border-bottom: 2px solid oklch(from var(--color-blue-5) l 0.025 h);
         display: grid;
 
         grid-auto-flow: column;
@@ -222,6 +229,7 @@
     }
     
     .diffTable {
+        height: stretch;
         overflow: hidden auto;
         padding: 10px 10px;
         display: grid;
@@ -263,9 +271,12 @@
     .button_deleteBuild {
         display: grid;
         padding: 0 5px;
-        color: #500;
-        background-color: #a55;
-        border: 2px solid #944;
+        color: var(--color-red-42);
+        background-color: var(--color-red-9);
+        border-width: 2px;
+        border-style: solid;
+        border-color: var(--color-red-12) var(--color-red-9) var(--color-red-12);
+        border-radius: 50% 0 0 50%;
         align-content: center;
         text-align: center;
 
@@ -274,9 +285,9 @@
         }
 
         &:not([disabled]):hover {
-            background-color: #722;
-            border-color: #944;
-            color: #faa;
+            background-color: var(--color-red-16);
+            border-color: var(--color-red-9);
+            color: var(--color-red-48);
         }
     }
 

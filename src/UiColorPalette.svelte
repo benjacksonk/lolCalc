@@ -1,7 +1,7 @@
 <script lang="ts">
     let isZeroIndexed = $state<boolean>(true);
     let maxIndex = $state<number>(50);
-    let hueNames = $state<string[]>(["grey", "aqua", "blue", "honey"]);
+    let hueNames = $state<string[]>(["grey","red","coral","honey","green","aqua","blue"]);
     let dummys = $derived(Array(maxIndex + (isZeroIndexed ? 1 : 0)));
 </script>
 

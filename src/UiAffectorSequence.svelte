@@ -25,7 +25,7 @@
 
 
 
-<div class="sheer UiAffectorSequence">
+<div class="sheerBackground UiAffectorSequence">
     {#each affectorQueue as affector, i}
     <button class="entityButton" onmousedown={(event) => removeAffector(event, i)}>
         <UiAffectorIcon {affector} size="min" showNameOnHover={true} showStatsOnHover={false}/>
@@ -75,7 +75,10 @@
     .entityButton {
 		transform-origin: bottom center;
         display: grid;
+        grid-template: subgrid / subgrid;
         background: none;
         border: none;
+        margin: 0;
+        padding: 0;
     }
 </style>

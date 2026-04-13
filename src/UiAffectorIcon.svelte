@@ -36,8 +36,14 @@ stats={showStatsOnHover ? affector.stats : []}
 
 <style>
     .UiAffectorIcon {
+        border: none;
+        border-radius: 0;
+        display: grid;
+        height: max-content;
+        width: max-content;
+
         > .icon {
-            background-color: #1f1f1f;
+            background-color: oklch(from var(--color-aqua-3) l 0.02 h);
         }
     }
 </style>
