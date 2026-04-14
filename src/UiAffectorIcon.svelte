@@ -43,7 +43,7 @@ stats={showStatsOnHover ? affector.stats : []}
         width: max-content;
 
         > .icon {
-            background-color: map.get($colors, aqua-3-1);
+            background-color: HCoLor("aqua", 1, 3);
         }
     }
 </style>

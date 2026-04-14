@@ -1,52 +1,70 @@
+@use "sass:list";
 @use "sass:map";
+@use "sass:math";
+@use "sass:meta";
 
-$lr-vertex: sqrt(1 / 2); // [0-1] lightness (relative to white) where chromas are max
-$lr-min: 0;
-$lr-max: 1;
-$lr-range: $lr-max - $lr-min;
-$lr-vertex-subdivision: calc(33 / 52); // coordinated with a chroma apex at lr-subdivision-32
+$_lr-vertex: math.sqrt(0.5); // [0-1] lightness (relative to white) where chromas are max
+$_lr-min: 0;
+$_lr-max: 1;
+$_lr-range: $_lr-max - $_lr-min;
+$_lr-vertex-subdivision: math.div(33, 52); // coordinated with a chroma apex at lr-subdivision-32
 @function calculate-lr($lr-subdivision) {
-    $lr-p: log(($lr-vertex - $lr-min) / $lr-range, $lr-vertex-subdivision);
-    @return calc($lr-min + ($lr-range * pow($lr-subdivision, $lr-p)));
+    $lr-p: log(math.div($_lr-vertex - $_lr-min, $_lr-range), $_lr-vertex-subdivision);
+    $lr: $_lr-min + ($_lr-range * math.pow($lr-subdivision, $lr-p));
+    @return $lr;
 }
 
-$l-k1: 0.206;
-$l-k2: 0.03;
-$l-k3: calc((1 + $l-k1) / (1 + $l-k2));
+$_l-k1: 0.206;
+$_l-k2: 0.03;
+$_l-k3: math.div(1 + $_l-k1, 1 + $_l-k2);
 @function lr-to-l($lr) {
-    $l: calc(($lr * ($lr + $l-k1)) / ($l-k3 * ($lr + $l-k2)));
-    @return $l;
+    @return math.div($lr * ($lr + $_l-k1), $_l-k3 * ($lr + $_l-k2));
 }
 
-$chroma-max: 0.147;                      // [0-1] max chroma safe within all hues of chosen palette
-$anchor-lr: calculate-lr(calc(11 / 52)); // [0-1] anchor point color's lightness (relative to white)
-$anchor-cr: 0.52;                        // [0-1] anchor point color's max chroma at $anchor-lr (relative to $chroma-max)
-$chroma-b: log($anchor-cr, $anchor-lr / $lr-vertex);
+$_chroma-max: 0.147;                         // [0-1] max chroma safe within all hues of chosen palette
+$_anchor-lr: calculate-lr(math.div(11, 52)); // [0-1] anchor point color's lightness (relative to white)
+$_anchor-cr: 0.52;                           // [0-1] anchor point color's max chroma at $_anchor-lr (relative to $_chroma-max)
+$_chroma-b: log($_anchor-cr, math.div($_anchor-lr, $_lr-vertex));
 @function calculate-chroma-limit($lr) {
-    $isBright: $lr-vertex > $lr;
     $c-ratio: if(
-        sass($isBright): pow($lr / $lr-vertex, $chroma-b);
-        else: sqrt(abs(((1 - $lr) / (1 - $lr-vertex)) * (1 - pow(abs(($lr - $lr-vertex) / (1 - $lr-vertex)), $chroma-b))));
+        sass($_lr-vertex > $lr): 
+        math.pow(math.div($lr, $_lr-vertex), $_chroma-b);
+        else: 
+        math.sqrt(math.abs(math.div((1 - $lr) * (1 - math.pow(math.abs(math.div($lr - $_lr-vertex, 1 - $_lr-vertex)), $_chroma-b)), 1 - $_lr-vertex)));
     );
-    $chroma-limit: $chroma-max * $c-ratio;
+    $chroma-limit: $_chroma-max * $c-ratio;
     @return $chroma-limit;
 }
 
-@function calculate-color($lr-subdivision, $saturation-mult, $hue) {
-    $lr: calculate-lr($lr-subdivision);
-    $lightness: lr-to-l($lr);
-    $chroma: calculate-chroma-limit($lr) * $saturation-mult;
-    @return oklch($lightness $chroma $hue);
+$_l-subdivisions: 51; // lightness index ranges 0 through (n - 1) indicate points between (but not including) white and black
+
+$_oklrs: ();
+@for $i from 1 through $_l-subdivisions {
+    $_oklrs: list.append($_oklrs, calculate-lr(math.div($i, $_l-subdivisions + 1)));
 }
 
-$l-subdivisions: 51; // lightness index ranges 0 through (n - 1) indicate points between (but not including) white and black
-$c-subdivisions: 6; // chroma index ranges 0 through (n - 1)
+$_c-subdivisions: 6; // chroma index ranges 0 through (n - 1)
 
-$colors: ();
+$_okls: ();
+$_okclimits: ();
+@each $lr in $_oklrs {
+    $_okls: list.append($_okls, lr-to-l($lr));
+    $_okclimits: list.append($_okclimits, calculate-chroma-limit($lr));
+}
 
-// creates "grey-0" through "grey-($l-subdivisions - 1)"
-@for $l-index from 1 through $l-subdivisions {
-    $colors: map.set($colors, "#grey-#{$l-index - 1}", #{calculate-color(calc($l-index / ($l-subdivisions + 1)), 0, 0)});
+@function gray($l-index) {
+    @return oklab(list.nth($_okls, $l-index) 0 0);
+}
+
+@function HCoLor($hue, $c-index, $l-index) {
+    $l: list.nth($_okls, $l-index);
+    $c: math.div(list.nth($_okclimits, $l-index) * $c-index, $_c-subdivisions);
+    $h: if(
+        sass(meta.type-of($hue) == number): $hue; 
+        sass(map.has-key($hues, $hue)): map.get($hues, $hue);
+        else: 0
+    );
+    @return oklch($l $c $h);
 }
 
 $hues: (
@@ -57,20 +75,3 @@ $hues: (
     "aqua": 230.8125,
     "blue": 245.5
 );
-
-// creates colors from "(hue)-0-0" for min lightness & saturation through "hue-($l-subdivisions - 1)-($c-subdivisions - 1)"
-@each $name, $value in $hues {
-    @for $l-index from 1 through $l-subdivisions {
-        @for $c-index from 1 through $c-subdivisions {
-            $colors: map.set(
-                $colors, 
-                "#{$name}-#{$l-index - 1}-#{$c-index - 1}", 
-                #{calculate-color(
-                    calc($l-index / ($l-subdivisions + 1)), 
-                    calc($c-index / $c-subdivisions), 
-                    $value
-                )}
-            );
-        }
-    }
-}

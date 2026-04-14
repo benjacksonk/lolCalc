@@ -68,7 +68,7 @@
         align-content: center;
         padding: 1px 1px 1px 0;
         gap: 1px;
-        background-color: map.get($colors, blue-1-2);
+        background-color: HHCoLor("blue", 1, 2);
     }
     
     .price {

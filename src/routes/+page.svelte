@@ -151,7 +151,7 @@
         height: 100dvh;
 		font-family: var(--font-family-sans);
         color: #ccc;
-        background-color: map.get($colors, blue-2-1);
+        background-color: HCoLor("blue", 1, 2);
         overflow: hidden hidden;
         display: flex;
 
@@ -161,8 +161,8 @@
 
     .champSpecs {
         padding: 10px;
-        background-color: map.get($colors, blue-4-1);
-        border-bottom: 2px solid map.get($colors, blue-5-1);
+        background-color: HCoLor("blue", 1, 4);
+        border-bottom: 2px solid HCoLor("blue", 1, 5);
         display: grid;
 
         grid-auto-flow: column;
@@ -215,11 +215,11 @@
     .button_deleteBuild {
         display: grid;
         padding: 0 5px;
-        color: map.get($colors, red-42-5);
-        background-color: map.get($colors, red-9-5);
+        color: HCoLor("red", 5, 42);
+        background-color: HCoLor("red", 5, 9);
         border-width: 2px;
         border-style: solid;
-        border-color: map.get($colors, red-12-5) map.get($colors, red-9-5) map.get($colors, red-12-5);
+        border-color: HCoLor("red", 5, 12) HCoLor("red", 5, 9) HCoLor("red", 5, 12);
         border-radius: 50% 0 0 50%;
         align-content: center;
         text-align: center;
@@ -229,9 +229,9 @@
         }
 
         &:not([disabled]):hover {
-            background-color: map.get($colors, red-16-5);
-            border-color: map.get($colors, red-9-5);
-            color: map.get($colors, red-48-5);
+            background-color: HCoLor("red", 5, 16);
+            border-color: HCoLor("red", 5, 9);
+            color: HCoLor("red", 5, 48);
         }
     }
 
