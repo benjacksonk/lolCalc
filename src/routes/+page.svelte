@@ -74,7 +74,7 @@
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability, i (ability.name)}
-            <img src={ability.iconURL} alt={ability.name} class="icon med abilityIcon">
+            <img src={ability.iconURL} alt={ability.name} class="icon med abilityIcon rounded">
             {/each}
         </div>
 
@@ -144,7 +144,6 @@
     main {
         width: 100%;
         height: 100dvh;
-		// font-family: var(--sans);
         color: #ccc;
         overflow: hidden hidden;
         display: flex;
@@ -154,8 +153,8 @@
 
     .champSpecs {
         padding: 10px;
-        background: linear-gradient(in oklab to bottom, HCoLor("blue", 2, 4), HCoLor("blue", 2, 3));
-        border-bottom: 2px solid HCoLor("blue", 2, 4);
+        background: linear-gradient(in oklab to bottom, colors.hcl("blue", 2, 4), colors.hcl("blue", 2, 3));
+        border-bottom: 2px solid colors.hcl("blue", 2, 4);
         display: grid;
 
         grid-auto-flow: column;
@@ -169,7 +168,7 @@
         height: stretch;
         overflow: hidden auto;
         padding: 10px 10px;
-        background: linear-gradient(in oklab to bottom, HCoLor("blue", 3, 1), HCoLor("blue", 2, 2) 100px);
+        background: linear-gradient(in oklab to bottom, colors.hcl("blue", 3, 1), colors.hcl("blue", 2, 2) 100px);
         display: grid;
 
         gap: 10px 5px;
@@ -204,30 +203,31 @@
         grid-auto-flow: column;
         grid-template-columns: max-content;
         grid-auto-columns: auto;
+        align-content: center;
     }
 
     .button_deleteBuild {
         display: grid;
         padding: 0 5px;
-        color: HCoLor("red", 5, 28);
-        background-color: HCoLor("red", 5, 11);
+        color: colors.hcl("red", 5, 28);
+        background-color: colors.hcl("red", 5, 11);
         border-width: 2px 0 2px 2px;
         border-style: solid;
-        border-color: HCoLor("red", 5, 15) HCoLor("red", 5, 17);
+        border-color: colors.hcl("red", 5, 15) colors.hcl("red", 5, 17);
         border-radius: 50% 0 0 50%;
         align-content: center;
         text-align: center;
 
         &[disabled] {
-            background-color: gray(2);
-            border-color: gray(3);
-            color: gray(5);
+            background-color: colors.gray(2);
+            border-color: colors.gray(3);
+            color: colors.gray(5);
         }
 
         &:not([disabled]):hover {
-            background-color: HCoLor("red", 5, 15);
-            border-color: HCoLor("red", 5, 16) HCoLor("red", 5, 18);
-            color: HCoLor("red", 5, 32);
+            background-color: colors.hcl("red", 5, 15);
+            border-color: colors.hcl("red", 5, 16) colors.hcl("red", 5, 18);
+            color: colors.hcl("red", 5, 32);
         }
     }
 
@@ -261,7 +261,7 @@
             grid-column: span 3;
             padding: 0 0.5em;
             border-radius: 5px;
-            background: linear-gradient(in oklab to bottom, HCoLor("blue", 2, 4), HCoLor("blue", 2, 3));
+            background: linear-gradient(in oklab to bottom, colors.hcl("blue", 2, 4), colors.hcl("blue", 2, 3));
             grid-template-columns: subgrid;
             align-content: center;
         }
@@ -307,7 +307,7 @@
         grid-row: 1 / span 2;
         grid-column: 3;
         margin-left: 0.8ch;
-        font-family: var(--script);
+        font-family: fonts.$serif;
         display: grid;
         justify-items: right;
         align-content: center;
@@ -324,7 +324,6 @@
     }
     
     .abilityIcon {
-        border: 2px solid #fff2;
-        border-radius: 3px;
+        border: 2px solid #fff1;
     }
 </style>

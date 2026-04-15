@@ -23,12 +23,12 @@
                 <span>Level {level}</span>
             </div>
         </div>
-        <img src={champ.iconURL} alt="" class="icon max">
+        <img src={champ.iconURL} alt="" class="icon max rounded">
     </div>
     <div class="abilityControls">
         {#each champ.abilities as ability, i}
         <div class="abilityControl">
-            <img src={ability.iconURL ?? ""} alt="" class="icon med">
+            <img src={ability.iconURL ?? ""} alt="" class="icon med rounded">
             
             <input class="levelControl abilityLevelControl" 
             type="number" min="0" max="5" step="1" defaultValue="0"

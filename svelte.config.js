@@ -5,11 +5,12 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
-	preprocess: vitePreprocess({
-		scss: {
-			includePaths: ['$lib/styles/colors']
-		}
-	}),
+	preprocess: vitePreprocess(
+		// { 
+		// 	style: { scss: { loadPaths: ['$lib/styles/colors', '$lib/styles/fonts'] }},
+		// 	scss: { loadPaths: ['$lib/styles/colors', '$lib/styles/fonts'] }
+		// }
+	),
 
 	kit: {
 		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.

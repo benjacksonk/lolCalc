@@ -66,15 +66,15 @@
         grid-template-columns: auto;
         grid-auto-columns: max-content;
         align-content: center;
-        // background-color: HCoLor("blue", 1, 3);
-        // border-color: HCoLor("blue", 1, 3);
+        // background-color: colors.hcl("blue", 1, 3);
+        // border-color: colors.hcl("blue", 1, 3);
         // border-style: solid;
         gap: 0 2px;
         // margin-left: 2px;
     }
     
     .price {
-        background: linear-gradient(in oklab to bottom, HCoLor("coral", 1, 5), HCoLor("coral", 0, 4));
+        background: linear-gradient(in oklab to bottom, colors.hcl("coral", 1, 5), colors.hcl("coral", 0, 4));
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
@@ -85,10 +85,10 @@
         gap: 0 0.2em;
         border-radius: 0;
         border-style: solid;
-        border-top-color: HCoLor("honey", 2, 6);
-        border-bottom-color: HCoLor("honey", 0, 5);
+        border-top-color: colors.hcl("honey", 2, 6);
+        border-bottom-color: colors.hcl("honey", 0, 5);
         border-width: 2px 0;
-        color: HCoLor("honey", 5, 42);
+        color: colors.hcl("honey", 5, 42);
         font-weight: 500;
     }
 
@@ -106,8 +106,8 @@
 
     .itemSelector {
 		box-shadow:	var(--box-shadow);
-        background: gray(2);
-        border: 2px solid gray(12);
+        background: colors.gray(2);
+        border: 2px solid colors.gray(12);
         border-radius: 3px;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(11, max-content);

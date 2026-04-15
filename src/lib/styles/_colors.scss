@@ -56,7 +56,7 @@ $_okclimits: ();
     @return oklab(list.nth($_okls, 1 + $l-index) 0 0);
 }
 
-@function HCoLor($hue, $c-index, $l-index) {
+@function hcl($hue, $c-index, $l-index) {
     $l: list.nth($_okls, 1 + $l-index);
     $c: math.div(list.nth($_okclimits, 1 + $l-index) * (1 + $c-index), $_c-subdivisions);
     $h: if(

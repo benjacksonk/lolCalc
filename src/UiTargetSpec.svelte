@@ -28,7 +28,7 @@
 
 
 <div class="UiTargetSpec">
-    <button popovertarget="targetSelectorOptions" id="targetSelector" class="targetChampIconWrapper">
+    <button popovertarget="targetSelectorOptions" id="targetSelector" class="targetChampIconWrapper rounded">
         <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
     </button>
 
@@ -97,6 +97,10 @@
         justify-content: start;
     }
 
+    #targetSelector {
+        overflow: hidden;
+    }
+
     #targetSelectorOptions {
         top: anchor(100%);
         left: anchor(50%);
@@ -130,6 +134,7 @@
         width: max-content;
         height: max-content;
         position: relative;
+        background: black;
         border: none;
 
         &:has(> .targetChampIconOverlay)::after {

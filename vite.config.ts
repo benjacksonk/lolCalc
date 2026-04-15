@@ -6,7 +6,7 @@ export default defineConfig({
 	css: {
 		preprocessorOptions: {
 			scss: {
-				additionalData: `@use '$lib/styles/colors' as *;`
+				additionalData: `@use '$lib/styles/colors'; @use '$lib/styles/fonts';`
 			}
 		}
 	}

@@ -1,0 +1,41 @@
+@mixin font-face($family, $style, $weight, $src-url, $src-format, $features) {
+    font-family: $family;
+    font-style: $style;
+    font-weight: $weight;
+    font-display: swap;
+    src: url($src-url) format($src-format);
+    font-feature-settings: $features;
+}
+
+$_inter-features: 'liga', 'calt', 'ss01', 'cv05', 'cv08';
+
+@font-face { @include font-face('Inter', normal, 100, 'https://rsms.me/inter/font-files/Inter-Thin.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 100, 'https://rsms.me/inter/font-files/Inter-ThinItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 200, 'https://rsms.me/inter/font-files/Inter-ExtraLight.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 200, 'https://rsms.me/inter/font-files/Inter-ExtraLightItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 300, 'https://rsms.me/inter/font-files/Inter-Light.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 300, 'https://rsms.me/inter/font-files/Inter-LightItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 400, 'https://rsms.me/inter/font-files/Inter-Regular.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 400, 'https://rsms.me/inter/font-files/Inter-Italic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 500, 'https://rsms.me/inter/font-files/Inter-Medium.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 500, 'https://rsms.me/inter/font-files/Inter-MediumItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 600, 'https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 600, 'https://rsms.me/inter/font-files/Inter-SemiBoldItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 700, 'https://rsms.me/inter/font-files/Inter-Bold.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 700, 'https://rsms.me/inter/font-files/Inter-BoldItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 800, 'https://rsms.me/inter/font-files/Inter-ExtraBold.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 800, 'https://rsms.me/inter/font-files/Inter-ExtraBoldItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', normal, 900, 'https://rsms.me/inter/font-files/Inter-Black.woff2?v=4.1', 'woff2', $_inter-features); }
+@font-face { @include font-face('Inter', italic, 900, 'https://rsms.me/inter/font-files/Inter-BlackItalic.woff2?v=4.1', 'woff2', $_inter-features); }
+
+@supports font-tech(variations) {
+    @font-face { @include font-face('InterVariable', normal, 100 900, 'https://rsms.me/inter/font-files/InterVariable.woff2?v=4.1', 'woff2', $_inter-features); }
+    @font-face { @include font-face('InterVariable', italic, 100 900, 'https://rsms.me/inter/font-files/InterVariable-Italic.woff2?v=4.1', 'woff2', $_inter-features); }
+    /* legacy name "Inter var" (Oct 2023) */
+    @font-face { @include font-face('Inter var', normal, 100 900, 'https://rsms.me/inter/font-files/InterVariable.woff2?v=4.1', 'woff2', $_inter-features); }
+    @font-face { @include font-face('Inter var', italic, 100 900, 'https://rsms.me/inter/font-files/InterVariable-Italic.woff2?v=4.1', 'woff2', $_inter-features); }
+}
+
+$sans: 'InterVariable', 'Inter var', 'Inter', sans-serif;
+$serif: 'Foreday Semi Sans', 'Noto Serif', 'Droid Serif', 'Open Serif', 'Roboto Slab', serif;
+$script: 'Ruluko', 'Farsan', cursive;

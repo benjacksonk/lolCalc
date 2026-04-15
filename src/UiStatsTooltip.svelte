@@ -56,18 +56,18 @@ class:alignRightEdge={edgeAlignment == "right"}
     .UiStatsTooltip {
         border-width: 2px;
         border-style: solid;
-        border-color: HCoLor("honey", 5, 40);
+        border-color: colors.hcl("honey", 5, 40);
         font-family: var(--font-family-sans);
         font-weight: 500;
         grid-template-columns: auto auto;
         gap: 5px;
 
 		box-shadow:	var(--box-shadow);
-        color: HCoLor("coral", 5, 3);
+        color: colors.hcl("coral", 5, 3);
         border-radius: 5px;
         padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
 		overflow: visible;
-		background:	linear-gradient(in oklab to bottom, HCoLor("honey", 5, 49), HCoLor("honey", 5, 46));
+		background:	linear-gradient(in oklab to bottom, colors.hcl("honey", 5, 49), colors.hcl("honey", 5, 46));
 
         &:popover-open {
             display: grid;
@@ -87,11 +87,11 @@ class:alignRightEdge={edgeAlignment == "right"}
         }
         &X::before {
             top: calc((-12px * (1 / 2)) - 2px);
-            background: HCoLor("honey", 5, 40);
+            background: colors.hcl("honey", 5, 40);
         }
         &X::after {
             top: calc((-12px * (1 / 2)) + (2px * (sqrt(2) - 1)));
-            background: HCoLor("honey", 5, 49);
+            background: colors.hcl("honey", 5, 49);
         }
     }
 
@@ -103,7 +103,7 @@ class:alignRightEdge={edgeAlignment == "right"}
     }
     .affectorName,
     .itemStat {
-        color: HCoLor("honey", 5, 14);
+        color: colors.hcl("honey", 5, 14);
     }
     .itemStat {
         font-weight: 600;
