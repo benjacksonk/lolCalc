@@ -9,8 +9,8 @@ $_lr-max: 1;
 $_lr-range: $_lr-max - $_lr-min;
 $_lr-vertex-subdivision: math.div(33, 52); // coordinated with a chroma apex at lr-subdivision-32
 @function calculate-lr($lr-subdivision) {
-    $lr-p: log(math.div($_lr-vertex - $_lr-min, $_lr-range), $_lr-vertex-subdivision);
-    $lr: $_lr-min + ($_lr-range * math.pow($lr-subdivision, $lr-p));
+    $exponent: log(math.div($_lr-vertex - $_lr-min, $_lr-range), $_lr-vertex-subdivision);
+    $lr: $_lr-min + ($_lr-range * math.pow($lr-subdivision, $exponent));
     @return $lr;
 }
 
@@ -53,12 +53,12 @@ $_okclimits: ();
 }
 
 @function gray($l-index) {
-    @return oklab(list.nth($_okls, $l-index) 0 0);
+    @return oklab(list.nth($_okls, 1 + $l-index) 0 0);
 }
 
 @function HCoLor($hue, $c-index, $l-index) {
-    $l: list.nth($_okls, $l-index);
-    $c: math.div(list.nth($_okclimits, $l-index) * $c-index, $_c-subdivisions);
+    $l: list.nth($_okls, 1 + $l-index);
+    $c: math.div(list.nth($_okclimits, 1 + $l-index) * $c-index, $_c-subdivisions);
     $h: if(
         sass(meta.type-of($hue) == number): $hue; 
         sass(map.has-key($hues, $hue)): map.get($hues, $hue);
