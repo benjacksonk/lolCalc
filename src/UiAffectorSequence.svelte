@@ -25,7 +25,7 @@
 
 
 
-<div class="sheerBackground UiAffectorSequence">
+<div class="UiAffectorSequence">
     {#each affectorQueue as affector, i}
     <button class="entityButton" onmousedown={(event) => removeAffector(event, i)}>
         <UiAffectorIcon {affector} size="min" showNameOnHover={true} showStatsOnHover={false}/>
@@ -49,6 +49,8 @@
 
 <style lang="scss">
     .UiAffectorSequence {
+        background: linear-gradient(in oklab to bottom, HCoLor("blue", 2, 4), HCoLor("blue", 2, 3));
+        border-radius: 5px;
         display: grid;
         grid-template-rows: repeat(2, minmax(0,1fr));
         grid-template-columns: repeat(auto-fill, var(--iconSizeMin));
@@ -62,8 +64,9 @@
 
     .affectorOptions {
         overflow: visible;
-        background: #111;
-        border: 2px solid #2e2e2e;
+        background: gray(2);
+        border: 2px solid gray(12);
+        border-radius: 3px;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(6, max-content);
 

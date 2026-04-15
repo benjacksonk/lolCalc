@@ -43,7 +43,7 @@ stats={showStatsOnHover ? affector.stats : []}
         width: max-content;
 
         > .icon {
-            background-color: HCoLor("aqua", 1, 3);
+            background: linear-gradient(in oklab to bottom, HCoLor("aqua", 2, 5), HCoLor("blue", 2, 4));
         }
     }
 </style>

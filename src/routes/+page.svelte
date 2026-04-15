@@ -3,7 +3,6 @@
     import UiAffectorSequence from "../UiAffectorSequence.svelte";
     import UiBuildSpec from "../UiBuildSpec.svelte";
     import UiChampSpec from "../UiChampSpec.svelte";
-    import UiColorPalette from "../UiColorPalette.svelte";
     import UiTargetSpec from "../UiTargetSpec.svelte";
 
     let champ: Champion 
@@ -41,22 +40,19 @@
 
 
 <main>
-    {#if false}
-    <UiColorPalette/>
-    {:else}
-    <div class="champSpecs sheerBackground">
+    <div class="champSpecs">
         <UiChampSpec bind:champ bind:abilityRanks/>
         vs
         <UiTargetSpec bind:targetBaseStats/>
     </div>
 
-    <div class="diffTable sheerBackground">
+    <div class="diffTable">
         {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff)}
-        <div class="effectOutcome sheerBackground">
+        <div class="effectOutcome">
             <div class="absoluteDamagePerGold">
                 <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount">{diff.damageDiff.toFixed(0)}</span></span>
                 <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span></span>
-                <span class="unit">damage</span>
+                <span class="unit">Damage</span>
             </div>
 
             <div class="relativeDamagePerGold">
@@ -69,7 +65,7 @@
                     <span class="operator" class:negative={diff.damage_perGold < 0}>{diff.damage_perGold < 0 ? "－" : "＋"}</span>
                     <span class="amount" class:negative={(diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold < 0}>{Math.abs(100 * ((diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold)).toFixed(0)} %  Σ </span>
                 </span>
-                <span class="unit"> d∕kg</span>
+                <span class="unit"> Dmg:G</span>
             </div>
         </div>
         {/snippet}
@@ -78,7 +74,7 @@
         style:grid-column-end={`span ${champ.abilities.length}`}
         >
             {#each champ.abilities as ability, i (ability.name)}
-            <img src={ability.iconURL} alt={ability.name} class="icon med">
+            <img src={ability.iconURL} alt={ability.name} class="icon med abilityIcon">
             {/each}
         </div>
 
@@ -140,7 +136,6 @@
             </div>
         </div>
     </div>
-    {/if}
 </main>
 
 
@@ -149,9 +144,8 @@
     main {
         width: 100%;
         height: 100dvh;
-		font-family: var(--font-family-sans);
+		// font-family: var(--sans);
         color: #ccc;
-        background-color: HCoLor("blue", 1, 2);
         overflow: hidden hidden;
         display: flex;
 
@@ -160,8 +154,8 @@
 
     .champSpecs {
         padding: 10px;
-        background-color: HCoLor("blue", 1, 4);
-        border-bottom: 2px solid HCoLor("blue", 1, 5);
+        background: linear-gradient(in oklab to bottom, HCoLor("blue", 2, 4), HCoLor("blue", 2, 3));
+        border-bottom: 2px solid HCoLor("blue", 2, 4);
         display: grid;
 
         grid-auto-flow: column;
@@ -175,9 +169,10 @@
         height: stretch;
         overflow: hidden auto;
         padding: 10px 10px;
+        background: linear-gradient(in oklab to bottom, HCoLor("blue", 3, 1), HCoLor("blue", 2, 2) 100px);
         display: grid;
 
-        gap: 10px;
+        gap: 10px 5px;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(6, max-content);
         justify-content: stretch;
@@ -214,23 +209,25 @@
     .button_deleteBuild {
         display: grid;
         padding: 0 5px;
-        color: HCoLor("red", 5, 42);
-        background-color: HCoLor("red", 5, 9);
-        border-width: 2px;
+        color: HCoLor("red", 5, 28);
+        background-color: HCoLor("red", 5, 11);
+        border-width: 2px 0 2px 2px;
         border-style: solid;
-        border-color: HCoLor("red", 5, 12) HCoLor("red", 5, 9) HCoLor("red", 5, 12);
+        border-color: HCoLor("red", 5, 15) HCoLor("red", 5, 17);
         border-radius: 50% 0 0 50%;
         align-content: center;
         text-align: center;
 
         &[disabled] {
-            filter: saturate(0);
+            background-color: gray(2);
+            border-color: gray(3);
+            color: gray(5);
         }
 
         &:not([disabled]):hover {
-            background-color: HCoLor("red", 5, 16);
-            border-color: HCoLor("red", 5, 9);
-            color: HCoLor("red", 5, 48);
+            background-color: HCoLor("red", 5, 15);
+            border-color: HCoLor("red", 5, 16) HCoLor("red", 5, 18);
+            color: HCoLor("red", 5, 32);
         }
     }
 
@@ -262,6 +259,9 @@
 
         .effectOutcome {
             grid-column: span 3;
+            padding: 0 0.5em;
+            border-radius: 5px;
+            background: linear-gradient(in oklab to bottom, HCoLor("blue", 2, 4), HCoLor("blue", 2, 3));
             grid-template-columns: subgrid;
             align-content: center;
         }
@@ -307,6 +307,7 @@
         grid-row: 1 / span 2;
         grid-column: 3;
         margin-left: 0.8ch;
+        font-family: var(--script);
         display: grid;
         justify-items: right;
         align-content: center;
@@ -320,5 +321,10 @@
     .unit,
     .totalDiff {
         color: #595959;
+    }
+    
+    .abilityIcon {
+        border: 2px solid #fff2;
+        border-radius: 3px;
     }
 </style>

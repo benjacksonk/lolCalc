@@ -24,7 +24,7 @@
 
 
 <div class="UiBuildSpec">
-    <button class="price sheerBackground" interestfor={statsTooltip?.uid}>
+    <button class="price" interestfor={statsTooltip?.uid}>
         <span class="priceAmount">{buildConfig.totalCost.toFixed(0)}</span>
         <span class="priceUnit">g</span>
     </button>
@@ -66,30 +66,37 @@
         grid-template-columns: auto;
         grid-auto-columns: max-content;
         align-content: center;
-        padding: 1px 1px 1px 0;
-        gap: 1px;
-        background-color: HHCoLor("blue", 1, 2);
+        // background-color: HCoLor("blue", 1, 3);
+        // border-color: HCoLor("blue", 1, 3);
+        // border-style: solid;
+        gap: 0 2px;
+        // margin-left: 2px;
     }
     
     .price {
+        background: linear-gradient(in oklab to bottom, HCoLor("coral", 1, 5), HCoLor("coral", 0, 4));
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
         grid-auto-columns: max-content;
         align-content: center;
         text-align: right;
-        padding: 0 5px;
+        padding: 0 0.5em;
         gap: 0 0.2em;
-        border: none;
         border-radius: 0;
-        color: white;
+        border-style: solid;
+        border-top-color: HCoLor("honey", 2, 6);
+        border-bottom-color: HCoLor("honey", 0, 5);
+        border-width: 2px 0;
+        color: HCoLor("honey", 5, 42);
+        font-weight: 500;
     }
 
     .itemSlotGrid {
         display: grid;
         grid-auto-flow: column;
         grid-template: repeat(2, minmax(0,1fr)) / repeat(3, minmax(0,1fr));
-        gap: 1px;
+        gap: 2px;
     }
 
     .affectorButton {
@@ -98,9 +105,10 @@
     }
 
     .itemSelector {
-        background: #111;
-        border: 2px solid #2e2e2e;
 		box-shadow:	var(--box-shadow);
+        background: gray(2);
+        border: 2px solid gray(12);
+        border-radius: 3px;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(11, max-content);
         gap: 1px;
