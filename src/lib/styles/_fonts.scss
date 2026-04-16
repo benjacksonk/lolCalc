@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Galdeano&display=swap');
+
 @mixin font-face($family, $style, $weight, $src-url, $src-format, $features) {
     font-family: $family;
     font-style: $style;
@@ -36,6 +39,7 @@ $_inter-features: 'liga', 'calt', 'ss01', 'cv05', 'cv08';
     @font-face { @include font-face('Inter var', italic, 100 900, 'https://rsms.me/inter/font-files/InterVariable-Italic.woff2?v=4.1', 'woff2', $_inter-features); }
 }
 
-$sans: 'InterVariable', 'Inter var', 'Inter', sans-serif;
-$serif: 'Foreday Semi Sans', 'Noto Serif', 'Droid Serif', 'Open Serif', 'Roboto Slab', serif;
-$script: 'Ruluko', 'Farsan', cursive;
+$serif: 'Asul', serif;
+$sans: 'Overpass', sans-serif;
+$mono: monospace;
+$math: 'InterVariable', 'Inter var', 'Inter', 'Overpass', $mono;

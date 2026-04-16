@@ -4,10 +4,15 @@
     margin: 0;
 }
 
-:root {
-    font-size: 11.2pt;
+@mixin math-text() {
+    font-family: fonts.$math;
     font-feature-settings: 'tnum';
+}
+
+:root {
     font-family: fonts.$sans;
+    font-feature-settings: 'tnum';
+    font-size: 11.2pt;
     
     --phi: calc(sqrt(5 / 4) + 1 / 2);
 
@@ -50,6 +55,10 @@
         0px 3px 13px 7px #111111c5
 }
 
+.math {
+    @include math-text();
+}
+
 body {
     width: 100dvw;
     height: 100dvh;
@@ -85,6 +94,8 @@ input[type="number"] {
     box-shadow: inset 0px 1px 1px 1px #f6f6f6;
     padding: 1px 3px;
     text-align: right;
+    font-family: fonts.$math;
+    font-feature-settings: 'tnum';
 
     &:disabled {
         filter: contrast(50%);

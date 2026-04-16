@@ -29,7 +29,7 @@ class:alignRightEdge={edgeAlignment == "right"}
     {#if leaders}
     {#each leaders as leader}
     <span class="affectorStat itemStat">
-        <span class="affectorStatValue">{leader[1]}</span>
+        <span class="affectorStatValue math">{leader[1]}</span>
         <span class="affectorStatName">{leader[0]}</span>
     </span>
     {/each}
@@ -37,7 +37,7 @@ class:alignRightEdge={edgeAlignment == "right"}
 
     {#each stats as stat}
     <span class="affectorStat">
-        <span class="affectorStatValue">
+        <span class="affectorStatValue math">
             {#if stat[0].includes("Ratio")}
             {stat[1] * 100} %
             {:else}
@@ -98,7 +98,9 @@ class:alignRightEdge={edgeAlignment == "right"}
     .affectorName {
         grid-column: span 2;
         text-align: center;
+        font-family: fonts.$serif;
         font-weight: bold;
+        font-size: larger;
         display: grid;
     }
     .affectorName,
