@@ -23,21 +23,21 @@ class:alignLeftEdge={edgeAlignment == "left"}
 class:alignRightEdge={edgeAlignment == "right"}
 >
     {#if header}
-    <span class="affectorName">{header}</span>
+    <strong class="affectorName">{header}</strong>
     {/if}
 
     {#if leaders}
     {#each leaders as leader}
     <span class="affectorStat itemStat">
-        <span class="affectorStatValue math">{leader[1]}</span>
-        <span class="affectorStatName">{leader[0]}</span>
+        <span class="affectorStatValue text-math">{leader[1]}</span>
+        <b class="affectorStatName">{leader[0]}</b>
     </span>
     {/each}
     {/if}
 
     {#each stats as stat}
     <span class="affectorStat">
-        <span class="affectorStatValue math">
+        <span class="affectorStatValue text-math">
             {#if stat[0].includes("Ratio")}
             {stat[1] * 100} %
             {:else}
@@ -45,7 +45,7 @@ class:alignRightEdge={edgeAlignment == "right"}
             {/if}
         </span>
         
-        <span class="affectorStatName">{stat[0]}</span>
+        <span class="affectorStatName text-passage">{stat[0]}</span>
     </span>
     {/each}
 </div>
@@ -57,8 +57,6 @@ class:alignRightEdge={edgeAlignment == "right"}
         border-width: 2px;
         border-style: solid;
         border-color: colors.hcl("honey", 5, 40);
-        font-family: var(--font-family-sans);
-        font-weight: 500;
         grid-template-columns: auto auto;
         gap: 5px;
 
@@ -98,9 +96,6 @@ class:alignRightEdge={edgeAlignment == "right"}
     .affectorName {
         grid-column: span 2;
         text-align: center;
-        font-family: fonts.$serif;
-        font-weight: bold;
-        font-size: larger;
         display: grid;
     }
     .affectorName,
@@ -118,6 +113,7 @@ class:alignRightEdge={edgeAlignment == "right"}
         
         grid-template-columns: subgrid;
         grid-template-rows: subgrid;
+        align-items: baseline;
     }
 
     .affectorStatValue {

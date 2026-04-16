@@ -25,7 +25,7 @@
 
 <div class="UiBuildSpec">
     <button class="price" interestfor={statsTooltip?.uid}>
-        <span class="amount math">{buildConfig.totalCost.toFixed(0)}</span>
+        <span class="amount text-math">{buildConfig.totalCost.toFixed(0)}</span>
         <span class="unit">g</span>
     </button>
 

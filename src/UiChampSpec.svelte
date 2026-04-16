@@ -18,7 +18,7 @@
 <div class="UiChampSpec">
     <div class="champHerald">
         <div class="champOverview">
-            <span class="champName">{champ.name}</span>
+            <b class="champName">{champ.name}</b>
             <div class="champLevel">
                 <span>Level {level}</span>
             </div>

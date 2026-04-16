@@ -50,20 +50,20 @@
         {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff)}
         <div class="effectOutcome">
             <div class="absoluteDamagePerGold">
-                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount math">{diff.damageDiff.toFixed(0)}</span></span>
-                <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount math">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span></span>
+                <span class="diffPart deltaDiff"><span class="operator">＋</span><span class="amount text-math">{diff.damageDiff.toFixed(0)}</span></span>
+                <span class="diffPart totalDiff"><span class="operator">＝</span><span class="amount text-math">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span></span>
                 <span class="unit">Damage</span>
             </div>
 
             <div class="relativeDamagePerGold">
                 <span class="diffPart deltaDiff">
                     <span class="operator" class:negative={diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold < 0}>{diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold < 0 ? "－" : "＋"}</span>
-                    <span class="amount math" class:negative={(diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold < 0}>{Math.abs(100 * ((diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold)).toFixed(0)} % <span class="totalDiff">Δ</span></span>
+                    <span class="amount text-math" class:negative={(diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold < 0}>{Math.abs(100 * ((diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold)).toFixed(0)} % <span class="totalDiff">Δ</span></span>
                 </span>
 
                 <span class="diffPart totalDiff">
                     <span class="operator" class:negative={diff.damage_perGold < 0}>{diff.damage_perGold < 0 ? "－" : "＋"}</span>
-                    <span class="amount math" class:negative={(diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold < 0}>{Math.abs(100 * ((diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold)).toFixed(0)} %  Σ </span>
+                    <span class="amount text-math" class:negative={(diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold < 0}>{Math.abs(100 * ((diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold)).toFixed(0)} %  Σ </span>
                 </span>
                 <span class="unit"> Dmg:G</span>
             </div>

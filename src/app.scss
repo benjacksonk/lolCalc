@@ -4,16 +4,7 @@
     margin: 0;
 }
 
-@mixin math-text() {
-    font-family: fonts.$math;
-    font-feature-settings: 'tnum';
-}
-
 :root {
-    font-family: fonts.$sans;
-    font-feature-settings: 'tnum';
-    font-size: 11.2pt;
-    
     --phi: calc(sqrt(5 / 4) + 1 / 2);
 
     --font-size-0: calc(1rem * sqrt(pow(var(--phi), -1)));
@@ -55,16 +46,32 @@
         0px 3px 13px 7px #111111c5
 }
 
-.math {
-    @include math-text();
-}
-
 body {
+    @include fonts.text-passage(11.25pt);
+
     width: 100dvw;
     height: 100dvh;
     font-size: var(--font-size-2);
-    // font-family: var(--sans);
 }
+
+h1 { @include fonts.text-heading(var(--font-size-1)); }
+h2 { @include fonts.text-heading(var(--font-size-2)); }
+h3 { @include fonts.text-heading(var(--font-size-3)); }
+h4 { @include fonts.text-heading(var(--font-size-4)); }
+h5 { @include fonts.text-heading(var(--font-size-5)); }
+h6 { @include fonts.text-heading(var(--font-size-6)); }
+
+strong
+{ @include fonts.text-heading(11pt); }
+
+b
+{ @include fonts.text-significant(12pt); }
+
+input[type="number"], .text-math
+{ @include fonts.text-math(11.5pt); }
+
+// .text-mono
+// { @include fonts.text-mono(11.5pt); }
 
 img {
     max-width: 100%;
@@ -93,9 +100,6 @@ input[type="number"] {
     border-top: 1px solid white;
     box-shadow: inset 0px 1px 1px 1px #f6f6f6;
     padding: 1px 3px;
-    text-align: right;
-    font-family: fonts.$math;
-    font-feature-settings: 'tnum';
 
     &:disabled {
         filter: contrast(50%);

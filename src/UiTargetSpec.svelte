@@ -95,6 +95,7 @@
         flex-flow: row nowrap;
         gap: 20px;
         justify-content: start;
+        align-items: center;
     }
 
     #targetSelector {
