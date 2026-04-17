@@ -49,13 +49,14 @@
 
 <style lang="scss">
     .UiAffectorSequence {
-        background: linear-gradient(in oklab to bottom, colors.hcl("blue", 2, 4), colors.hcl("blue", 2, 3));
+        // background: linear-gradient(in oklab to bottom, colors.hcl("blue", 2, 4), colors.hcl("blue", 2, 3));
         border-radius: 5px;
         display: grid;
         grid-template-rows: repeat(2, minmax(0,1fr));
         grid-template-columns: repeat(auto-fill, var(--iconSizeMin));
         grid-auto-rows: minmax(0,1fr);
-        gap: 1px;
+        gap: 2px;
+        // padding: 2px;
     }
 
     .addAffectorButtonWrapper {

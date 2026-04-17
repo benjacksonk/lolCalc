@@ -54,18 +54,18 @@ class:alignRightEdge={edgeAlignment == "right"}
 
 <style lang="scss">
     .UiStatsTooltip {
-        border-width: 2px;
+        border-width: 2px 2px;
         border-style: solid;
-        border-color: colors.hcl("honey", 5, 40);
+        border-color: colors.hcl("blue", 0, 5) colors.hcl("honey", 0, 24);
         grid-template-columns: auto auto;
         gap: 5px;
 
 		box-shadow:	var(--box-shadow);
-        color: colors.hcl("coral", 5, 3);
-        border-radius: 5px;
-        padding: calc(2px + var(--space-3)) calc(2px + var(--space-4));
+        color: colors.hcl("honey", 0, 41);
+        border-radius: 8px;
+        padding: var(--space-4) var(--space-5);
 		overflow: visible;
-		background:	linear-gradient(in oklab to bottom, colors.hcl("honey", 5, 49), colors.hcl("honey", 5, 46));
+		background: #1a1c21;
 
         &:popover-open {
             display: grid;
@@ -95,15 +95,16 @@ class:alignRightEdge={edgeAlignment == "right"}
 
     .affectorName {
         grid-column: span 2;
+        color: colors.hcl("honey", 5, 50);
         text-align: center;
         display: grid;
     }
     .affectorName,
     .itemStat {
-        color: colors.hcl("honey", 5, 14);
     }
     .itemStat {
         font-weight: 600;
+        color: colors.hcl("honey", 5, 44);
     }
 
     .affectorStat {

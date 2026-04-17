@@ -161,7 +161,7 @@
         grid-template-columns: minmax(0,1fr) max-content minmax(0,1fr);
         justify-content: center;
         align-items: center;
-        gap: 20px;
+        gap: 18px;
     }
     
     .diffTable {
@@ -171,10 +171,10 @@
         background: linear-gradient(in oklab to bottom, colors.hcl("blue", 3, 1), colors.hcl("blue", 2, 2) 100px);
         display: grid;
 
-        gap: 10px 5px;
+        gap: 8px 2px;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(6, max-content);
-        justify-content: stretch;
+        // justify-content: stretch;
     }
 
     .diffTableAbilities {
@@ -193,7 +193,6 @@
         grid-column: 1;
         display: grid;
         
-        gap: 10px;
         grid-template-rows: subgrid;
         grid-template-columns: subgrid;
     }
