@@ -63,9 +63,9 @@ class:alignRightEdge={edgeAlignment == "right"}
 		box-shadow:	var(--box-shadow);
         color: colors.hcl("honey", 0, 41);
         border-radius: 8px;
-        padding: var(--space-4) var(--space-5);
+        padding: #{sizes.$space-4} #{sizes.$space-5};
 		overflow: visible;
-		background: #1a1c21;
+		background: #{colors.$lol-darkness};
 
         &:popover-open {
             display: grid;

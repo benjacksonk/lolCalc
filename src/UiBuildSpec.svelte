@@ -74,7 +74,7 @@
     }
     
     .price {
-        background: linear-gradient(in oklab to bottom, colors.hcl("coral", 1, 5), colors.hcl("coral", 0, 4));
+        background: #{colors.$lol-darkness};
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
@@ -85,8 +85,7 @@
         gap: 0 0.125em;
         border-radius: 0;
         border-style: solid;
-        border-top-color: colors.hcl("honey", 2, 6);
-        border-bottom-color: colors.hcl("honey", 0, 5);
+        border-color: colors.hcl("blue", 0, 4);
         border-width: 2px 0;
         color: colors.hcl("honey", 5, 42);
         font-weight: 500;

@@ -212,14 +212,14 @@
         background-color: colors.hcl("red", 5, 11);
         border-width: 2px 0 2px 2px;
         border-style: solid;
-        border-color: colors.hcl("red", 5, 15) colors.hcl("red", 5, 17);
+        border-color: colors.hcl("red", 5, 14) colors.hcl("red", 5, 16);
         border-radius: 50% 0 0 50%;
         align-content: center;
         text-align: center;
 
         &[disabled] {
             background-color: colors.gray(2);
-            border-color: colors.gray(3);
+            border-color: colors.gray(4);
             color: colors.gray(5);
         }
 

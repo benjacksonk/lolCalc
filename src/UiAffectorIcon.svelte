@@ -9,7 +9,7 @@
         showStatsOnHover
     } : {
         affector: Affector,
-        size: "max"|"med"|"sml"|"min",
+        size: "max"|"sup"|"med"|"sub"|"min",
         showNameOnHover: boolean,
         showStatsOnHover: boolean
     } = $props();

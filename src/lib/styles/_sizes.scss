@@ -1,0 +1,31 @@
+@use "sass:math";
+
+$phi: math.sqrt(1.25) + 0.5;
+
+$font-0: 1rem * math.sqrt(math.pow($phi, -1));
+$font-1: 1rem * math.sqrt(math.pow($phi, -0.5));
+$font-2: 1rem;
+$font-3: 1rem * math.sqrt(math.pow($phi, 0.5));
+$font-4: 1rem * math.sqrt(math.pow($phi, 1));
+$font-5: 1rem * math.sqrt(math.pow($phi, 1.5));
+$font-6: 1rem * math.sqrt(math.pow($phi, 2));
+$font-7: 1rem * math.sqrt(math.pow($phi, 2.5));
+$font-8: 1rem * math.sqrt(math.pow($phi, 3));
+$font-9: 1rem * math.sqrt(math.pow($phi, 3.5));
+
+$space-0: 1cap * math.pow($phi, -3);
+$space-1: $space-0 * math.pow($phi, 1);
+$space-2: $space-0 * math.pow($phi, 2);
+$space-3: $space-0 * math.pow($phi, 3);
+$space-4: $space-0 * math.pow($phi, 4);
+$space-5: $space-0 * math.pow($phi, 5);
+$space-6: $space-0 * math.pow($phi, 6);
+$space-7: $space-0 * math.pow($phi, 7);
+$space-8: $space-0 * math.pow($phi, 8);
+$space-9: $space-0 * math.pow($phi, 9);
+
+$icon-max: 90px;
+$icon-sup: 72px;
+$icon-med: 58px;
+$icon-sub: 48px;
+$icon-min: 42px;

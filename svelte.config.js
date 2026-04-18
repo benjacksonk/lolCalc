@@ -7,8 +7,8 @@ const config = {
 	// for more information about preprocessors
 	preprocess: vitePreprocess(
 		// { 
-		// 	style: { scss: { loadPaths: ['$lib/styles/colors', '$lib/styles/fonts'] }},
-		// 	scss: { loadPaths: ['$lib/styles/colors', '$lib/styles/fonts'] }
+		// 	style: { scss: { loadPaths: ['$lib/styles/sizes', '$lib/styles/fonts', '$lib/styles/colors'] }},
+		// 	scss: { loadPaths: ['$lib/styles/sizes', '$lib/styles/fonts', '$lib/styles/colors'] }
 		// }
 	),
 

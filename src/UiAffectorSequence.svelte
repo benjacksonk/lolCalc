@@ -38,7 +38,7 @@
         <div popover id={`addAffectorOptions-${uid}`} class="affectorOptions alignRightEdge">
             {#each affectorOptions as affector, j (affector.name)}
             <button class="entityButton plain" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
-                <UiAffectorIcon {affector} size={"sml"} showNameOnHover={true} showStatsOnHover={false}/>
+                <UiAffectorIcon {affector} size={"sub"} showNameOnHover={true} showStatsOnHover={false}/>
             </button>
             {/each}
         </div>
@@ -53,7 +53,7 @@
         border-radius: 5px;
         display: grid;
         grid-template-rows: repeat(2, minmax(0,1fr));
-        grid-template-columns: repeat(auto-fill, var(--iconSizeMin));
+        grid-template-columns: repeat(auto-fill, #{sizes.$icon-min});
         grid-auto-rows: minmax(0,1fr);
         gap: 2px;
         // padding: 2px;

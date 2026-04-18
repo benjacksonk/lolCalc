@@ -13,7 +13,11 @@
         <div class="name" style:color="#777" style:background-color={"white"}></div>
         
         {#each dummys as dummy, j}
-        <div class="color" style:background-color={`var(--color-${hueName}-${dummys.length - j - (isZeroIndexed ? 1 : 0)})`}></div>
+        <div class="color" 
+        style:--swatch-hue={hueName}
+        style:--swatch-lightness={dummys.length - j - (isZeroIndexed ? 1 : 0)}
+        >
+        </div>
         {/each}
 
         <div class="color" style:color="#7778" style:background-color={"black"}></div>
@@ -23,7 +27,7 @@
 
 
 
-<style>
+<style lang="scss">
     .UiColorPalette {
         height: stretch;
         display: grid;
@@ -45,5 +49,6 @@
     }
 
     .color {
+        background-color: colors.hcl(var(--swatch-hue), 5, var(--swatch-lightness));
     }
 </style>

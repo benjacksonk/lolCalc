@@ -1,3 +1,5 @@
+$zoom: 1.1892;
+
 *, *::before, *::after {
     box-sizing: border-box;
     padding: 0;
@@ -5,43 +7,12 @@
 }
 
 :root {
-    --phi: calc(sqrt(5 / 4) + 1 / 2);
-
-    --font-size-0: calc(1rem * sqrt(pow(var(--phi), -1)));
-    --font-size-1: calc(1rem * sqrt(pow(var(--phi), -0.5)));
-    --font-size-2: 1rem;
-    --font-size-3: calc(1rem * sqrt(pow(var(--phi), 0.5)));
-    --font-size-4: calc(1rem * sqrt(pow(var(--phi), 1)));
-    --font-size-5: calc(1rem * sqrt(pow(var(--phi), 1.5)));
-    --font-size-6: calc(1rem * sqrt(pow(var(--phi), 2)));
-    --font-size-7: calc(1rem * sqrt(pow(var(--phi), 2.5)));
-    --font-size-8: calc(1rem * sqrt(pow(var(--phi), 3)));
-    --font-size-9: calc(1rem * sqrt(pow(var(--phi), 3.5)));
-
-    --space-0: calc(1cap * pow(var(--phi), -3));
-    --space-1: calc(var(--space-0) * pow(var(--phi), 1));
-    --space-2: calc(var(--space-0) * pow(var(--phi), 2));
-    --space-3: calc(var(--space-0) * pow(var(--phi), 3));
-    --space-4: calc(var(--space-0) * pow(var(--phi), 4));
-    --space-5: calc(var(--space-0) * pow(var(--phi), 5));
-    --space-6: calc(var(--space-0) * pow(var(--phi), 6));
-    --space-7: calc(var(--space-0) * pow(var(--phi), 7));
-    --space-8: calc(var(--space-0) * pow(var(--phi), 8));
-    --space-9: calc(var(--space-0) * pow(var(--phi), 9));
-
-    --zoomScale: 1.1892;
-
-    --iconSizeMax: 92px;
-    --iconSizeMed: 60px;
-    --iconSizeSml: 48px;
-    --iconSizeMin: 42px;
-
     --box-shadow:	
         0px 0px 3px 1px #000000d2, 
         0px 3px 13px 5px #111111c5;
     
     --box-shadow-focus:
-        0px 0px 1px 1px #{colors.hcl("aqua", 5, 40)}, 
+        0px 0px 1px 1px colors.hcl("aqua", 5, 40), 
         0px 3px 13px 5px black;
 }
 
@@ -50,15 +21,15 @@ body {
 
     width: 100dvw;
     height: 100dvh;
-    font-size: var(--font-size-2);
+    font-size: #{sizes.$font-2};
 }
 
-h1 { @include fonts.text-heading(var(--font-size-1)); }
-h2 { @include fonts.text-heading(var(--font-size-2)); }
-h3 { @include fonts.text-heading(var(--font-size-3)); }
-h4 { @include fonts.text-heading(var(--font-size-4)); }
-h5 { @include fonts.text-heading(var(--font-size-5)); }
-h6 { @include fonts.text-heading(var(--font-size-6)); }
+h1 { @include fonts.text-heading(#{sizes.$font-1}); }
+h2 { @include fonts.text-heading(#{sizes.$font-2}); }
+h3 { @include fonts.text-heading(#{sizes.$font-3}); }
+h4 { @include fonts.text-heading(#{sizes.$font-4}); }
+h5 { @include fonts.text-heading(#{sizes.$font-5}); }
+h6 { @include fonts.text-heading(#{sizes.$font-6}); }
 
 strong
 { @include fonts.text-heading(11pt); }
@@ -81,10 +52,11 @@ img {
     &.icon {
         aspect-ratio: 1;
 
-        &.max { width: 92px; }
-        &.med { width: 60px; }
-        &.sml { width: 48px; }
-        &.min { width: 42px; }
+        &.max { width: #{sizes.$icon-max}; }
+        &.sup { width: #{sizes.$icon-sup}; }
+        &.med { width: #{sizes.$icon-med}; }
+        &.sub { width: #{sizes.$icon-sub}; }
+        &.min { width: #{sizes.$icon-min}; }
     }
 }
 span > img {
@@ -118,9 +90,9 @@ button:not([disabled]):not([interestfor]) {
     
     &:hover {
         border-radius: 0;
-        scale: var(--zoomScale);
+        scale: #{$zoom};
         box-shadow: 
-        0 0 0 calc((1px + 2px) / var(--zoomScale)) colors.hcl("honey", 5, 44),
+        0 0 0 calc((1px + 2px) / #{$zoom}) colors.hcl("honey", 5, 44),
         0 0 24px 21px colors.hcl("blue", 2, 2) !important;
     }
 }
@@ -160,7 +132,7 @@ button[interestfor] {
 }
 
 *:interest-source {
-    outline: calc(1px / var(--zoomScale)) solid black !important;
+    outline: calc(1px / #{$zoom}) solid black !important;
     filter: brightness(110%) !important;
 }
 

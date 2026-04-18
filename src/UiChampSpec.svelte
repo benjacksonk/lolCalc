@@ -28,7 +28,7 @@
     <div class="abilityControls">
         {#each champ.abilities as ability, i}
         <div class="abilityControl">
-            <img src={ability.iconURL ?? ""} alt="" class="icon med rounded">
+            <img src={ability.iconURL ?? ""} alt="" class="icon med rounded abilityIcon">
             
             <input class="levelControl abilityLevelControl" 
             type="number" min="0" max="5" step="1" defaultValue="0"
@@ -80,12 +80,16 @@
         display: flex;
 
         flex-flow: row nowrap;
-        gap: 10px;
+        gap: 6px;
 
         .abilityControl {
             display: flex;
 
             flex-flow: column nowrap;
         }
+    }
+    
+    .abilityIcon {
+        border: 2px solid #fff1;
     }
 </style>
