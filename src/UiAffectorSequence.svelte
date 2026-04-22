@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Affector } from "$lib/types.svelte";
+    import { preventDefault } from "svelte/legacy";
     import UiAffectorIcon from "./UiAffectorIcon.svelte";
 
     let {
@@ -12,13 +13,11 @@
 
     const uid = $props.id();
 
-    function handleMouseDownOnItemOption(event: MouseEvent, affector: Affector) {
-        event.preventDefault();
+    function appendAffectorApplication(affector: Affector) {
         affectorQueue.push(affector);
     }
 
-    function removeAffector(event: MouseEvent, affectorIndex: number) {
-        event.preventDefault();
+    function removeAffectorApplication(affectorIndex: number) {
         affectorQueue.splice(affectorIndex, 1);
     }
 </script>
@@ -27,19 +26,19 @@
 
 <div class="UiAffectorSequence">
     {#each affectorQueue as affector, i}
-    <button class="entityButton" onmousedown={(event) => removeAffector(event, i)}>
-        <UiAffectorIcon {affector} size="min" showNameOnHover={true} showStatsOnHover={false}/>
-    </button>
+    <UiAffectorIcon {affector} size="min" showNameOnHover={true} showStatsOnHover={false} 
+    onmousedown={(e) => { e.preventDefault(); removeAffectorApplication(i); }}
+    />
     {/each}
     
     <div class="addAffectorButtonWrapper">
         <button class="plainTextButton" popovertarget={`addAffectorOptions-${uid}`}>＋</button>
         
-        <div popover id={`addAffectorOptions-${uid}`} class="affectorOptions alignRightEdge">
+        <div popover id={`addAffectorOptions-${uid}`} class="affectorOptions">
             {#each affectorOptions as affector, j (affector.name)}
-            <button class="entityButton plain" onmousedown={(event) => handleMouseDownOnItemOption(event, affector)}>
-                <UiAffectorIcon {affector} size={"sub"} showNameOnHover={true} showStatsOnHover={false}/>
-            </button>
+            <UiAffectorIcon {affector} size={"sub"} showNameOnHover={true} showStatsOnHover={false}
+            onmousedown={(e) => { e.preventDefault(); appendAffectorApplication(affector); }}
+            />
             {/each}
         </div>
     </div>
@@ -70,19 +69,11 @@
         border-radius: 3px;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(6, max-content);
+        position-area: bottom span-left;
+        position-try-fallbacks: top span-left, left, right;
 
         &:popover-open {
             display: grid;
         }
-    }
-
-    .entityButton {
-		transform-origin: bottom center;
-        display: grid;
-        grid-template: subgrid / subgrid;
-        background: none;
-        border: none;
-        margin: 0;
-        padding: 0;
     }
 </style>

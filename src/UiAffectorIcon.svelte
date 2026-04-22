@@ -3,15 +3,19 @@
     import UiStatsTooltip from "./UiStatsTooltip.svelte";
 
     let {
+        children,
         affector,
         size,
         showNameOnHover,
-        showStatsOnHover
+        showStatsOnHover,
+        ...buttonAttributes
     } : {
+        children: any,
         affector: Affector,
         size: "max"|"sup"|"med"|"sub"|"min",
         showNameOnHover: boolean,
-        showStatsOnHover: boolean
+        showStatsOnHover: boolean,
+        buttonAttributes?: any
     } = $props();
 
     let statsTooltip = $state<UiStatsTooltip>();
@@ -19,31 +23,46 @@
 
 
 
-<button class="UiAffectorIcon" interestfor={statsTooltip?.uid}>
-    <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
-</button>
+<div class="UiAffectorIcon">
+    <button class="iconButton" interestfor={statsTooltip?.uid} {...buttonAttributes}>
+        <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
+    </button>
 
-{#if showNameOnHover || showStatsOnHover}
-<UiStatsTooltip
-bind:this={statsTooltip}
-header={showNameOnHover ? affector.name : undefined} 
-leaders={affector instanceof Item ? [["Gold", affector.price.toFixed(0)]] : []}
-stats={showStatsOnHover ? affector.stats : []}
-/>
-{/if}
+    {@render children?.()}
+
+    {#if showNameOnHover || showStatsOnHover}
+    <UiStatsTooltip
+    bind:this={statsTooltip}
+    header={showNameOnHover ? affector.name : undefined} 
+    leaders={affector instanceof Item ? [["Gold", affector.price.toFixed(0)]] : []}
+    stats={showStatsOnHover ? affector.stats : []}
+    positionPriorities={["bottom", "top", "left", "right"]}
+    />
+    {/if}
+</div>
 
 
 
 <style lang="scss">
     .UiAffectorIcon {
+        display: grid;
+        height: max-content;
+        width: max-content;
+    }
+
+    .iconButton {
         border: none;
         border-radius: 0;
         display: grid;
         height: max-content;
         width: max-content;
+        --zoom: 1.1892;
 
         > .icon {
-            background: linear-gradient(in oklab to bottom, colors.hcl("aqua", 2, 5), colors.hcl("blue", 2, 4));
+            background: linear-gradient(in oklab to bottom, 
+                colors.hcl("aqua", 0, 5), 
+                colors.hcl("blue", 0, 4)
+            );
         }
     }
 </style>

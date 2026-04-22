@@ -89,7 +89,7 @@
         }
     }
     
-    .abilityIcon {
+    .icon {
         border: 2px solid #fff1;
     }
 </style>

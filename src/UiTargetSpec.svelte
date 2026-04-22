@@ -28,13 +28,15 @@
 
 
 <div class="UiTargetSpec">
-    <button popovertarget="targetSelectorOptions" id="targetSelector" class="targetChampIconWrapper rounded">
-        <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
+    <button popovertarget="targetSelectorOptions" id="targetSelector" class="rounded">
+        <div class="iconWrapper targetSelectorIconWrapper rounded">
+            <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
+        </div>
     </button>
 
     <div popover id="targetSelectorOptions">
         {#each [undefined, ...Champion.all] as champ}
-        <button class="targetChampIconWrapper"
+        <button class="iconWrapper champOption"
         onclick={(event) => {
             event.preventDefault();
             targetChampProfile = champ;
@@ -98,8 +100,39 @@
         align-items: center;
     }
 
-    #targetSelector {
+    .targetSelectorIconWrapper {
         overflow: hidden;
+    }
+
+    .iconWrapper {
+        width: max-content;
+        height: max-content;
+        border: none;
+
+        &:has(> .targetChampIconOverlay)::before {
+            contain: strict;
+            content: '';
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 6px 6px black;
+            overflow: hidden;
+            border-radius: inherit;
+        }
+    }
+
+    .targetChampIcon {
+        background: black;
+    }
+
+    #targetSelector {
+        // overflow: hidden;
+        border: 2px solid #fff1;
+        background: none;
+
+        & .icon {
+            overflow: hidden;
+            // border-radius: 50%;
+        }
     }
 
     #targetSelectorOptions {
@@ -113,6 +146,10 @@
         &:popover-open {
             display: flex;
         }
+    }
+
+    .champOption {
+        border-radius: 0;
     }
 
     .targetSpecControls {
@@ -129,21 +166,5 @@
         gap: 0.5em;
         
         grid-template-columns: subgrid;
-    }
-
-    .targetChampIconWrapper {
-        width: max-content;
-        height: max-content;
-        position: relative;
-        background: black;
-        border: none;
-
-        &:has(> .targetChampIconOverlay)::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            display: grid;
-            box-shadow: inset 0 0 6px 6px black;
-        }
     }
 </style>

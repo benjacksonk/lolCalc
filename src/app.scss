@@ -1,5 +1,3 @@
-$zoom: 1.1892;
-
 *, *::before, *::after {
     box-sizing: border-box;
     padding: 0;
@@ -7,21 +5,19 @@ $zoom: 1.1892;
 }
 
 :root {
+    --zoom: 1;
+
     --box-shadow:	
         0px 0px 3px 1px #000000d2, 
         0px 3px 13px 5px #111111c5;
-    
-    --box-shadow-focus:
-        0px 0px 1px 1px colors.hcl("aqua", 5, 40), 
-        0px 3px 13px 5px black;
 }
 
 body {
-    @include fonts.text-passage(11.25pt);
+    @include fonts.text-passage(12pt);
 
     width: 100dvw;
     height: 100dvh;
-    font-size: #{sizes.$font-2};
+    font-size: #{12pt};
 }
 
 h1 { @include fonts.text-heading(#{sizes.$font-1}); }
@@ -32,13 +28,13 @@ h5 { @include fonts.text-heading(#{sizes.$font-5}); }
 h6 { @include fonts.text-heading(#{sizes.$font-6}); }
 
 strong
-{ @include fonts.text-heading(11pt); }
+{ @include fonts.text-heading(11.5pt); }
 
 b
-{ @include fonts.text-significant(12pt); }
+{ @include fonts.text-significant(12.5pt); }
 
 input[type="number"], .text-math
-{ @include fonts.text-math(11.5pt); }
+{ @include fonts.text-math(12pt); }
 
 // .text-mono
 // { @include fonts.text-mono(11.5pt); }
@@ -48,6 +44,7 @@ img {
     max-height: 100%;
     object-fit: contain;
     display: block;
+    box-sizing: content-box;
 
     &.icon {
         aspect-ratio: 1;
@@ -85,21 +82,10 @@ button {
     border: 2px solid #aaa;
     border-radius: 5px;
 }
-button:not([disabled]):not([interestfor]) {
-    transition: 0.06s ease-out;
-    
-    &:hover {
-        border-radius: 0;
-        scale: #{$zoom};
-        box-shadow: 
-        0 0 0 calc((1px + 2px) / #{$zoom}) colors.hcl("honey", 5, 44),
-        0 0 24px 21px colors.hcl("blue", 2, 2) !important;
-    }
-}
-button:not([disabled]):not([interestfor]):hover,
-*:has(button:not([disabled]):not([interestfor]):hover) {
+button:not([disabled]) {
     position: relative;
-    z-index: 1;
+    transition: 0s ease-out;
+    cursor: pointer;
 }
 
 a[interestfor],
@@ -123,19 +109,52 @@ button[interestfor] {
     border: 1px solid #7771;
 }
 
-*[popover] {
+[popover] {
     position-area: bottom;
-    position-try-fallbacks: top;
+    position-try-fallbacks: top, right, left;
 }
-*[popover="hint"] {
+[popover="hint"] {
     pointer-events: none;
 }
 
-*:interest-source {
-    outline: calc(1px / #{$zoom}) solid black !important;
-    filter: brightness(110%) !important;
+// *:interest-source,
+button:not([disabled]),
+*:has(+ [popover]),
+[interestfor] {
+    &:hover,
+    &:has(+ *:popover-open) {
+        z-index: 1;
+        scale: var(--zoom);
+    
+        &::after {
+            opacity: 1;
+        }
+    }
+
+    &::after {
+        /* animating only opacity is hardware-accelerated (improves performance) */
+        /* the duration is abritrary */
+        transition: opacity 0s ease-out;
+
+        pointer-events: none;
+        z-index: -1;
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        opacity: 0;
+
+        box-shadow: 
+        0 0 0 calc(2px / var(--zoom)) colors.$lol-darkness,
+        0 0 0 calc(3px / var(--zoom)) colors.hcl("honey", 5, 44),
+        0 0 calc(24px / var(--zoom)) calc(21px / var(--zoom)) colors.hcl("blue", 1, 2);
+    }
 }
 
 .rounded {
     border-radius: calc(2px + 5%);
+}
+
+.invisible {
+    visibility: hidden;
 }

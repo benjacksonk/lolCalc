@@ -6,17 +6,18 @@
     let {
         buildConfig = $bindable(),
         buildIndex,
-        derivedGameConfig
+        derivedGameConfig,
+        ...priceButtonAttributes
     } : {
         buildConfig: BuildConfig,
         buildIndex: number,
-        derivedGameConfig: GameConfig
+        derivedGameConfig: GameConfig,
+        priceButtonAttributes: any
     } = $props();
 
     let statsTooltip = $state<UiStatsTooltip>();
 
-    function handleMouseDownOnItemOption(event: MouseEvent, itemConfig: ItemSlotConfig, item: Item) {
-        event.preventDefault();
+    function equipItem(itemConfig: ItemSlotConfig, item: Item) {
         itemConfig.item = item;
     }
 </script>
@@ -24,7 +25,25 @@
 
 
 <div class="UiBuildSpec">
-    <button class="price" interestfor={statsTooltip?.uid}>
+    <div class="itemSlotGrid">
+        {#each buildConfig.itemSlots as itemConfig, i}
+        <UiAffectorIcon 
+        affector={itemConfig.item} 
+        size="min" 
+        showNameOnHover={true} 
+        showStatsOnHover={true} 
+        popovertarget={`itemSelector-${buildIndex}-${i}`}
+        >
+            <div popover id={`itemSelector-${buildIndex}-${i}`} class="itemSelector">
+                {#each Item.all as item, j (item.name)}
+                <UiAffectorIcon affector={item} size="min" showNameOnHover={true} showStatsOnHover={true} onmousedown={(e) => { e.preventDefault(); equipItem(itemConfig, item); }}/>
+                {/each}
+            </div>
+        </UiAffectorIcon>
+        {/each}
+    </div>
+
+    <button class="price" interestfor={statsTooltip?.uid} {...priceButtonAttributes}>
         <span class="amount text-math">{buildConfig.totalCost.toFixed(0)}</span>
         <span class="unit">g</span>
     </button>
@@ -34,47 +53,28 @@
     stats={derivedGameConfig.statsPostEval}
     edgeAlignment="left"
     header={"Initial Stat Totals"}
+    positionPriorities={["bottom span-right", "top span-right", "right", "left"]}
     />
-
-    <div class="itemSlotGrid">
-        {#each buildConfig.itemSlots as itemConfig, i}
-        <div>
-            <button class="plain affectorButton slotButton" popovertarget={`itemSelector-${buildIndex}-${i}`}>
-                <UiAffectorIcon affector={itemConfig.item} size="min" showNameOnHover={true} showStatsOnHover={true}/>
-            </button>
-            
-            <div popover id={`itemSelector-${buildIndex}-${i}`} class="itemSelector alignLeftEdge">
-                {#each Item.all as item, j (item.name)}
-                <button class="plain affectorButton optionButton" 
-                onmousedown={(event) => handleMouseDownOnItemOption(event, itemConfig, item)}
-                >
-                    <UiAffectorIcon affector={item} size="min" showNameOnHover={true} showStatsOnHover={true}/>
-                </button>
-                {/each}
-            </div>
-        </div>
-        {/each}
-    </div>
 </div>
 
 
 
 <style lang="scss">
     .UiBuildSpec {
+        background: linear-gradient(in oklab to bottom,
+            colors.hcl("blue", 0, 3),
+            colors.$lol-darkness,
+        );
+        border: none;
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
-        grid-auto-columns: max-content;
+        grid-auto-columns: 1fr;
         align-content: center;
-        // background-color: colors.hcl("blue", 1, 3);
-        // border-color: colors.hcl("blue", 1, 3);
-        // border-style: solid;
         gap: 0 2px;
-        // margin-left: 2px;
     }
     
     .price {
-        background: #{colors.$lol-darkness};
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
@@ -82,18 +82,17 @@
         align-content: center;
         text-align: right;
         padding: 0 0.5em;
+        border: none;
+        background: none;
         gap: 0 0.125em;
         border-radius: 0;
-        border-style: solid;
-        border-color: colors.hcl("blue", 0, 4);
-        border-width: 2px 0;
         color: colors.hcl("honey", 5, 42);
         font-weight: 500;
     }
 
     .itemSlotGrid {
         display: grid;
-        grid-auto-flow: column;
+        padding: 1px;
         grid-template: repeat(2, minmax(0,1fr)) / repeat(3, minmax(0,1fr));
         gap: 2px;
     }
@@ -112,6 +111,8 @@
         grid-template-columns: repeat(11, max-content);
         gap: 2px;
         overflow: visible;
+        position-area: bottom span-right;
+        position-try-fallbacks: top span-right, right, left;
 
         &:popover-open {
             display: grid;
