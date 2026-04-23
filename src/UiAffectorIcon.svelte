@@ -56,7 +56,7 @@
         display: grid;
         height: max-content;
         width: max-content;
-        --zoom: 1.1892;
+        --zoom: 1.125;
 
         > .icon {
             background: linear-gradient(in oklab to bottom, 

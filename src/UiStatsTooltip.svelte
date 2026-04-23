@@ -67,7 +67,7 @@ style:position-try-fallbacks={positionTryFallbacks}
         grid-template-columns: auto auto;
         gap: 5px;
 
-		box-shadow:	inset 0 0 4px 0px colors.hcl("aqua", 5, 34), var(--box-shadow);
+		box-shadow:	inset 0 0 4px 0px colors.hcl("aqua", 5, 34), shadows.$box-shadow-max;
         color: colors.hcl("aqua", 5, 47);
         border-radius: 8px;
         padding: #{sizes.$space-4} #{sizes.$space-5};

@@ -290,14 +290,17 @@
     }
 
     .buildConfigAndDiffs {
+        margin-right: 5px;
         background: linear-gradient(in oklab to bottom, 
-            colors.hcl("blue", 2, 6), 
-            colors.hcl("aqua", 2, 12), 
-            colors.hcl("blue", 2, 4)
+            colors.hcl("blue", 2, 8), 
+            colors.hcl("aqua", 2, 11), 
+            colors.hcl("blue", 2, 7)
         );
         border-style: solid;
         border-width: 2px 2px 2px 0;
-        border-color: colors.hcl("blue", 1, 5);
+        border-radius: 0 3px 3px 0;
+        border-color: colors.hcl("blue", 2, 9);
+        box-shadow: shadows.$box-shadow-min;
         display: grid;
         grid-template: subgrid / subgrid;
     }
@@ -312,10 +315,10 @@
         display: grid;
         padding: 0 5px;
         color: colors.hcl("red", 5, 28);
-        background-color: colors.hcl("red", 5, 11);
+        background-color: colors.hcl("red", 5, 12);
         border-width: 2px 0 2px 2px;
         border-style: solid;
-        border-color: colors.hcl("red", 5, 14) colors.hcl("red", 5, 16);
+        border-color: colors.hcl("red", 5, 13) colors.hcl("red", 5, 15);
         border-radius: 50% 0 0 50%;
         align-content: center;
         text-align: center;
@@ -347,19 +350,21 @@
         padding: 0 0.5em;
         border-radius: 0;
         border: none;
-        color: colors.hcl("aqua", 5, 49);
+        color: colors.hcl("aqua", 1, 45);
         background: linear-gradient(in oklab to bottom,
+            colors.hcl("blue", 2, 8),
             colors.hcl("blue", 2, 7),
-            colors.hcl("blue", 2, 5),
         );
         grid-template-columns: subgrid;
         grid-template-rows: repeat(2, minmax(0,1fr));
+        gap: 0;
         align-content: center;
 
         &.absolute {
+            color: colors.hcl("aqua", 5, 49);
             background: linear-gradient(in oklab to bottom,
-                colors.hcl("blue", 3, 12),
-                colors.hcl("blue", 2, 9),
+                colors.hcl("blue", 2, 12),
+                colors.hcl("blue", 2, 10),
             );
         }
 
@@ -369,7 +374,6 @@
         }
 
         &:hover::after {
-            outline: 2px solid colors.hcl("blue", 5, 33);
             box-shadow: none;
         }
     }
@@ -401,6 +405,12 @@
     
     .context {
         grid-column: 3;
+    }
+
+    .operator,
+    .context,
+    .unit {
+        color: colors.hcl("aqua", 0, 34);
     }
     
     .unit {

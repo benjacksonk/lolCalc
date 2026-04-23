@@ -1,0 +1,9 @@
+@use '$lib/styles/colors';
+
+$_shadow-color: colors.hcl("blue", 1, 1);
+    
+$box-shadow-min: 0 0.24px 1px 1px oklab(from $_shadow-color l a b / 50%);
+$box-shadow-sub: $box-shadow-min, 0 0  1px 1px oklab(from $_shadow-color l a b / 25%);
+$box-shadow-med: $box-shadow-min, 0 0  4px 2px oklab(from $_shadow-color l a b / 50%);
+$box-shadow-sup: $box-shadow-min, 0 0  9px 3px oklab(from $_shadow-color l a b / 75%);
+$box-shadow-max: $box-shadow-min, 0 0 16px 4px $_shadow-color;

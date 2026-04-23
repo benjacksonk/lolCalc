@@ -6,10 +6,6 @@
 
 :root {
     --zoom: 1;
-
-    --box-shadow:	
-        0px 0px 3px 1px #000000d2, 
-        0px 3px 13px 5px #111111c5;
 }
 
 body {
@@ -146,8 +142,8 @@ button:not([disabled]),
 
         box-shadow: 
         0 0 0 calc(2px / var(--zoom)) colors.$lol-darkness,
-        0 0 0 calc(3px / var(--zoom)) colors.hcl("honey", 5, 44),
-        0 0 calc(24px / var(--zoom)) calc(21px / var(--zoom)) colors.hcl("blue", 1, 2);
+        0 0 0 calc(4px / var(--zoom)) colors.hcl("honey", 5, 44),
+        0 0 calc(14px / var(--zoom)) calc(14px / var(--zoom)) oklab(from colors.hcl("blue", 1, 1) l a b / 100%);
     }
 }
 

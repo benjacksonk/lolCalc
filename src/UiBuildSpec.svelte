@@ -103,7 +103,7 @@
     }
 
     .itemSelector {
-		box-shadow:	var(--box-shadow);
+		box-shadow:	shadows.$box-shadow-sup;
         background: colors.gray(2);
         border: 2px solid colors.gray(12);
         border-radius: 3px;

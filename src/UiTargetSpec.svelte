@@ -140,8 +140,11 @@
         left: anchor(50%);
         translate: -50%;
         overflow: visible;
+        background: colors.gray(2);
+        border: 2px solid colors.gray(12);
+        border-radius: 3px;
+        box-shadow: shadows.$box-shadow-sup;
         flex-flow: row nowrap;
-        border: 2px solid #eee;
 
         &:popover-open {
             display: flex;

@@ -67,6 +67,7 @@
         background: colors.gray(2);
         border: 2px solid colors.gray(12);
         border-radius: 3px;
+        box-shadow: shadows.$box-shadow-sup;
         grid-auto-rows: max-content;
         grid-template-columns: repeat(6, max-content);
         position-area: bottom span-left;
