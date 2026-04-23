@@ -66,7 +66,7 @@
 
         <div class="diffTable"
         style:grid-template-rows={`max-content repeat(${buildConfigs.length}, max-content)`}
-        style:grid-template-columns={`max-content max-content repeat(${(champ.abilities.length + 1) * 4}, max-content) auto`}
+        style:grid-template-columns={`max-content max-content repeat(${champ.abilities.length + 1}, max-content) auto`}
         >
             <div class="abilities">
                 {#each champ.abilities as ability, i (ability.name)}
@@ -82,14 +82,14 @@
                     disabled={buildConfigs.length <= 1}
                     >𐌢</button>
                     
-                    <div class="buildConfigAndDiffs" style:grid-column={`span ${1 + ((champ.abilities.length + 1) * 4)}`}>
+                    <div class="buildConfigAndDiffs" style:grid-column={`span ${1 + (champ.abilities.length + 1)}`}>
                         <UiBuildSpec 
                         bind:buildConfig={buildConfigs[i]} buildIndex={i}
                         derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtInitialGameConfig}
                         onclick={(e) => { e.preventDefault(); duplicateBuild(i, buildConfig)}}
                         />
                         
-                        <div class="buildDiffs" style:grid-column={`span ${(champ.abilities.length + 1) * 4}`}>
+                        <div class="buildDiffs" style:grid-column={`span ${champ.abilities.length + 1}`}>
                             {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff)}
                             <button class="effectOutcome"
                             class:absolute={absoluteDiffsToShow.has(diff)}
@@ -266,13 +266,10 @@
         grid-auto-flow: column;
         grid-template: subgrid / subgrid;
         justify-items: center;
-
-        & > * {
-            grid-column: span 4;
-        }
     }
 
     .builds {
+        --diffRadius: 11px;
         width: 100%;
         grid-row: 2 / -1;
         grid-column: 1 / -1;
@@ -291,21 +288,32 @@
 
     .buildConfigAndDiffs {
         margin-right: 5px;
-        background: linear-gradient(in oklab to bottom, 
-            colors.hcl("blue", 2, 8), 
-            colors.hcl("aqua", 2, 11), 
-            colors.hcl("blue", 2, 7)
+        background: linear-gradient(in oklab to bottom,
+            colors.hcl("blue", 0, 3),
+            colors.$lol-darkness,
         );
         border-style: solid;
-        border-width: 2px 2px 2px 0;
-        border-radius: 0 3px 3px 0;
-        border-color: colors.hcl("blue", 2, 9);
+        border-width: 1px 0;
+        border-color: colors.hcl("blue", 0, 4);
+        border-bottom-color: colors.hcl("blue", 0, 3);
+        border-radius: 0 var(--diffRadius) var(--diffRadius) 0;
         box-shadow: shadows.$box-shadow-min;
         display: grid;
         grid-template: subgrid / subgrid;
     }
 
     .buildDiffs {
+        margin: -1px 0;
+        background: linear-gradient(in oklab to bottom, 
+            colors.hcl("blue", 2, 8), 
+            colors.hcl("aqua", 2, 11), 
+            colors.hcl("blue", 2, 7)
+        );
+        overflow: hidden;
+        border-style: solid;
+        border-width: 2px;
+        border-radius: var(--diffRadius);
+        border-color: colors.hcl("blue", 2, 9);
         display: grid;
         gap: 0 1px;
         grid-template: subgrid / subgrid;
@@ -345,7 +353,6 @@
         cursor: default;
         height: 100%;
         width: 100%;
-        grid-column: span 4;
         display: grid;
         padding: 0 0.5em;
         border-radius: 0;
@@ -383,7 +390,7 @@
         grid-row: 1 / -1;
         grid-column: 1 / -1;
         display: grid;
-        grid-template: subgrid / subgrid;
+        grid-template: subgrid / max-content 1fr max-content max-content;
         align-items: center;
     }
 
@@ -404,18 +411,21 @@
     }
     
     .context {
-        grid-column: 3;
+        margin-left: 0.125em;
     }
 
     .operator,
-    .context,
+    .context {
+        color: colors.hcl("aqua", 0, 28);
+    }
     .unit {
         color: colors.hcl("aqua", 0, 34);
     }
     
     .unit {
         grid-row: 1 / -1;
-        grid-column: 4;
+        grid-column: -1;
+        margin-left: 0.5em;
     }
 
 

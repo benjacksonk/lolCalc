@@ -65,13 +65,11 @@
             colors.hcl("blue", 0, 3),
             colors.$lol-darkness,
         );
-        border: none;
         display: grid;
         grid-auto-flow: column;
         grid-template-columns: auto;
         grid-auto-columns: 1fr;
         align-content: center;
-        gap: 0 2px;
     }
     
     .price {
@@ -91,8 +89,8 @@
     }
 
     .itemSlotGrid {
+        padding: 1px 0 1px 2px;
         display: grid;
-        padding: 1px;
         grid-template: repeat(2, minmax(0,1fr)) / repeat(3, minmax(0,1fr));
         gap: 2px;
     }
