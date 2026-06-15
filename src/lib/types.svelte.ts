@@ -270,9 +270,25 @@ export class Item extends Affector {
             350, "Dark Seal", "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item.png", 
             [[StatType.AbilityPower,15],[StatType.Health,50]]
         ),
+        DoransBlade: new Item(
+            450, "Doran's Blade", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Blade_item.png", 
+            [[StatType.AttackDamageBonus,10],[StatType.Health,80],[StatType.Omnivamp,0.025]]
+        ),
+        DoransBow: new Item(
+            400, "Doran's Bow", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Bow_item.png", 
+            [[StatType.AttackDamageBonus,8],[StatType.Omnivamp,0.015]]
+        ),
+        DoransHelm: new Item(
+            450, "Doran's Helm", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Helm_item.png", 
+            [[StatType.Health,140],[StatType.Armor,10],[StatType.MagicResistance,10]]
+        ),
         DoransRing: new Item(
             400, "Doran's Ring", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item.png", 
             [[StatType.AbilityPower,18],[StatType.Health,90]]
+        ),
+        DoransShield: new Item(
+            450, "Doran's Shield", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Shield_item.png", 
+            [[StatType.Health,110]]
         ),
         Boots: new Item(
             300, "Boots", "https://wiki.leagueoflegends.com/en-us/images/Boots_item.png", 
@@ -285,6 +301,14 @@ export class Item extends Affector {
         Swiftmarch: new Item(
             1000, "Swiftmarch", "https://wiki.leagueoflegends.com/en-us/images/Swiftmarch_item.png", 
             [[StatType.MoveSpeedFlat,65]]
+        ),
+        GluttonousGreaves: new Item(
+            1000, "Gluttonous Greaves", "https://wiki.leagueoflegends.com/en-us/images/Gluttonous_Greaves_item.png", 
+            [[StatType.MoveSpeedFlat,45],[StatType.Omnivamp,0.04]]
+        ),
+        ImmortalPath: new Item(
+            1000, "Immortal Path", "https://wiki.leagueoflegends.com/en-us/images/Immortal_Path_item.png", 
+            [[StatType.MoveSpeedFlat,45],[StatType.Omnivamp,0.1],[StatType.DamageMagicAmpRatio,0.05],[StatType.DamagePhysicalAmpRatio,0.05],[StatType.DamageTrueAmpRatio,0.05]]
         ),
         BerserkersGreaves: new Item(
             1100, "Berserker's Greaves", "https://wiki.leagueoflegends.com/en-us/images/Berserker%27s_Greaves_item.png", 
@@ -351,7 +375,7 @@ export class Item extends Affector {
             [[StatType.AbilityHaste,10],[StatType.AbilityPower,40],[StatType.Mana,300]]
         ),
         Actualizer: new Item(
-            3100, "Actualizer", "https://wiki.leagueoflegends.com/en-us/images/Actualizer_item.png",
+            2800, "Actualizer", "https://wiki.leagueoflegends.com/en-us/images/Actualizer_item.png",
             [[StatType.AbilityHaste,10],[StatType.AbilityPower,90],[StatType.Mana,300]],
             [
                 [
@@ -422,10 +446,10 @@ export class Item extends Affector {
         ),
         DuskAndDawn: new Item(
             3100, "Dusk and Dawn", "https://wiki.leagueoflegends.com/en-us/images/Dusk_and_Dawn_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,70],[StatType.Health,300]],
+            [[StatType.AbilityHaste,20],[StatType.AbilityPower,60],[StatType.Health,300]],
             [[
                 Effect.createDamageEffect(DamageType.Magic, 0, 
-                    [[StatType.BaseAttackDamage,1],[StatType.AbilityPower,0.1]]
+                    [[StatType.BaseAttackDamage,0.75],[StatType.AbilityPower,0.1]]
                 )
             ]]
         ),
