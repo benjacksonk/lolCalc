@@ -1,4 +1,5 @@
 import { SvelteMap } from "svelte/reactivity";
+import itemsJSON from '$lib/dragontail-data/en_US/item.json';
 
 export enum AbilityType { P="P", Q="Q", W="W", E="E", R="R" }
 
@@ -9,7 +10,7 @@ export enum StatType {
     AbilityPower                    = "Ability Power",
     AbilityPowerAmpRatio            = "Ability Power Amp Ratio",
     AttackDamageBase                = "Base Attack Damage",
-    AttackDamageBonus               = "Bonus Attack Damage",
+    AttackDamageBonus               = "Attack Damage",
     Armor                           = "Armor",
     ArmorPenetrationFlat            = "Lethality (Armor Penetration Flat)",
     ArmorPenetrationRatio           = "Armor Penetration Ratio",
@@ -179,8 +180,8 @@ export interface Entity {
 export class Affector implements Entity {
     readonly name: string;
     readonly iconURL: string;
-    readonly stats: DefiniteNumberMap<StatType>;
-    readonly effectsPerRank: Effect[][];
+    stats: DefiniteNumberMap<StatType>;
+    effectsPerRank: Effect[][];
     // singleStats or multiStats ?
     // when stats are dynamic, maybe that can be a StatEffect?
 
@@ -232,390 +233,309 @@ export class Ability extends Affector {
     }
 }
 
+type ItemData = {
+    name: string,
+    description: string,
+    colloq: string,
+    plaintext: string,
+    from: string[],
+    into: string[],
+    image: {
+        full: string,
+        sprite: string,
+        group: string,
+        x: number,
+        y: number,
+        w: number,
+        h: number
+    },
+    gold: {
+        base: number,
+        purchase: number,
+        total: number,
+        sell: number,
+    },
+    tags: string[],
+    maps: { [key: string]: boolean },
+    stats: { [key: string]: number }
+}
+
 export class Item extends Affector {
     readonly price: number;
 
-    constructor(
-        price: number,
-        ...affectorParams: ConstructorParameters<typeof Affector>
-    ) {
-        super(...affectorParams);
-        this.price = price;
+    constructor(itemData: ItemData) {
+        const imageFull = itemData.image.full;
+        const imageURL = imageFull.startsWith("http") ? imageFull : `dragontail-img/item/${imageFull}`;
+        
+        const statTypes = new Set(Object.values(StatType));
 
-        Item.all.push(this);
+        const validStats = 
+        Object.entries(itemData.stats)
+        .filter(([key]) => statTypes.has(key as StatType))
+        .map(([key, value]) => [key as StatType, value] as [StatType, number]);
+
+        super(itemData.name, imageURL, validStats);
+
+        this.price = itemData.gold.total;
     }
 
-    static readonly all: Item[] = [];
+    static readonly nothing = new Item({
+        name: "Nothing",
+        description: "",
+        colloq: "",
+        plaintext: "",
+        from: [],
+        into: [],
+        image: {
+            full: "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png",
+            sprite: "",
+            group: "",
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0
+        },
+        gold: {
+            base: 0,
+            purchase: 0,
+            total: 0,
+            sell: 0,
+        },
+        tags: [],
+        maps: {},
+        stats: {}
+    });
 
-    static readonly items = {
-        Nothing: new Item(0, "Nothing", "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png"),
-        AdaptiveForceShard: new Item(
-            0, "Adaptive Force Shard", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-            [[StatType.AbilityPower, 9]]
-        ),
-        AdaptiveForceShardX2: new Item (
-            0, "2 Adaptive Force Shards", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-            [[StatType.AbilityPower, 18]]
-        ),
-        HealthPotion: new Item(
-            50, "Health Potion", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"
-        ),
-        HealthPotionX2: new Item(
-            100, "2 Health Potions", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"
-        ),
-        RefillablePotion: new Item(
-            150, "Refillable Potion", "https://wiki.leagueoflegends.com/en-us/images/Refillable_Potion_item_Winter.png"
-        ),
-        DarkSeal: new Item(
-            350, "Dark Seal", "https://wiki.leagueoflegends.com/en-us/images/Dark_Seal_item.png", 
-            [[StatType.AbilityPower,15],[StatType.Health,50]]
-        ),
-        DoransBlade: new Item(
-            450, "Doran's Blade", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Blade_item.png", 
-            [[StatType.AttackDamageBonus,10],[StatType.Health,80],[StatType.Omnivamp,0.025]]
-        ),
-        DoransBow: new Item(
-            400, "Doran's Bow", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Bow_item.png", 
-            [[StatType.AttackDamageBonus,8],[StatType.Omnivamp,0.015]]
-        ),
-        DoransHelm: new Item(
-            450, "Doran's Helm", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Helm_item.png", 
-            [[StatType.Health,140],[StatType.Armor,10],[StatType.MagicResistance,10]]
-        ),
-        DoransRing: new Item(
-            400, "Doran's Ring", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Ring_item.png", 
-            [[StatType.AbilityPower,18],[StatType.Health,90]]
-        ),
-        DoransShield: new Item(
-            450, "Doran's Shield", "https://wiki.leagueoflegends.com/en-us/images/Doran%27s_Shield_item.png", 
-            [[StatType.Health,110]]
-        ),
-        Boots: new Item(
-            300, "Boots", "https://wiki.leagueoflegends.com/en-us/images/Boots_item.png", 
-            [[StatType.MoveSpeedFlat,25]]
-        ),
-        BootsOfSwiftness: new Item(
-            1000, "Boots of Swiftness", "https://wiki.leagueoflegends.com/en-us/images/Boots_of_Swiftness_item.png", 
-            [[StatType.MoveSpeedFlat,55]]
-        ),
-        Swiftmarch: new Item(
-            1000, "Swiftmarch", "https://wiki.leagueoflegends.com/en-us/images/Swiftmarch_item.png", 
-            [[StatType.MoveSpeedFlat,65]]
-        ),
-        GluttonousGreaves: new Item(
-            1000, "Gluttonous Greaves", "https://wiki.leagueoflegends.com/en-us/images/Gluttonous_Greaves_item.png", 
-            [[StatType.MoveSpeedFlat,45],[StatType.Omnivamp,0.04]]
-        ),
-        ImmortalPath: new Item(
-            1000, "Immortal Path", "https://wiki.leagueoflegends.com/en-us/images/Immortal_Path_item.png", 
-            [[StatType.MoveSpeedFlat,45],[StatType.Omnivamp,0.1],[StatType.DamageMagicAmpRatio,0.05],[StatType.DamagePhysicalAmpRatio,0.05],[StatType.DamageTrueAmpRatio,0.05]]
-        ),
-        BerserkersGreaves: new Item(
-            1100, "Berserker's Greaves", "https://wiki.leagueoflegends.com/en-us/images/Berserker%27s_Greaves_item.png", 
-            [[StatType.MoveSpeedFlat,45]]
-        ),
-        GunmetalGreaves: new Item(
-            1100, "Gunmetal Greaves", "https://wiki.leagueoflegends.com/en-us/images/Gunmetal_Greaves_item.png", 
-            [[StatType.MoveSpeedFlat,45]]
-        ),
-        PlatedSteelcaps: new Item(
-            1200, "Plated Steelcaps", "https://wiki.leagueoflegends.com/en-us/images/Plated_Steelcaps_item.png", 
-            [[StatType.Armor,25],[StatType.MoveSpeedFlat,45]]
-        ),
-        ArmoredAdvance: new Item(
-            1200, "Armored Advance", "https://wiki.leagueoflegends.com/en-us/images/Armored_Advance_item.png", 
-            [[StatType.Armor,35],[StatType.MoveSpeedFlat,45]]
-        ),
-        MercurysTreads: new Item(
-            1250, "Mercury's Treads", "https://wiki.leagueoflegends.com/en-us/images/Mercury%27s_Treads_item.png", 
-            [[StatType.MagicResistance,20],[StatType.MoveSpeedFlat,45]]
-        ),
-        ChainlacedCrushers: new Item(
-            1250, "Chainlaced Crushers", "https://wiki.leagueoflegends.com/en-us/images/Chainlaced_Crushers_item.png", 
-            [[StatType.MagicResistance,30],[StatType.MoveSpeedFlat,45]]
-        ),
-        IonianBootsOfLucidity: new Item(
-            900, "Ionian Boots of Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Ionian_Boots_of_Lucidity_item.png", 
-            [[StatType.AbilityHaste,10],[StatType.MoveSpeedFlat,45]]
-        ),
-        CrimsonLucidity: new Item(
-            900, "Crimson Lucidity", "https://wiki.leagueoflegends.com/en-us/images/Crimson_Lucidity_item.png", 
-            [[StatType.AbilityHaste,20],[StatType.MoveSpeedFlat,45]]
-        ),
-        SorcerersShoes: new Item(
-            1100, "Sorcerer's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Sorcerer%27s_Shoes_item.png", 
-            [[StatType.MagicPenetrationFlat,12],[StatType.MoveSpeedFlat,45]]
-        ),
-        SpellslingersShoes: new Item(
-            1100, "Spellslinger's Shoes", "https://wiki.leagueoflegends.com/en-us/images/Spellslinger%27s_Shoes_item.png", 
-            [[StatType.MagicPenetrationFlat,18],[StatType.MagicPenetrationRatio,0.08],[StatType.MoveSpeedFlat,45]]
-        ),
-        SapphireCrystal: new Item(
-            300, "Sapphire Crystal", "https://wiki.leagueoflegends.com/en-us/images/Sapphire_Crystal_item.png", 
-            [[StatType.Mana,300]]
-        ),
-        TearOfTheGoddess: new Item(
-            400, "Tear of the Goddess", "https://wiki.leagueoflegends.com/en-us/images/Tear_of_the_Goddess_item.png", 
-            [[StatType.Mana,240]]
-        ),
-        AmplifyingTome: new Item(
-            400, "Amplifying Tome", "https://wiki.leagueoflegends.com/en-us/images/Amplifying_Tome_item.png", 
-            [[StatType.AbilityPower,20]]
-        ),
-        BlastingWand: new Item(
-            850, "Blasting Wand", "https://wiki.leagueoflegends.com/en-us/images/Blasting_Wand_item.png", 
-            [[StatType.AbilityPower,45]]
-        ),
-        NeedlesslyLargeRod: new Item(
-            1200, "Needlessly Large Rod", "https://wiki.leagueoflegends.com/en-us/images/Needlessly_Large_Rod_item.png", 
-            [[StatType.AbilityPower,65]]
-        ),
-        LostChapter: new Item(
-            1200, "Lost Chapter", "https://wiki.leagueoflegends.com/en-us/images/Lost_Chapter_item.png", 
-            [[StatType.AbilityHaste,10],[StatType.AbilityPower,40],[StatType.Mana,300]]
-        ),
-        Actualizer: new Item(
-            2800, "Actualizer", "https://wiki.leagueoflegends.com/en-us/images/Actualizer_item.png",
-            [[StatType.AbilityHaste,10],[StatType.AbilityPower,90],[StatType.Mana,300]],
-            [
-                [
-                    new Effect((gameConfig: GameConfig): GameConfig => {
-                        let damageAmp = 0.15 + 0.00005 * gameConfig.champStatModifiers.get(StatType.Mana);
+    static readonly all: Item[] = (() => {
+        try {
+            const filterTags: string[] = [
+                "Boots", 
+                "BootsOfSpeed", 
+                "Consumable", 
+                "SpellDamage",
+            ];
 
-                        return new GameConfig(gameConfig, {
-                            champStatModifiers: DefiniteNumberMap.sumPerKey(
-                                gameConfig.champStatModifiers,
-                                new DefiniteNumberMap<StatType>([
-                                    [StatType.DamageMagicAmpRatio, damageAmp],
-                                    [StatType.DamagePhysicalAmpRatio, damageAmp],
-                                    [StatType.DamageTrueAmpRatio, damageAmp]
-                                ])
-                            )
-                        });
-                    })
-                ]
-            ]
-        ),
-        ArchangelsStaff: new Item(
-            2900, "Archangel's Staff", "https://wiki.leagueoflegends.com/en-us/images/Archangel%27s_Staff_item.png", 
-            [[StatType.AbilityHaste,25],[StatType.AbilityPower,70],[StatType.Mana,600]]
-        ),
-        SeraphsEmbrace: new Item(
-            2900, "Seraph's Embrace", "https://wiki.leagueoflegends.com/en-us/images/Seraph%27s_Embrace_item.png", 
-            [[StatType.AbilityHaste,25],[StatType.AbilityPower,70],[StatType.Mana,1000]]
-        ),
-        ArdentCenser: new Item(
-            2200, "Ardent Censer", "https://wiki.leagueoflegends.com/en-us/images/Ardent_Censer_item.png", 
-            [[StatType.AbilityPower,45],[StatType.HealAndShieldPowerRatio,0.1],[StatType.ManaRegenRatio,1.25],[StatType.MoveSpeedRatio,0.04]]
-        ),
-        BansheesVeil: new Item(
-            3000, "Banshee's Veil", "https://wiki.leagueoflegends.com/en-us/images/Banshee%27s_Veil_item.png",
-            [[StatType.AbilityPower,105],[StatType.MagicResistance,40]]
-        ),
-        BlackfireTorch: new Item(
-            2800, "Blackfire Torch", "https://wiki.leagueoflegends.com/en-us/images/Blackfire_Torch_item.png", 
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,80],[StatType.Mana,600]],
-            [[
-                Effect.createDamageEffect(DamageType.Magic, 60, [[StatType.AbilityPower,0.06]]),
-                new Effect(
-                    (gameConfig : GameConfig): GameConfig => {
-                        return new GameConfig(gameConfig, {
-                            champStatModifiers: new DefiniteNumberMap<StatType>([
-                                [StatType.AbilityPowerAmpRatio, gameConfig.champStatModifiers.get(StatType.AbilityPowerAmpRatio) + 0.04]
-                            ])
-                        });
+            const filterStats: string[] = [
+                "FlatMagicDamageMod",
+            ];
+
+            const itemsObject = JSON.parse(JSON.stringify(itemsJSON));
+            
+            let riftItemDataEntries: [string, ItemData][] 
+            = Object.entries<ItemData>(itemsObject["data"]).filter(([id, itemData]) => itemData.maps["11"]);
+
+            // Parse item descriptions to set their stat data accordingly.
+            riftItemDataEntries.forEach(([id, itemData]) => {
+                itemData.description
+                .match(/<stats>(?<content>[\s\S]*?)<\/stats>/)?.groups?.content
+                .split("<br>")
+                .forEach(s => {
+                    let valueString = s.match(/<attention>(?<content>[\s\S]*?)<\/attention>/)?.groups?.content;
+                    
+                    if (valueString != undefined) {
+                        const amount = valueString.endsWith("%") ? parseFloat(valueString.slice(0, -1)) / 100 : parseFloat(valueString);
+                        const statName = s.split("</attention>")[1].trim();
+                        itemData.stats[statName] = amount;
                     }
-                )
-            ]]
-        ),
-        BloodlettersCurse: new Item(
-            2900, "Bloodletter's Curse", "https://wiki.leagueoflegends.com/en-us/images/Bloodletter%27s_Curse_item.png",
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,65],[StatType.Health,400]]
-        ),
-        CosmicDrive: new Item(
-            3000, "Cosmic Drive", "https://wiki.leagueoflegends.com/en-us/images/Cosmic_Drive_item.png",
-            [[StatType.AbilityHaste,25],[StatType.AbilityPower,70],[StatType.Health,350],[StatType.MoveSpeedRatio,0.04]]
-        ),
-        Cryptbloom: new Item(
-            3000, "Cryptbloom", "https://wiki.leagueoflegends.com/en-us/images/Cryptbloom_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,75],[StatType.MagicPenetrationRatio,0.3]]
-        ),
-        Dawncore: new Item(
-            2500, "Dawncore", "https://wiki.leagueoflegends.com/en-us/images/Dawncore_item.png",
-            [[StatType.AbilityPower,45],[StatType.HealAndShieldPowerRatio,0.16],[StatType.ManaRegenRatio,1]]
-        ),
-        DuskAndDawn: new Item(
-            3100, "Dusk and Dawn", "https://wiki.leagueoflegends.com/en-us/images/Dusk_and_Dawn_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,60],[StatType.Health,300]],
-            [[
-                Effect.createDamageEffect(DamageType.Magic, 0, 
-                    [[StatType.BaseAttackDamage,0.75],[StatType.AbilityPower,0.1]]
-                )
-            ]]
-        ),
-        EchoesOfHelia: new Item(
-            2200, "Echoes of Helia", "https://wiki.leagueoflegends.com/en-us/images/Echoes_of_Helia_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,35],[StatType.Health,200],[StatType.ManaRegenRatio,1.25]]
-        ),
-        HextechGunblade: new Item(
-            3000, "Hextech Gunblade", "https://wiki.leagueoflegends.com/en-us/images/Hextech_Gunblade_item.png",
-            [[StatType.AttackDamageBonus,40],[StatType.AbilityPower,80],[StatType.Omnivamp, 0.1]],
-            [[
-                Effect.createDamageEffect(DamageType.Magic, 175,
-                    [[StatType.ChampionLevelUps,(253-175)/17],[StatType.AbilityPower,0.3]]
-                )
-            ]]
-        ),
-        HextechRocketbelt: new Item(
-            2650, "Hextech Rocketbelt", "https://wiki.leagueoflegends.com/en-us/images/Hextech_Rocketbelt_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,70],[StatType.Health,300]],
-            [[Effect.createDamageEffect(DamageType.Magic, 100, [[StatType.AbilityPower,0.1]])]]
-        ),
-        HorizonFocus: new Item(
-            2700, "Horizon Focus", "https://wiki.leagueoflegends.com/en-us/images/Horizon_Focus_item.png",
-            [[StatType.AbilityHaste,25],[StatType.AbilityPower,75]],
-            [[
-                new Effect(
-                    (gameConfig : GameConfig): GameConfig => {
-                        return new GameConfig(gameConfig, {
-                            damageAggregate: gameConfig.damageAggregate * 1.1
-                        });
-                    }
-                )
-            ]]
-        ),
-        ImperialMandate: new Item(
-            2250, "Imperial Mandate", "https://wiki.leagueoflegends.com/en-us/images/Imperial_Mandate_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,60],[StatType.ManaRegenRatio,1.25]]
-        ),
-        LiandrysTorment: new Item(
-            3000, "Liandry's Torment", "https://wiki.leagueoflegends.com/en-us/images/Liandry%27s_Torment_item.png",
-            [[StatType.AbilityPower,60],[StatType.Health,300]],
-            [
-                [
-                    new Effect((gameConfig: GameConfig): GameConfig => {
-                        let rawDamage = new Damage(0, 0, gameConfig.targetStatsPostEval.get(StatType.Health) * 0.06);
-                        let effectiveDamage = Damage.multiply(rawDamage, gameConfig.defenseCoefficients);
-                        
-                        return new GameConfig(gameConfig, {
-                            damageAggregate: gameConfig.damageAggregate + effectiveDamage.total
-                        });
-                    })
-                ]
-            ]
-        ),
-        LichBane: new Item(
-            2900, "Lich Bane", "https://wiki.leagueoflegends.com/en-us/images/Lich_Bane_item.png",
-            [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.MoveSpeedRatio,0.06]],
-            [[Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.AbilityPower,0.45],[StatType.BaseAttackDamage,0.75]])]]
-        ),
-        LudensCompanion: new Item(
-            2750, "Luden's Echo", "https://wiki.leagueoflegends.com/en-us/images/Luden%27s_Tempest_item.png", 
-            [[StatType.AbilityHaste,10],[StatType.AbilityPower,100],[StatType.Mana,600]],
-            [[Effect.createDamageEffect(DamageType.Magic, 150, [[StatType.AbilityPower,0.1]])]]
-        ),
-        Malignance: new Item(
-            2700, "Malignance", "https://wiki.leagueoflegends.com/en-us/images/Malignance_item.png", 
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,90],[StatType.Mana,600]],
-            [
-                [
-                    new Effect(
-                        (gameConfig: GameConfig): GameConfig => {
-                            return new GameConfig(gameConfig, {
-                                targetStatModifiers: DefiniteNumberMap.sumPerKey(
-                                    gameConfig.targetStatModifiers,
-                                    new DefiniteNumberMap<StatType>([[StatType.MagicResistReductionDebuffFlat, 10]])
-                                )
-                            });
-                        },
-                        Effect.createDamageEffect(DamageType.Magic, 180, [[StatType.AbilityPower, 0.15]])
-                    )
-                ]
-            ]
-        ),
-        MejaisSoulstealer: new Item(
-            1500, "Mejai's Soulstealer", "https://wiki.leagueoflegends.com/en-us/images/Mejai%27s_Soulstealer_item.png",
-            [[StatType.AbilityPower,20],[StatType.Health,100]]
-        ),
-        MoonstoneRenewer: new Item(
-            2200, "Moonstone Renewer", "https://wiki.leagueoflegends.com/en-us/images/Moonstone_Renewer_item.png",
-            [[StatType.AbilityHaste,20],[StatType.AbilityPower,25],[StatType.Health,200],[StatType.ManaRegenRatio,1.25]]
-        ),
-        Morellonomicon: new Item(
-            2850, "Morellonomicon", "https://wiki.leagueoflegends.com/en-us/images/Morellonomicon_item.png",
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,75],[StatType.Health,350]]
-        ),
-        RabadonsDeathcap: new Item(
-            3500, "Rabadon's Deathcap", "https://wiki.leagueoflegends.com/en-us/images/Rabadon%27s_Deathcap_item.png",
-            [[StatType.AbilityPower,130],[StatType.AbilityPowerAmpRatio,0.3]]
-        ),
-        Redemption: new Item(
-            2250, "Redemption", "https://wiki.leagueoflegends.com/en-us/images/Redemption_item.png",
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,30],[StatType.HealAndShieldPowerRatio,0.1],[StatType.ManaRegenRatio,1]],
-            [
-                [
-                    new Effect((gameConfig: GameConfig): GameConfig => {
-                        let rawDamage = new Damage(gameConfig.targetStatsPostEval.get(StatType.Health) * 0.1, 0, 0);
-                        let effectiveDamage = Damage.multiply(rawDamage, gameConfig.defenseCoefficients);
-                        
-                        return new GameConfig(gameConfig, {
-                            damageAggregate: gameConfig.damageAggregate + effectiveDamage.total
-                        });
-                    })
-                ]
-            ]
-        ),
-        Riftmaker: new Item(
-            3100, "Riftmaker", "https://wiki.leagueoflegends.com/en-us/images/Riftmaker_item.png",
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,70],[StatType.Health,350]]
-        ),
-        RylaisCrystalScepter: new Item(
-            2600, "Rylai's Crystal Scepter", "https://wiki.leagueoflegends.com/en-us/images/Rylai%27s_Crystal_Scepter_item.png",
-            [[StatType.AbilityPower,65],[StatType.Health,400]]
-        ),
-        Shadowflame: new Item(
-            3200, "Shadowflame", "https://wiki.leagueoflegends.com/en-us/images/Shadowflame_item.png",
-            [[StatType.AbilityPower,110],[StatType.MagicPenetrationFlat,15]],
-            [
-                [
-                    new Effect((gameConfig: GameConfig): GameConfig => {
-                        let damageAmp = 0.2;
+                });
+            });
+                
+            let primaryItemDataEntries: [string, ItemData][] 
+            = riftItemDataEntries.filter(([id, itemData]) => 
+                filterTags.some(tag => itemData.tags.includes(tag)) || filterStats.some(stat => Object.keys(itemData.stats).includes(stat))
+            );
 
-                        return new GameConfig(gameConfig, {
-                            champStatModifiers: DefiniteNumberMap.sumPerKey(
-                                gameConfig.champStatModifiers,
-                                new DefiniteNumberMap<StatType>([
-                                    [StatType.DamageMagicAmpRatio, damageAmp],
-                                    [StatType.DamageTrueAmpRatio, damageAmp]
-                                ])
+            let secondaryItemDataEntries: [string, ItemData][]
+            = riftItemDataEntries.filter(([id, itemData]) => 
+                !primaryItemDataEntries.some(([pid, pitemData]) => id === pid) && 
+                primaryItemDataEntries.some(([pid, pitemData]) => itemData.into?.includes(pid) || pitemData.from?.includes(id))
+            );
+            
+            let tertiaryItemDataEntries: [string, ItemData][]
+            = riftItemDataEntries.filter(([id, itemData]) => 
+                !primaryItemDataEntries.some(([pid, pitemData]) => id === pid) 
+                && !secondaryItemDataEntries.some(([sid, sitemData]) => id === sid) 
+                && secondaryItemDataEntries.some(([sid, sitemData]) => itemData.into?.includes(sid) || sitemData.from?.includes(id))
+            );
+
+            let relevantItems = [...primaryItemDataEntries, ...secondaryItemDataEntries, ...tertiaryItemDataEntries].sort(
+                ([idA, itemDataA], [idB, itemDataB]) => itemDataA.gold.total > itemDataB.gold.total ? 1 : -1
+            );
+            
+            const items: Item[] = (() => {
+                let itemMap: { [key: string]: Item } 
+                = relevantItems.reduce((acc, [id, itemData]) => {
+                    acc[itemData.name] = new Item(itemData);
+                    return acc;
+                }, {} as { [key: string]: Item });
+
+                // Add unique item stats/effects not captured by described stats alone.
+                try {
+                    itemMap["Immortal Path"].stats.set(StatType.DamageMagicAmpRatio,0.05)
+                    itemMap["Immortal Path"].stats.set(StatType.DamagePhysicalAmpRatio,0.05);
+                    itemMap["Immortal Path"].stats.set(StatType.DamageTrueAmpRatio,0.05);
+                    
+                    itemMap["Actualizer"].effectsPerRank = [
+                        [
+                            new Effect((gameConfig: GameConfig): GameConfig => {
+                                let damageAmp = 0.15 + 0.00005 * gameConfig.champStatModifiers.get(StatType.Mana);
+
+                                return new GameConfig(gameConfig, {
+                                    champStatModifiers: DefiniteNumberMap.sumPerKey(
+                                        gameConfig.champStatModifiers,
+                                        new DefiniteNumberMap<StatType>([
+                                            [StatType.DamageMagicAmpRatio, damageAmp],
+                                            [StatType.DamagePhysicalAmpRatio, damageAmp],
+                                            [StatType.DamageTrueAmpRatio, damageAmp]
+                                        ])
+                                    )
+                                });
+                            })
+                        ]
+                    ];
+
+                    itemMap["Blackfire Torch"].effectsPerRank = [
+                        [
+                            Effect.createDamageEffect(DamageType.Magic, 60, [[StatType.AbilityPower,0.06]]),
+                            new Effect(
+                                (gameConfig : GameConfig): GameConfig => {
+                                    return new GameConfig(gameConfig, {
+                                        champStatModifiers: new DefiniteNumberMap<StatType>([
+                                            [StatType.AbilityPowerAmpRatio, gameConfig.champStatModifiers.get(StatType.AbilityPowerAmpRatio) + 0.04]
+                                        ])
+                                    });
+                                }
                             )
-                        });
-                    })
-                ]
-            ]
-        ),
-        ShurelyasBattlesong: new Item(
-            2200, "Shurelya's Battlesong", "https://wiki.leagueoflegends.com/en-us/images/Shurelya%27s_Battlesong_item.png",
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,50],[StatType.ManaRegenRatio,1.25],[StatType.MoveSpeedRatio,0.04]]
-        ),
-        StaffOfFlowingWater: new Item(
-            2250, "Staff of Flowing Water", "https://wiki.leagueoflegends.com/en-us/images/Staff_of_Flowing_Water_item.png",
-            [[StatType.AbilityHaste,15],[StatType.AbilityPower,35],[StatType.HealAndShieldPowerRatio,0.1],[StatType.ManaRegenRatio,1.25]]
-        ),
-        Stormsurge: new Item(
-            2800, "Stormsurge", "https://wiki.leagueoflegends.com/en-us/images/Stormsurge_item.png",
-            [[StatType.AbilityPower,90],[StatType.MagicPenetrationFlat,15],[StatType.MoveSpeedRatio,0.06]],
-            [[Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower,0.1]])]]
-        ),
-        VoidStaff: new Item(
-            3000, "Void Staff", "https://wiki.leagueoflegends.com/en-us/images/Void_Staff_item.png",
-            [[StatType.AbilityPower,95],[StatType.MagicPenetrationRatio,0.4]]
-        ),
-        ZhonyasHourglass: new Item(
-            3250, "Zhonya's Hourglass", "https://wiki.leagueoflegends.com/en-us/images/Zhonya%27s_Hourglass_item.png",
-            [[StatType.AbilityPower,105],[StatType.Armor,50]]
-        )
-    } as const;
+                        ]
+                    ];
+
+                    itemMap["Dusk and Dawn"].effectsPerRank = [
+                        [Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.BaseAttackDamage,0.75],[StatType.AbilityPower,0.1]])]
+                    ];
+
+                    itemMap["Hextech Gunblade"].effectsPerRank = [
+                        [Effect.createDamageEffect(DamageType.Magic, 175, [[StatType.ChampionLevelUps,(253-175)/17],[StatType.AbilityPower,0.3]])]
+                    ];
+
+                    itemMap["Hextech Rocketbelt"].effectsPerRank = [
+                        [Effect.createDamageEffect(DamageType.Magic, 100, [[StatType.AbilityPower,0.1]])]
+                    ];
+
+                    itemMap["Horizon Focus"].effectsPerRank = [
+                        [
+                            new Effect(
+                                (gameConfig : GameConfig): GameConfig => {
+                                    return new GameConfig(gameConfig, {
+                                        damageAggregate: gameConfig.damageAggregate * 1.1
+                                    });
+                                }
+                            )
+                        ]
+                    ];
+
+                    itemMap["Liandry's Torment"].effectsPerRank = [
+                        [
+                            new Effect((gameConfig: GameConfig): GameConfig => {
+                                let rawDamage = new Damage(0, 0, gameConfig.targetStatsPostEval.get(StatType.Health) * 0.06);
+                                let effectiveDamage = Damage.multiply(rawDamage, gameConfig.defenseCoefficients);
+                                
+                                return new GameConfig(gameConfig, {
+                                    damageAggregate: gameConfig.damageAggregate + effectiveDamage.total
+                                });
+                            })
+                        ]
+                    ];
+
+                    itemMap["Lich Bane"].effectsPerRank = [
+                        [Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.AbilityPower,0.45],[StatType.BaseAttackDamage,0.75]])]
+                    ];
+
+                    itemMap["Luden's Echo"].effectsPerRank = [
+                        [Effect.createDamageEffect(DamageType.Magic, 150, [[StatType.AbilityPower,0.1]])]
+                    ];
+
+                    itemMap["Malignance"].effectsPerRank = [
+                        [
+                            new Effect(
+                                (gameConfig: GameConfig): GameConfig => {
+                                    return new GameConfig(gameConfig, {
+                                        targetStatModifiers: DefiniteNumberMap.sumPerKey(
+                                            gameConfig.targetStatModifiers,
+                                            new DefiniteNumberMap<StatType>([[StatType.MagicResistReductionDebuffFlat, 10]])
+                                        )
+                                    });
+                                },
+                                Effect.createDamageEffect(DamageType.Magic, 180, [[StatType.AbilityPower, 0.15]])
+                            )
+                        ]
+                    ];
+
+                    itemMap["Rabadon's Deathcap"].stats.set(StatType.AbilityPowerAmpRatio, 0.30);
+
+                    itemMap["Redemption"].effectsPerRank = [
+                        [
+                            new Effect((gameConfig: GameConfig): GameConfig => {
+                                let rawDamage = new Damage(gameConfig.targetStatsPostEval.get(StatType.Health) * 0.1, 0, 0);
+                                let effectiveDamage = Damage.multiply(rawDamage, gameConfig.defenseCoefficients);
+                                
+                                return new GameConfig(gameConfig, {
+                                    damageAggregate: gameConfig.damageAggregate + effectiveDamage.total
+                                });
+                            })
+                        ]
+                    ];
+
+                    itemMap["Shadowflame"].effectsPerRank = [
+                        [
+                            new Effect((gameConfig: GameConfig): GameConfig => {
+                                let damageAmp = 0.2;
+
+                                return new GameConfig(gameConfig, {
+                                    champStatModifiers: DefiniteNumberMap.sumPerKey(
+                                        gameConfig.champStatModifiers,
+                                        new DefiniteNumberMap<StatType>([
+                                            [StatType.DamageMagicAmpRatio, damageAmp],
+                                            [StatType.DamageTrueAmpRatio, damageAmp]
+                                        ])
+                                    )
+                                });
+                            })
+                        ]
+                    ];
+
+                    itemMap["Stormsurge"].effectsPerRank = [
+                        [Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower,0.1]])]
+                    ];
+
+                    itemMap["Zhonya's Hourglass"].effectsPerRank = [];
+                }
+                catch (error) {
+                    console.error('Error adding unique item stats/effects:', error);
+                }
+
+                return Object.entries(itemMap).map<Item>(([id, item]) => item);
+            })();
+            
+            // const runes = {
+            //     AdaptiveForceShard: new Item(
+            //         0, "Adaptive Force Shard", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+            //         [[StatType.AbilityPower, 9]]
+            //     ),
+            //     AdaptiveForceShardX2: new Item (
+            //         0, "2 Adaptive Force Shards", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+            //         [[StatType.AbilityPower, 18]]
+            //     )
+            // };
+            
+            // HealthPotionX2: new Item(100, "2 Health Potions", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"),
+
+            return [Item.nothing, ...items];
+        }
+        catch (error) {
+            console.error('Error parsing items JSON:', error);
+            return [];
+        }
+    })();
 }
 
 export class Rune extends Affector {
@@ -808,7 +728,7 @@ export class ItemSlotConfig {
             item: blueprint.item,
             rank: blueprint.rank
         } : {
-            item: Item.items.Nothing,
+            item: Item.nothing,
             rank: 0
         };
 
