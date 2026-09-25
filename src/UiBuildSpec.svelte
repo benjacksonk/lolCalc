@@ -35,7 +35,13 @@
         popovertarget={`itemSelector-${buildIndex}-${i}`}
         >
             <div popover id={`itemSelector-${buildIndex}-${i}`} class="itemSelector">
-                {#each Item.all as item, j (item.name)}
+                {#each Item.all
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .sort((a, b) => a.specialRecipe == b.id || a.from.includes(b.id) || b.into.includes(a.id) ? 1 : b.specialRecipe == a.id || b.from.includes(a.id) || a.into.includes(b.id) ? -1 : 0)
+                .sort((a, b) => a.depth() - b.depth())
+                .sort((a, b) => a.price - b.price)
+                .sort((a, b) => a == Item.nothing ? -1 : b == Item.nothing ? 1 : 0) as item, j (item.name)
+                }
                 <UiAffectorIcon affector={item} size="min" showNameOnHover={true} showStatsOnHover={true} onmousedown={(e) => { e.preventDefault(); equipItem(itemConfig, item); }}/>
                 {/each}
             </div>

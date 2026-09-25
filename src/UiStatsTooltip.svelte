@@ -45,8 +45,8 @@ style:position-try-fallbacks={positionTryFallbacks}
     {#each stats as stat}
     <span class="affectorStat">
         <span class="affectorStatValue text-math">
-            {#if stat[0].includes("Ratio")}
-            {stat[1] * 100} %
+            {#if stat[0].startsWith("% ")}
+            {stat[1] * 100}
             {:else}
             {stat[1]}
             {/if}

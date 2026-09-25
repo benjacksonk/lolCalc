@@ -8,34 +8,34 @@ export enum DamageType { True="True", Physical="Physical", Magic="Magic" }
 export enum StatType {
     AbilityHaste                    = "Ability Haste",
     AbilityPower                    = "Ability Power",
-    AbilityPowerAmpRatio            = "Ability Power Amp Ratio",
+    AbilityPowerAmpRatio            = "% Ability Power",
     AttackDamageBase                = "Base Attack Damage",
     AttackDamageBonus               = "Attack Damage",
     Armor                           = "Armor",
-    ArmorPenetrationFlat            = "Lethality (Armor Penetration Flat)",
-    ArmorPenetrationRatio           = "Armor Penetration Ratio",
-    ArmorReductionDebuffFlat        = "Armor Reduction Flat",
-    ArmorReductionDebuffRatio       = "Armor Reduction Ratio",
+    ArmorPenetrationFlat            = "Lethality",
+    ArmorPenetrationRatio           = "% Armor Penetration",
+    ArmorReductionDebuffFlat        = "Armor Reduction",
+    ArmorReductionDebuffRatio       = "% Armor Reduction",
     BaseAttackDamage                = "Base Attack Damage",
     BonusAttackDamage               = "Bonus Attack Damage",
-    DamageMagicAmpRatio             = "Magic Damage Amp Ratio",
-    DamagePhysicalAmpRatio          = "Physical Damage Amp Ratio",
-    DamageTrueAmpRatio              = "True Damage Amp Ratio",
-    HealAndShieldPowerRatio         = "Heal & Shield Power Ratio",
+    DamageMagicAmpRatio             = "% Magic Damage",
+    DamagePhysicalAmpRatio          = "% Physical Damage",
+    DamageTrueAmpRatio              = "% True Damage",
+    HealAndShieldPowerRatio         = "% Heal and Shield Power",
     Health                          = "Health",
     HealthRegenPer5sec              = "Health Regeneration per 5 sec",
     ChampionLevelUps                = "Champ Level Ups",
-    MagicPenetrationFlat            = "Magic Penetration Flat",
-    MagicPenetrationRatio           = "Magic Penetration Ratio",
-    MagicResistReductionDebuffFlat  = "Magic Reduction Flat",
-    MagicResistReductionDebuffRatio = "Magic Reduction Ratio",
+    MagicPenetrationFlat            = "Magic Penetration",
+    MagicPenetrationRatio           = "% Magic Penetration",
+    MagicResistReductionDebuffFlat  = "Magic Reduction",
+    MagicResistReductionDebuffRatio = "% Magic Reduction",
     MagicResistance                 = "Magic Resistance",
     Mana                            = "Mana",
     ManaRegenPer5sec                = "Mana Regeneration per 5 sec",
-    ManaRegenRatio                  = "Mana Regeneration Ratio",
+    ManaRegenRatio                  = "% Mana Regeneration",
     MoveSpeedFlat                   = "Move Speed",
-    MoveSpeedRatio                  = "Move Speed Ratio",
-    Omnivamp                        = "Omnivamp",
+    MoveSpeedRatio                  = "% Move Speed",
+    Omnivamp                        = "% Omnivamp",
 }
 
 export class DefiniteMap<K,V> extends SvelteMap<K,V> {
@@ -238,6 +238,7 @@ type ItemData = {
     description: string,
     colloq: string,
     plaintext: string,
+    specialRecipe: number|null,
     from: string[],
     into: string[],
     image: {
@@ -251,19 +252,25 @@ type ItemData = {
     },
     gold: {
         base: number,
-        purchase: number,
+        purchasable: boolean,
         total: number,
         sell: number,
     },
     tags: string[],
     maps: { [key: string]: boolean },
-    stats: { [key: string]: number }
+    stats: { [key: string]: number },
+    depth: number,
 }
 
 export class Item extends Affector {
+    readonly id: number;
     readonly price: number;
+    readonly specialRecipe: number|null;
+    readonly from: number[];
+    readonly into: number[];
+    // readonly depth: number;
 
-    constructor(itemData: ItemData) {
+    constructor(itemData: ItemData, id: number = -1) {
         const imageFull = itemData.image.full;
         const imageURL = imageFull.startsWith("http") ? imageFull : `dragontail-img/item/${imageFull}`;
         
@@ -276,7 +283,30 @@ export class Item extends Affector {
 
         super(itemData.name, imageURL, validStats);
 
+        this.id = id;
         this.price = itemData.gold.total;
+        this.from = itemData.from?.map(Number) ?? [];
+        this.into = itemData.into?.map(Number) ?? [];
+        this.specialRecipe = itemData.specialRecipe;
+        // this.depth = itemData.depth ?? 1;
+    }
+
+    depth(): number {
+        if (Item.all == undefined) {
+            console.error("Item.all is undefined");
+            return 1;
+        }
+
+        const depthOfSpecialRecipeComponent 
+        = this.specialRecipe == null ? 0 : 
+        (Item.all.find(item => this.specialRecipe == item.id)?.depth() ?? 1);
+
+        const maxDepthOfComponents 
+        = this.from
+        .map(id => Item.all.find(item => item.id == id)?.depth() ?? 1)
+        .reduce((a,b) => Math.max(a,b), depthOfSpecialRecipeComponent);
+
+        return 1 + maxDepthOfComponents;
     }
 
     static readonly nothing = new Item({
@@ -284,6 +314,7 @@ export class Item extends Affector {
         description: "",
         colloq: "",
         plaintext: "",
+        specialRecipe: null,
         from: [],
         into: [],
         image: {
@@ -297,13 +328,14 @@ export class Item extends Affector {
         },
         gold: {
             base: 0,
-            purchase: 0,
+            purchasable: true,
             total: 0,
             sell: 0,
         },
         tags: [],
         maps: {},
-        stats: {}
+        stats: {},
+        depth: 1
     });
 
     static readonly all: Item[] = (() => {
@@ -322,7 +354,8 @@ export class Item extends Affector {
             const itemsObject = JSON.parse(JSON.stringify(itemsJSON));
             
             let riftItemDataEntries: [string, ItemData][] 
-            = Object.entries<ItemData>(itemsObject["data"]).filter(([id, itemData]) => itemData.maps["11"]);
+            = Object.entries<ItemData>(itemsObject["data"])
+            .filter(([id, itemData]) => itemData.maps["11"] && id.length <= 4);
 
             // Parse item descriptions to set their stat data accordingly.
             riftItemDataEntries.forEach(([id, itemData]) => {
@@ -333,47 +366,59 @@ export class Item extends Affector {
                     let valueString = s.match(/<attention>(?<content>[\s\S]*?)<\/attention>/)?.groups?.content;
                     
                     if (valueString != undefined) {
-                        const amount = valueString.endsWith("%") ? parseFloat(valueString.slice(0, -1)) / 100 : parseFloat(valueString);
-                        const statName = s.split("</attention>")[1].trim();
+                        let amount: number;
+                        let statName: string;
+
+                        if (valueString.endsWith("%")) {
+                            amount = parseFloat(valueString.slice(0, -1)) / 100;
+                            statName = `% ${s.split("</attention>")[1].trim()}`;
+                        }
+                        else {
+                            amount = parseFloat(valueString);
+                            statName = s.split("</attention>")[1].trim();
+                        }
+
                         itemData.stats[statName] = amount;
                     }
                 });
             });
-                
+            
             let primaryItemDataEntries: [string, ItemData][] 
             = riftItemDataEntries.filter(([id, itemData]) => 
-                filterTags.some(tag => itemData.tags.includes(tag)) || filterStats.some(stat => Object.keys(itemData.stats).includes(stat))
+                filterTags.some(tag => itemData.tags.includes(tag)) || filterStats.some(stat => Object.keys(itemData.stats).includes(stat)) 
+                && (itemData.gold.purchasable || itemData.specialRecipe != null)
             );
 
             let secondaryItemDataEntries: [string, ItemData][]
             = riftItemDataEntries.filter(([id, itemData]) => 
                 !primaryItemDataEntries.some(([pid, pitemData]) => id === pid) && 
-                primaryItemDataEntries.some(([pid, pitemData]) => itemData.into?.includes(pid) || pitemData.from?.includes(id))
+                primaryItemDataEntries.some(([pid, pitemData]) => pitemData.specialRecipe == Number.parseInt(id) || itemData.specialRecipe == Number.parseInt(pid) || itemData.into?.includes(pid) || pitemData.from?.includes(id))
             );
             
             let tertiaryItemDataEntries: [string, ItemData][]
             = riftItemDataEntries.filter(([id, itemData]) => 
                 !primaryItemDataEntries.some(([pid, pitemData]) => id === pid) 
                 && !secondaryItemDataEntries.some(([sid, sitemData]) => id === sid) 
-                && secondaryItemDataEntries.some(([sid, sitemData]) => itemData.into?.includes(sid) || sitemData.from?.includes(id))
+                && secondaryItemDataEntries.some(([sid, sitemData]) => sitemData.specialRecipe == Number.parseInt(id) || itemData.specialRecipe == Number.parseInt(sid) || itemData.into?.includes(sid) || sitemData.from?.includes(id))
             );
 
-            let relevantItems = [...primaryItemDataEntries, ...secondaryItemDataEntries, ...tertiaryItemDataEntries].sort(
-                ([idA, itemDataA], [idB, itemDataB]) => itemDataA.gold.total > itemDataB.gold.total ? 1 : -1
-            );
+            let relevantItems = 
+            [...primaryItemDataEntries, ...secondaryItemDataEntries, ...tertiaryItemDataEntries];
             
             const items: Item[] = (() => {
                 let itemMap: { [key: string]: Item } 
                 = relevantItems.reduce((acc, [id, itemData]) => {
-                    acc[itemData.name] = new Item(itemData);
+                    acc[itemData.name] = new Item(itemData, Number.parseInt(id));
                     return acc;
                 }, {} as { [key: string]: Item });
 
                 // Add unique item stats/effects not captured by described stats alone.
                 try {
-                    itemMap["Immortal Path"].stats.set(StatType.DamageMagicAmpRatio,0.05)
-                    itemMap["Immortal Path"].stats.set(StatType.DamagePhysicalAmpRatio,0.05);
-                    itemMap["Immortal Path"].stats.set(StatType.DamageTrueAmpRatio,0.05);
+                    itemMap["Immortal Path"].stats.set(StatType.DamageMagicAmpRatio, 0.05)
+                    itemMap["Immortal Path"].stats.set(StatType.DamagePhysicalAmpRatio, 0.05);
+                    itemMap["Immortal Path"].stats.set(StatType.DamageTrueAmpRatio, 0.05);
+                    
+                    itemMap["Swiftmarch"].stats.set(StatType.AbilityPower, 20); // practical estimate
                     
                     itemMap["Actualizer"].effectsPerRank = [
                         [
@@ -516,20 +561,136 @@ export class Item extends Affector {
                 return Object.entries(itemMap).map<Item>(([id, item]) => item);
             })();
             
-            // const runes = {
-            //     AdaptiveForceShard: new Item(
-            //         0, "Adaptive Force Shard", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-            //         [[StatType.AbilityPower, 9]]
-            //     ),
-            //     AdaptiveForceShardX2: new Item (
-            //         0, "2 Adaptive Force Shards", "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-            //         [[StatType.AbilityPower, 18]]
-            //     )
-            // };
-            
-            // HealthPotionX2: new Item(100, "2 Health Potions", "https://wiki.leagueoflegends.com/en-us/images/Health_Potion_item.png"),
+            const runesData: ItemData[] = [
+                {
+                    name: "Adaptive Force Shards 1/2",
+                    description: "",
+                    colloq: "",
+                    plaintext: "",
+                    specialRecipe: null,
+                    from: [],
+                    into: [],
+                    image: {
+                        full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+                        sprite: "",
+                        group: "",
+                        x: 0,
+                        y: 0,
+                        w: 0,
+                        h: 0
+                    },
+                    gold: {
+                        base: 0,
+                        purchasable: true,
+                        total: 0,
+                        sell: 0,
+                    },
+                    tags: [],
+                    maps: {  },
+                    stats: {
+                        "Ability Power": 9
+                    },
+                    depth: 1,
+                },
+                {
+                    name: "Adaptive Force Shards 2/2",
+                    description: "",
+                    colloq: "",
+                    plaintext: "",
+                    specialRecipe: null,
+                    from: [],
+                    into: [],
+                    image: {
+                        full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+                        sprite: "",
+                        group: "",
+                        x: 0,
+                        y: 0,
+                        w: 0,
+                        h: 0
+                    },
+                    gold: {
+                        base: 0,
+                        purchasable: true,
+                        total: 0,
+                        sell: 0,
+                    },
+                    tags: [],
+                    maps: {  },
+                    stats: {
+                        "Ability Power": 18
+                    },
+                    depth: 1,
+                },
+                {
+                    name: "Jack of All Trades 05/10",
+                    description: "",
+                    colloq: "",
+                    plaintext: "",
+                    specialRecipe: null,
+                    from: [],
+                    into: [],
+                    image: {
+                        full: "https://wiki.leagueoflegends.com/en-us/images/Jack_of_All_Trades_rune.png",
+                        sprite: "",
+                        group: "",
+                        x: 0,
+                        y: 0,
+                        w: 0,
+                        h: 0
+                    },
+                    gold: {
+                        base: 0,
+                        purchasable: true,
+                        total: 0,
+                        sell: 0,
+                    },
+                    tags: [],
+                    maps: {  },
+                    stats: {
+                        "Ability Haste": 5,
+                        "Ability Power": 8
+                    },
+                    depth: 1,
+                },
+                {
+                    name: "Jack of All Trades 10/10",
+                    description: "",
+                    colloq: "",
+                    plaintext: "",
+                    specialRecipe: null,
+                    from: [],
+                    into: [],
+                    image: {
+                        full: "https://wiki.leagueoflegends.com/en-us/images/Jack_of_All_Trades_rune.png",
+                        sprite: "",
+                        group: "",
+                        x: 0,
+                        y: 0,
+                        w: 0,
+                        h: 0
+                    },
+                    gold: {
+                        base: 0,
+                        purchasable: true,
+                        total: 0,
+                        sell: 0,
+                    },
+                    tags: [],
+                    maps: {  },
+                    stats: {
+                        "Ability Haste": 10,
+                        "Ability Power": 20
+                    },
+                    depth: 1,
+                },
+            ];
 
-            return [Item.nothing, ...items];
+            items.push(Item.nothing, ...runesData.map<Item>(runeData => new Item(runeData)));
+
+            return items.filter(item => 
+                item == Item.nothing || item.stats.size > 0 || item.effectsPerRank.length > 0
+            );
         }
         catch (error) {
             console.error('Error parsing items JSON:', error);
