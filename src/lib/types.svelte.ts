@@ -10,14 +10,14 @@ export enum StatType {
     AbilityPower                    = "Ability Power",
     AbilityPowerAmpRatio            = "% Ability Power",
     AttackDamageBase                = "Base Attack Damage",
-    AttackDamageBonus               = "Attack Damage",
     Armor                           = "Armor",
     ArmorPenetrationFlat            = "Lethality",
     ArmorPenetrationRatio           = "% Armor Penetration",
     ArmorReductionDebuffFlat        = "Armor Reduction",
     ArmorReductionDebuffRatio       = "% Armor Reduction",
     BaseAttackDamage                = "Base Attack Damage",
-    BonusAttackDamage               = "Bonus Attack Damage",
+    BonusAttackDamage               = "Attack Damage",
+    BonusAttackDamageAmpRatio       = "% Bonus Attack Damage",
     DamageMagicAmpRatio             = "% Magic Damage",
     DamagePhysicalAmpRatio          = "% Physical Damage",
     DamageTrueAmpRatio              = "% True Damage",
@@ -414,9 +414,9 @@ export class Item extends Affector {
 
                 // Add unique item stats/effects not captured by described stats alone.
                 try {
-                    itemMap["Immortal Path"].stats.set(StatType.DamageMagicAmpRatio, 0.05)
-                    itemMap["Immortal Path"].stats.set(StatType.DamagePhysicalAmpRatio, 0.05);
-                    itemMap["Immortal Path"].stats.set(StatType.DamageTrueAmpRatio, 0.05);
+                    itemMap["Immortal Path"].stats.set(StatType.DamageMagicAmpRatio, 0.04)
+                    itemMap["Immortal Path"].stats.set(StatType.DamagePhysicalAmpRatio, 0.04);
+                    itemMap["Immortal Path"].stats.set(StatType.DamageTrueAmpRatio, 0.04);
                     
                     itemMap["Swiftmarch"].stats.set(StatType.AbilityPower, 20); // practical estimate
                     
@@ -463,7 +463,7 @@ export class Item extends Affector {
                     ];
 
                     itemMap["Hextech Rocketbelt"].effectsPerRank = [
-                        [Effect.createDamageEffect(DamageType.Magic, 100, [[StatType.AbilityPower,0.1]])]
+                        [Effect.createDamageEffect(DamageType.Magic, 135, [[StatType.AbilityPower,0.15]])]
                     ];
 
                     itemMap["Horizon Focus"].effectsPerRank = [
@@ -562,6 +562,69 @@ export class Item extends Affector {
             })();
             
             const runesData: ItemData[] = [
+                {
+                    name: "2Shards + DRing + MidQuest",
+                    description: "",
+                    colloq: "",
+                    plaintext: "",
+                    specialRecipe: null,
+                    from: [],
+                    into: [],
+                    image: {
+                        full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
+                        sprite: "",
+                        group: "",
+                        x: 0,
+                        y: 0,
+                        w: 0,
+                        h: 0
+                    },
+                    gold: {
+                        base: 0,
+                        purchasable: true,
+                        total: 0,
+                        sell: 0,
+                    },
+                    tags: [],
+                    maps: {  },
+                    stats: {
+                        "Ability Power": 36,
+                        "% Ability Power": 0.08,
+                        "% Bonus Attack Damage": 0.08
+                    },
+                    depth: 1,
+                },
+                {
+                    name: "Mid Lane Quest",
+                    description: "",
+                    colloq: "",
+                    plaintext: "",
+                    specialRecipe: null,
+                    from: [],
+                    into: [],
+                    image: {
+                        full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
+                        sprite: "",
+                        group: "",
+                        x: 0,
+                        y: 0,
+                        w: 0,
+                        h: 0
+                    },
+                    gold: {
+                        base: 0,
+                        purchasable: true,
+                        total: 0,
+                        sell: 0,
+                    },
+                    tags: [],
+                    maps: {  },
+                    stats: {
+                        "% Ability Power": 0.08,
+                        "% Bonus Attack Damage": 0.08
+                    },
+                    depth: 1,
+                },
                 {
                     name: "Adaptive Force Shards 1/2",
                     description: "",
@@ -996,6 +1059,7 @@ export class GameConfig {
         
         if (newValues.champStatModifiers || !blueprint) {
             this.statsPostEval.set(StatType.AbilityPower, this.statsPostEval.get(StatType.AbilityPower) * (1 + this.statsPostEval.get(StatType.AbilityPowerAmpRatio)));
+            this.statsPostEval.set(StatType.BonusAttackDamage, this.statsPostEval.get(StatType.BonusAttackDamage) * (1 + this.statsPostEval.get(StatType.BonusAttackDamageAmpRatio)));
         }
 
 
@@ -1006,6 +1070,7 @@ export class GameConfig {
         
         if (newValues.targetStatModifiers || !blueprint) {
             this.targetStatsPostEval.set(StatType.AbilityPower, this.targetStatsPostEval.get(StatType.AbilityPower) * (1 + this.targetStatsPostEval.get(StatType.AbilityPowerAmpRatio)));
+            this.targetStatsPostEval.set(StatType.BonusAttackDamage, this.targetStatsPostEval.get(StatType.BonusAttackDamage) * (1 + this.targetStatsPostEval.get(StatType.BonusAttackDamageAmpRatio)));
         }
 
 

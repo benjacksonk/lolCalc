@@ -46,9 +46,9 @@ style:position-try-fallbacks={positionTryFallbacks}
     <span class="affectorStat">
         <span class="affectorStatValue text-math">
             {#if stat[0].startsWith("% ")}
-            {stat[1] * 100}
+            {parseFloat((stat[1] * 100).toFixed(2))}%
             {:else}
-            {stat[1]}
+            {parseFloat((stat[1]).toFixed(2))}
             {/if}
         </span>
         
