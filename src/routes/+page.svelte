@@ -90,49 +90,61 @@
                         />
                         
                         <div class="buildDiffs" style:grid-column={`span ${champ.abilities.length + 1}`}>
-                            {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff)}
+                            {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff, showUnits: boolean)}
                             <button class="effectOutcome"
                             class:absolute={absoluteDiffsToShow.has(diff)}
                             onmouseenter={(e) => { e.preventDefault(); setAbsoluteDiffs(diffMap, diff); }}
                             onmouseleave={(e) => { e.preventDefault(); clearAbsoluteDiffs(); }}
                             >
-                                <div class="absoluteDamagePerGold">
-                                    <span class="diffPart deltaDiff">
+                                <div class="diffDamage">
+                                    <span class="diffPart">
+                                        <span class="operator" class:negative={diff.damageDiff < 0}>{diff.damageDiff < 0 ? '－' : '＋'}</span>
+                                        <span class="amount text-math">{(100 * diff.damageDiff_ratio).toFixed(0)}</span>
+                                        <span class="context">%</span>
+                                    </span>
+
+                                    <span class="diffPart">
                                         <span class="operator" class:negative={diff.damageDiff < 0}>{diff.damageDiff < 0 ? '－' : '＋'}</span>
                                         <span class="amount text-math">{diff.damageDiff.toFixed(0)}</span>
+                                        <!-- <span class="context"></span> -->
                                     </span>
                                     
-                                    <span class="diffPart totalDiff">
+                                    <span class="diffPart">
                                         <span class="operator">＝</span>
                                         <span class="amount text-math">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span>
+                                        <!-- <span class="context"></span> -->
                                     </span>
                                     
+                                    {#if showUnits}
                                     <span class="unit">Damage</span>
+                                    {/if}
                                 </div>
 
-                                <div class="relativeDamagePerGold">
-                                    <span class="diffPart deltaDiff">
-                                        <span class="operator" class:negative={diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold < 0}>{diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold < 0 ? "－" : "＋"}</span>
-                                        <span class="amount text-math" class:negative={(diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold < 0}>{Math.abs(100 * ((diff.absoluteDamageDiff_perGold - diffMap.min_absoluteDamageDiff_perGold) / diffMap.min_absoluteDamageDiff_perGold)).toFixed(0)}</span>
-                                        <span class="context">% Δ</span>
+                                <div class="diffBonusDamagePerGold">
+                                    <span class="diffPart">
+                                        <span class="operator" class:negative={diff.builtEndGameConfig.damageAggregate - diffMap.min_damage < 0}>{diff.builtEndGameConfig.damageAggregate - diffMap.min_damage < 0 ? "－" : "＋"}</span>
+                                        <span class="amount text-math" class:negative={(diff.builtEndGameConfig.damageAggregate - diffMap.min_damage) / diffMap.min_damage < 0}>{Math.abs(100 * ((diff.builtEndGameConfig.damageAggregate - diffMap.min_damage) / diffMap.min_damage)).toFixed(0)}</span>
+                                        <span class="context">{showUnits ? "%     Damage" : "%"}</span>
                                     </span>
 
-                                    <span class="diffPart totalDiff">
-                                        <span class="operator" class:negative={diff.damage_perGold < 0}>{diff.damage_perGold < 0 ? "－" : "＋"}</span>
-                                        <span class="amount text-math" class:negative={(diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold < 0}>{Math.abs(100 * ((diff.damage_perGold - diffMap.min_damage_perGold) / diffMap.min_damage_perGold)).toFixed(0)}</span>
-                                        <span class="context">% Σ</span>
+                                    <span class="diffPart">
+                                        <span class="operator" class:negative={diff.damageDiff_perGold - diffMap.min_damageDiff_perGold < 0}>{diff.damageDiff_perGold - diffMap.min_damageDiff_perGold < 0 ? "－" : "＋"}</span>
+                                        <span class="amount text-math" class:negative={(diff.damageDiff_perGold - diffMap.min_damageDiff_perGold) / diffMap.min_damageDiff_perGold < 0}>{Math.abs(100 * ((diff.damageDiff_perGold - diffMap.min_damageDiff_perGold) / diffMap.min_damageDiff_perGold)).toFixed(0)}</span>
+                                        <span class="context">{showUnits ? "%     Δ / Gold" : "%"}</span>
                                     </span>
 
-                                    <span class="unit">Dmg:G</span>
+                                    {#if showUnits}
+                                    <span class="unit"></span>
+                                    {/if}
                                 </div>
                             </button>
                             {/snippet}
                             
                             {#each champ.abilities as ability}
-                            {@render damageDiff(diffAtlas.get(ability), diffAtlas.get(ability).get(buildConfig))}
+                            {@render damageDiff(diffAtlas.get(ability), diffAtlas.get(ability).get(buildConfig), false)}
                             {/each}
                             
-                            {@render damageDiff(diffAtlas.get(null), diffAtlas.get(null).get(buildConfig))}
+                            {@render damageDiff(diffAtlas.get(null), diffAtlas.get(null).get(buildConfig), true)}
                         </div>
                     </div>
                     
@@ -150,6 +162,7 @@
 
 <style lang="scss">
     main {
+        white-space: pre-wrap;
         width: 100%;
         height: 100dvh;
         color: #ccc;
@@ -344,8 +357,8 @@
         }
     }
     
-    &:not(:hover) .absoluteDamagePerGold,
-    &:hover .relativeDamagePerGold {
+    &:not(:hover) .diffDamage,
+    &:hover .diffBonusDamagePerGold {
         // visibility: hidden;
     }
 
@@ -354,7 +367,7 @@
         height: 100%;
         width: 100%;
         display: grid;
-        padding: 0 0.5em;
+        padding: 0 1em;
         border-radius: 0;
         border: none;
         color: colors.hcl("aqua", 1, 45);
@@ -363,8 +376,7 @@
             colors.hcl("blue", 2, 7),
         );
         grid-template-columns: subgrid;
-        grid-template-rows: repeat(2, minmax(0,1fr));
-        gap: 0;
+        grid-auto-rows: 1fr;
         align-content: center;
 
         &.absolute {
@@ -373,10 +385,11 @@
                 colors.hcl("blue", 2, 12),
                 colors.hcl("blue", 2, 10),
             );
+            grid-template-rows: repeat(3, minmax(0,1fr));
         }
 
-        &:not(.absolute) .absoluteDamagePerGold,
-        &.absolute .relativeDamagePerGold {
+        &:not(.absolute) .diffDamage,
+        &.absolute .diffBonusDamagePerGold {
             visibility: hidden;
         }
 
@@ -385,13 +398,13 @@
         }
     }
 
-    .absoluteDamagePerGold,
-    .relativeDamagePerGold {
+    .diffDamage,
+    .diffBonusDamagePerGold {
         grid-row: 1 / -1;
         grid-column: 1 / -1;
         display: grid;
-        grid-template: subgrid / max-content 1fr max-content max-content;
-        align-items: center;
+        grid-template-columns: max-content 1fr max-content max-content;
+        align-content: center;
     }
 
     .diffPart {
@@ -399,9 +412,6 @@
         display: grid;
         grid-template: subgrid / subgrid;
         align-items: baseline;
-
-        &:first-child { align-items: end; }
-        &:last-child { align-items: start; }
     }
     
     .operator {
@@ -412,6 +422,7 @@
     
     .context {
         margin-left: 0.125em;
+        text-align: left;
     }
 
     .operator,
@@ -423,12 +434,20 @@
     }
     
     .unit {
-        grid-row: 1 / -1;
+        display: grid;
         grid-column: -1;
         margin-left: 0.5em;
+        align-content: center;
+        grid-template-columns: subgrid;
     }
 
+    .diffDamage > .unit {
+        grid-row: 1 / span 3;
+    }
 
+    .diffBonusDamagePerGold > .unit {
+        grid-row: 1 / span 2;
+    }
 
     .sequencesPerBuild {
         display: grid;

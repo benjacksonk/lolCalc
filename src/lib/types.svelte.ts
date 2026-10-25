@@ -1123,28 +1123,31 @@ export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
         builtEndGameConfig: new GameConfig(),
         costDiff: 0,
         damageDiff: 0,
-        damage_perGold: 0,
-        absoluteDamageDiff_perGold: 0,
-        relativeDamageDiff_perGold: 0,
+        damageDiff_ratio: 0,
+        // damage_perGold: 0,
+        damageDiff_perGold: 0,
+        // relativeDamageDiff_perGold: 0,
     }
 
-    readonly min_damage_perGold: number;
-    readonly min_absoluteDamageDiff_perGold: number;
-    readonly min_relativeDamageDiff_perGold: number;
+    readonly min_damage: number;
+    // readonly min_damage_perGold: number;
+    readonly min_damageDiff_perGold: number;
+    // readonly min_relativeDamageDiff_perGold: number;
     
     constructor(entries: Iterable<readonly [BuildConfig, GameDiff]>) {
         super(DiffMap.zeroDiff, entries);
         
         let diffs = this.values().toArray();
 
-        this.min_damage_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damage_perGold));
-        this.min_absoluteDamageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.absoluteDamageDiff_perGold));
-        this.min_relativeDamageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.relativeDamageDiff_perGold));
+        this.min_damage = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.builtEndGameConfig.damageAggregate));
+        // this.min_damage_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damage_perGold));
+        this.min_damageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damageDiff_perGold));
+        // this.min_relativeDamageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.relativeDamageDiff_perGold));
     }
 
     static #calculatePositiveMinOrZero(values: number[]) {
         let nonzeroValues = values.filter(value => value > 0);
-        return nonzeroValues.length > 1 ? Math.min(...nonzeroValues) : nonzeroValues[0] ?? 0;
+        return nonzeroValues.length > 1 ? Math.min(...nonzeroValues) : (nonzeroValues[0] ?? 0);
     }
 }
 
@@ -1243,9 +1246,8 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
             costDiff,
             damageDiff,
             
-            damage_perGold: damageBuilt / costBuilt,
-            absoluteDamageDiff_perGold: damageDiff / costDiff,
-            relativeDamageDiff_perGold: (damageBuilt - damageUnbuilt) / damageUnbuilt / costDiff
+            damageDiff_ratio: damageDiff / damageUnbuilt,
+            damageDiff_perGold: damageDiff / costDiff,
         };
     }
 }
