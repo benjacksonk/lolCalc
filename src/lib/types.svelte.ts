@@ -264,7 +264,7 @@ type ItemData = {
 
 export class Item extends Affector {
     readonly id: number;
-    readonly price: number;
+    price: number;
     readonly specialRecipe: number|null;
     readonly from: number[];
     readonly into: number[];
@@ -414,6 +414,8 @@ export class Item extends Affector {
 
                 // Add unique item stats/effects not captured by described stats alone.
                 try {
+                    itemMap["Slightly Magical Footwear"].price = 0;
+                    
                     itemMap["Immortal Path"].stats.set(StatType.DamageMagicAmpRatio, 0.04)
                     itemMap["Immortal Path"].stats.set(StatType.DamagePhysicalAmpRatio, 0.04);
                     itemMap["Immortal Path"].stats.set(StatType.DamageTrueAmpRatio, 0.04);
@@ -582,7 +584,7 @@ export class Item extends Affector {
                     gold: {
                         base: 0,
                         purchasable: true,
-                        total: 0,
+                        total: 400,
                         sell: 0,
                     },
                     tags: [],

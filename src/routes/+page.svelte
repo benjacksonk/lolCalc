@@ -253,7 +253,7 @@
         background: radial-gradient(at top in oklab, colors.hcl("blue", 1, 11), transparent);
 
         grid-auto-flow: column;
-        grid-template-columns: minmax(0,1fr) max-content minmax(0,1fr);
+        grid-template-columns: minmax(max-content, 1fr) max-content minmax(min-content, 1fr);
         justify-content: center;
         align-items: center;
         gap: 18px;
