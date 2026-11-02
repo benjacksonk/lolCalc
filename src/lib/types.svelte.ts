@@ -565,7 +565,7 @@ export class Item extends Affector {
             
             const runesData: ItemData[] = [
                 {
-                    name: "2Shards + DRing + MidQuest",
+                    name: "1Shard + DRing + MidQuest",
                     description: "",
                     colloq: "",
                     plaintext: "",
@@ -590,7 +590,7 @@ export class Item extends Affector {
                     tags: [],
                     maps: {  },
                     stats: {
-                        "Ability Power": 36,
+                        "Ability Power": 27,
                         "% Ability Power": 0.08,
                         "% Bonus Attack Damage": 0.08
                     },

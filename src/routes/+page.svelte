@@ -23,6 +23,9 @@
 
     let absoluteDiffsToShow 
     = $state(new SvelteSet<GameDiff>());
+    
+    let inPercentages: boolean 
+    = $state(false);
 
     function duplicateBuild(insertionIndex: number,buildConfig: BuildConfig) {
         buildConfigs.splice(insertionIndex, 0, new BuildConfig(buildConfig));
@@ -60,7 +63,9 @@
     <div class="content">
         <div class="champSpecs">
             <UiChampSpec bind:champ bind:abilityRanks/>
-            vs
+            <div class="vsBox">
+                <div>vs</div>
+            </div>
             <UiTargetSpec bind:targetBaseStats/>
         </div>
 
@@ -68,6 +73,13 @@
         style:grid-template-rows={`max-content repeat(${buildConfigs.length}, max-content)`}
         style:grid-template-columns={`max-content max-content repeat(${champ.abilities.length + 1}, max-content) auto`}
         >
+            <div class="toggle damageSwitchControl">
+                <span class="damageSwitchText">Damage</span>
+                <input type="checkbox" bind:checked={inPercentages}/>
+                <label></label>
+                <span class="damageSwitchText">Health</span>
+            </div>
+
             <div class="abilities">
                 {#each champ.abilities as ability, i (ability.name)}
                 <img src={ability.iconURL} alt={ability.name} class="icon med abilityIcon rounded">
@@ -105,14 +117,18 @@
 
                                     <span class="diffPart">
                                         <span class="operator" class:negative={diff.damageDiff < 0}>{diff.damageDiff < 0 ? '－' : '＋'}</span>
-                                        <span class="amount text-math">{diff.damageDiff.toFixed(0)}</span>
-                                        <!-- <span class="context"></span> -->
+                                        <span class="amount text-math">{(inPercentages ? diff.damageDiff * 100 / diff.builtInitialGameConfig.targetStatsPostEval.get(StatType.Health) : diff.damageDiff).toFixed(0)}</span>
+                                        {#if inPercentages}
+                                        <span class="context">%</span>
+                                        {/if}
                                     </span>
                                     
                                     <span class="diffPart">
                                         <span class="operator">＝</span>
-                                        <span class="amount text-math">{diff.builtEndGameConfig.damageAggregate.toFixed(0)}</span>
-                                        <!-- <span class="context"></span> -->
+                                        <span class="amount text-math">{(inPercentages ? diff.builtEndGameConfig.damageAggregate * 100 / diff.builtInitialGameConfig.targetStatsPostEval.get(StatType.Health) : diff.builtEndGameConfig.damageAggregate).toFixed(0)}</span>
+                                        {#if inPercentages}
+                                        <span class="context">%</span>
+                                        {/if}
                                     </span>
                                     
                                     {#if showUnits}
@@ -257,6 +273,99 @@
         justify-content: center;
         align-items: center;
         gap: 18px;
+    }
+
+    .damageSwitchControl {
+        grid-column: span 2;
+        align-self: center;
+        justify-self: center;
+
+        .damageSwitchText {
+            padding: 0 0.5em;
+
+            :first-of-type {
+                text-align: end;
+            }
+
+            :last-of-type {
+                text-align: start;
+            }
+        }
+    }
+
+    .toggle {
+        --toggle-knob-height: 18px;
+        --toggle-knob-aspect-ratio: 1.4;
+        --toggle-knob-radius: calc(max(1, var(--toggle-knob-aspect-ratio)) * var(--toggle-knob-height));
+        --toggle-bar-height: 12px;
+        --toggle-bar-width: 48px;
+        --toggle-bar-radius: max(var(--toggle-bar-width),var(--toggle-bar-height));
+        position: relative;
+        height: var(--toggle-knob-height);
+        display: flex;
+        align-items: center;
+        box-sizing:border-box;
+    }
+    .toggle input[type="checkbox"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        opacity: 0;
+    }
+    .toggle label {
+        position: relative;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        box-sizing:border-box;
+    }
+    .toggle label:before,
+    .toggle label:after {
+        box-sizing:border-box;
+        transition: 0.125s ease-out;
+    }
+    .toggle label:before {
+        content: '';
+        display: inline-block;
+        height: var(--toggle-bar-height);
+        width: var(--toggle-bar-width);
+        border-radius: var(--toggle-bar-radius);
+        // outline: 2px solid #fff1;
+        background: #eb9286; // H=28 C=phi^5 Lr=100sqrt(0.5)
+        box-shadow: inset 0 0 0 2px #d59d95,  // H=28 C=phi^4 Lr=100cbrt(0.5)
+                    inset 0 1px 2px 1.76px #0005;
+    }
+    .toggle label:after {
+        @include fonts.text-passage(13pt);
+        text-align: center;
+        padding-top: 3px;
+        
+        content: '#';
+        display: grid;
+        height: var(--toggle-knob-height);
+        aspect-ratio: var(--toggle-knob-aspect-ratio);
+        border-radius: var(--toggle-knob-radius);
+        grid-template: max-content / max-content;
+        color: colors.gray(5);
+        align-content: center;
+        justify-content: center;
+        align-items: center;
+        justify-items: center;
+        position: absolute;
+        background: #fff;
+    }
+    .toggle input[type="checkbox"]:checked + label:before {
+        box-shadow: inset 0 0 0 2px #90ba95, // H=148 C=phi^4 Lr=100cbrt(0.5)
+                    inset 0 1px 2px 1.76px #0005, 
+                    inset var(--toggle-bar-width) 0 #7bc185; // H=148 C=phi^5 Lr=100sqrt(0.5)
+    }
+    .toggle input[type="checkbox"]:checked + label:after {
+        content: '%';
+        transform: translatex(calc(var(--toggle-bar-width) - (var(--toggle-knob-height) * var(--toggle-knob-aspect-ratio))));
     }
     
     .diffTable {
