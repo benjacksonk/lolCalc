@@ -74,15 +74,15 @@
         style:grid-template-columns={`max-content max-content repeat(${champ.abilities.length + 1}, max-content) auto`}
         >
             <div class="toggle damageSwitchControl">
-                <span class="damageSwitchText">Damage</span>
+                <span class="damageSwitchText" class:active={!inPercentages}>Damage</span>
                 <input type="checkbox" bind:checked={inPercentages}/>
                 <label></label>
-                <span class="damageSwitchText">Health</span>
+                <span class="damageSwitchText" class:active={inPercentages}>Health</span>
             </div>
 
             <div class="abilities">
                 {#each champ.abilities as ability, i (ability.name)}
-                <img src={ability.iconURL} alt={ability.name} class="icon med abilityIcon rounded">
+                <img src={ability.icon} alt={ability.name} class="icon size-4 semiround lightSheerBorder">
                 {/each}
             </div>
 
@@ -165,7 +165,13 @@
                     </div>
                     
                     <UiAffectorSequence bind:affectorQueue={buildConfig.affectorQueue}
-                    affectorOptions={[...Affector.allBasicAffectors, ...champ.abilities, ...buildConfig.items.filter(item => item.effectsPerRank.length > 0), ...Rune.all]}
+                    affectorOptions={[
+                        ...champ.abilities, 
+                        ...Affector.allBasicAffectors, 
+                        ...buildConfig.runeSet.primaryRunes, 
+                        ...buildConfig.runeSet.secondaryRunes,
+                        ...buildConfig.items
+                    ].filter(affector => affector.effectsPerRank.length > 0)}
                     />
                 </div>
                 {/each}
@@ -279,6 +285,7 @@
         grid-column: span 2;
         align-self: center;
         justify-self: center;
+        color: #fff;
 
         .damageSwitchText {
             padding: 0 0.5em;
@@ -289,6 +296,10 @@
 
             :last-of-type {
                 text-align: start;
+            }
+
+            &:not(.active) {
+                color: #fff8;
             }
         }
     }
@@ -445,7 +456,7 @@
         display: grid;
         padding: 0 5px;
         color: colors.hcl("red", 5, 28);
-        background-color: colors.hcl("red", 5, 12);
+        background: colors.hcl("red", 5, 12);
         border-width: 2px 0 2px 2px;
         border-style: solid;
         border-color: colors.hcl("red", 5, 13) colors.hcl("red", 5, 15);
@@ -454,13 +465,13 @@
         text-align: center;
 
         &[disabled] {
-            background-color: colors.gray(2);
+            background: colors.gray(2);
             border-color: colors.gray(4);
             color: colors.gray(5);
         }
 
         &:not([disabled]):hover {
-            background-color: colors.hcl("red", 5, 15);
+            background: colors.hcl("red", 5, 15);
             border-color: colors.hcl("red", 5, 16) colors.hcl("red", 5, 18);
             color: colors.hcl("red", 5, 32);
         }
@@ -565,9 +576,5 @@
 
     .negative {
         color: #f88;
-    }
-    
-    .abilityIcon {
-        border: 2px solid #fff1;
     }
 </style>

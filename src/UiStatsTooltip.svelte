@@ -70,7 +70,7 @@ style:position-try-fallbacks={positionTryFallbacks}
 		box-shadow:	inset 0 0 4px 0px colors.hcl("aqua", 5, 34), shadows.$box-shadow-max;
         color: colors.hcl("aqua", 5, 47);
         border-radius: 8px;
-        padding: #{sizes.$space-4} #{sizes.$space-5};
+        padding: #{sizes.$cap-4} #{sizes.$cap-5};
 		overflow: visible;
 		background: linear-gradient(in oklab to bottom,
         colors.hcl("blue", 5, 5),

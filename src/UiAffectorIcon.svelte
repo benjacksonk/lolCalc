@@ -12,7 +12,7 @@
     } : {
         children: any,
         affector: Affector,
-        size: "max"|"sup"|"med"|"sub"|"min",
+        size: 0|1|2|3|4|5|6|7|8|9,
         showNameOnHover: boolean,
         showStatsOnHover: boolean,
         buttonAttributes?: any
@@ -25,7 +25,7 @@
 
 <div class="UiAffectorIcon">
     <button class="iconButton" interestfor={statsTooltip?.uid} {...buttonAttributes}>
-        <img src={affector.iconURL} alt={affector.name} class={`icon ${size}`}>
+        <img src={affector.icon} alt={affector.name} class={`icon size-${size}`}>
     </button>
 
     {@render children?.()}

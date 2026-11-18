@@ -23,14 +23,14 @@
                 <span>Level {level}</span>
             </div>
         </div>
-        <img src={champ.iconURL} alt="" class="icon max rounded">
+        <img src={champ.icon} alt="" class="icon size-9 semiround lightSheerBorder">
     </div>
     <div class="abilityControls">
         {#each champ.abilities as ability, i}
         <div class="abilityControl">
-            <img src={ability.iconURL ?? ""} alt="" class="icon med rounded abilityIcon">
+            <img src={ability.icon ?? ""} alt="" class="icon size-5 semiround lightSheerBorder">
             
-            <input class="levelControl abilityLevelControl" 
+            <input class="levelControl abilityLevelControl semiround" 
             type="number" min="0" max="5" step="1" defaultValue="0"
             bind:value={
             () => abilityRanks.get(ability),
@@ -87,9 +87,5 @@
 
             flex-flow: column nowrap;
         }
-    }
-    
-    .icon {
-        border: 2px solid #fff1;
     }
 </style>

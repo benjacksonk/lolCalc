@@ -28,9 +28,9 @@
 
 
 <div class="UiTargetSpec">
-    <button popovertarget="targetSelectorOptions" id="targetSelector" class="rounded">
-        <div class="iconWrapper targetSelectorIconWrapper rounded">
-            <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
+    <button popovertarget="targetSelectorOptions" id="targetSelector" class="semiround lightSheerBorder">
+        <div class="iconWrapper targetSelectorIconWrapper">
+            <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon size-9 targetChampIcon">
         </div>
     </button>
 
@@ -43,14 +43,14 @@
             UpdateTargetProfileStats();
         }}
         >
-            <img class:targetChampIconOverlay={!champ} src={champ?.iconURL ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon max targetChampIcon">
+            <img class:targetChampIconOverlay={!champ} src={champ?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon size-8 targetChampIcon">
         </button>
         {/each}
     </div>
 
     <div class="targetSpecControls">
         <label class="control">
-            <input type="number" min="1" max="20" 
+            <input type="number" min="1" max="20" class="semiround"
             bind:value={
                 () => targetLevel, 
                 (v) => {
@@ -63,7 +63,7 @@
         </label>
 
         <label class="control">
-            <input type="number" min="0" max="9999" 
+            <input type="number" min="0" max="9999" class="semiround"
             bind:value={() => targetBaseStats.get(StatType.Health), (v) => targetBaseStats.set(StatType.Health, v)}
             disabled={!usesCustomProfile}
             />
@@ -71,7 +71,7 @@
         </label>
         
         <label class="control">
-            <input type="number" min="0" max="999" 
+            <input type="number" min="0" max="999" class="semiround"
             bind:value={() => targetBaseStats.get(StatType.Armor), (v) => targetBaseStats.set(StatType.Armor, v)}
             disabled={!usesCustomProfile}
             />
@@ -79,7 +79,7 @@
         </label>
         
         <label class="control">
-            <input type="number" min="0" max="999" 
+            <input type="number" min="0" max="999" class="semiround"
             bind:value={() => targetBaseStats.get(StatType.MagicResistance), (v) => targetBaseStats.set(StatType.MagicResistance, v)}
             disabled={!usesCustomProfile}
             />
@@ -125,8 +125,7 @@
     }
 
     #targetSelector {
-        // overflow: hidden;
-        border: 2px solid #fff1;
+        overflow: hidden;
         background: none;
 
         & .icon {

@@ -1,5 +1,6 @@
 import { SvelteMap } from "svelte/reactivity";
 import itemsJSON from '$lib/dragontail-data/en_US/item.json';
+import runeTreesJSON from '$lib/dragontail-data/en_US/runesReforged.json';
 
 export enum AbilityType { P="P", Q="Q", W="W", E="E", R="R" }
 
@@ -174,12 +175,12 @@ export class Effect {
 
 export interface Entity {
     name: string;
-    iconURL: string;
+    icon: string;
 }
 
 export class Affector implements Entity {
     readonly name: string;
-    readonly iconURL: string;
+    readonly icon: string;
     stats: DefiniteNumberMap<StatType>;
     effectsPerRank: Effect[][];
     // singleStats or multiStats ?
@@ -187,12 +188,12 @@ export class Affector implements Entity {
 
     constructor(
         name: typeof this.name, 
-        iconURL: typeof this.iconURL,
+        icon: typeof this.icon,
         stats: Iterable<readonly [StatType,number]> = [],
         effectsPerRank: typeof this.effectsPerRank = []
     ) {
         this.name = name;
-        this.iconURL = iconURL;
+        this.icon = icon == "" ? "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png" : icon;
         this.stats = new DefiniteNumberMap(stats);
         this.effectsPerRank = effectsPerRank;
     }
@@ -272,7 +273,7 @@ export class Item extends Affector {
 
     constructor(itemData: ItemData, id: number = -1) {
         const imageFull = itemData.image.full;
-        const imageURL = imageFull.startsWith("http") ? imageFull : `dragontail-img/item/${imageFull}`;
+        const imageURL = imageFull == "" ? "" : imageFull.startsWith("http") ? imageFull : `dragontail-img/item/${imageFull}`;
         
         const statTypes = new Set(Object.values(StatType));
 
@@ -318,7 +319,7 @@ export class Item extends Affector {
         from: [],
         into: [],
         image: {
-            full: "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png",
+            full: "",
             sprite: "",
             group: "",
             x: 0,
@@ -764,68 +765,361 @@ export class Item extends Affector {
     })();
 }
 
-export class Rune extends Affector {
-    constructor(...affectorParams: ConstructorParameters<typeof Affector>) {
-        super(...affectorParams);
+type RuneData = {
+    id: number,
+    key: string,
+    icon: string,
+    name: string,
+    shortDesc: string,
+    longDesc: string,
+}
 
+type RuneTreeData = {
+    id: number,
+    key: string,
+    icon: string,
+    name: string,
+    slots: { runes: RuneData[] }[],
+}
+
+export class Rune extends Affector {
+    branch: RuneBranch|null = null;
+
+    constructor(runeParams: RuneData, branch: RuneBranch|null = null) {
+        super(runeParams.name, (runeParams.icon == "" ? "" : `dragontail-img/${runeParams.icon}`));
+        this.branch = branch;
         Rune.all.push(this);
     }
 
     static readonly all: Rune[] = [];
 
+    static readonly nothing = new Rune({
+        id: -1,
+        key: "Nothing",
+        icon: "",
+        name: "Nothing",
+        shortDesc: "",
+        longDesc: "",
+    });
+
+    /**
     static readonly runes = {
-        // still ought to work out adaptive damage
-        ArcaneComet: new Rune("Arcane Comet", "https://wiki.leagueoflegends.com/en-us/images/Arcane_Comet_rune.png", [], [
-            [
-                Effect.createDamageEffect(
-                    DamageType.Magic, 
-                    30,
-                    [
-                        [StatType.ChampionLevelUps, (130-30)/17],
-                        [StatType.BonusAttackDamage, 0.1],
-                        [StatType.AbilityPower, 0.05]
-                    ]
-                )
-            ],
-        ]),
-        Electrocute: new Rune("Electrocute", "https://wiki.leagueoflegends.com/en-us/images/Electrocute_rune.png", [], [
-            [
-                Effect.createDamageEffect(
-                    DamageType.Magic, 
-                    70,
-                    [
-                        [StatType.ChampionLevelUps, (240-70)/17],
-                        [StatType.BonusAttackDamage, 0.1],
-                        [StatType.AbilityPower, 0.05]
-                    ]
-                )
-            ],
-        ]),
-        SummonAery: new Rune("Summon Aery", "https://wiki.leagueoflegends.com/en-us/images/Summon_Aery_rune.png", [], [
-            [
-                Effect.createDamageEffect(
-                    DamageType.Magic, 
-                    10,
-                    [
-                        [StatType.ChampionLevelUps, (50-10)/17],
-                        [StatType.BonusAttackDamage, 0.1],
-                        [StatType.AbilityPower, 0.05]
-                    ]
-                )
-            ],
-        ]),
-        Scorch: new Rune("Scorch", "https://wiki.leagueoflegends.com/en-us/images/Scorch_rune.png", [], [
-            [
-                Effect.createDamageEffect(
-                    DamageType.Magic, 
-                    20,
-                    [
-                        [StatType.ChampionLevelUps, (40-20)/17],
-                    ]
-                )
-            ],
-        ])
     } as const;
+    /**/
+}
+
+export class Runestone extends Rune {
+}
+
+export class Keystone extends Runestone {
+}
+
+export class Shard extends Rune {
+}
+
+export class RuneBranch<T extends Rune = Rune> {
+    readonly tree: RuneTree|null;
+    readonly runes: T[] = [];
+
+    constructor(tree: RuneTree|null = null) {
+        this.tree = tree;
+    }
+}
+
+export class RuneTree {
+    readonly id: number;
+    readonly icon: string;
+    readonly name: string;
+    readonly branches: RuneBranch[] = [];
+
+    constructor(id: number = -1, name: string, icon: string) {
+        this.id = id;
+        this.name = name;
+        this.icon = icon;
+    }
+
+    static readonly all: RuneTree[] = (() => {
+        const runeTreeDatas: RuneTreeData[] = JSON.parse(JSON.stringify(runeTreesJSON));
+        
+        // let runeTreesDataEntries: [string, RuneTreeData][] 
+        // = Object.entries<RuneTreeData>(runeTreesObject["data"]);
+
+        const runeTrees: RuneTree[] = (() => {
+            let trees = runeTreeDatas.map((runeTreeData: RuneTreeData) => RuneTree.createRuneTree(runeTreeData));
+
+            // Add unique rune stats/effects
+            try {
+                Rune.all.find(rune => rune.name == "Arcane Comet")?.effectsPerRank.push(
+                    [
+                        Effect.createDamageEffect(
+                            DamageType.Magic, 
+                            30,
+                            [
+                                [StatType.ChampionLevelUps, (130-30)/17],
+                                [StatType.BonusAttackDamage, 0.1],
+                                [StatType.AbilityPower, 0.05]
+                            ]
+                        )
+                    ],
+                );
+                
+                // still ought to work out adaptive damage
+                Rune.all.find(rune => rune.name == "Electrocute")?.effectsPerRank.push(
+                    [
+                        Effect.createDamageEffect(
+                            DamageType.Magic, 
+                            70,
+                            [
+                                [StatType.ChampionLevelUps, (240-70)/17],
+                                [StatType.BonusAttackDamage, 0.1],
+                                [StatType.AbilityPower, 0.05]
+                            ]
+                        )
+                    ]
+                );
+
+                Rune.all.find(rune => rune.name == "Summon Aery")?.effectsPerRank.push(
+                    [
+                        Effect.createDamageEffect(
+                            DamageType.Magic, 
+                            10,
+                            [
+                                [StatType.ChampionLevelUps, (50-10)/17],
+                                [StatType.BonusAttackDamage, 0.1],
+                                [StatType.AbilityPower, 0.05]
+                            ]
+                        )
+                    ]
+                );
+
+                Rune.all.find(rune => rune.name == "Scorch")?.effectsPerRank.push(
+                    [
+                        Effect.createDamageEffect(
+                            DamageType.Magic, 
+                            20,
+                            [
+                                [StatType.ChampionLevelUps, (40-20)/17],
+                            ]
+                        )
+                    ]
+                );
+            }
+            catch (error) {
+                console.error('Error adding unique rune stats/effects:', error);
+            }
+
+            return trees;
+        })();
+        
+        /**
+        const runesData: ItemData[] = [
+            {
+                name: "1Shard + DRing + MidQuest",
+                description: "",
+                colloq: "",
+                plaintext: "",
+                specialRecipe: null,
+                from: [],
+                into: [],
+                image: {
+                    full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
+                    sprite: "",
+                    group: "",
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0
+                },
+                gold: {
+                    base: 0,
+                    purchasable: true,
+                    total: 400,
+                    sell: 0,
+                },
+                tags: [],
+                maps: {  },
+                stats: {
+                    "Ability Power": 27,
+                    "% Ability Power": 0.08,
+                    "% Bonus Attack Damage": 0.08
+                },
+                depth: 1,
+            },
+            {
+                name: "Mid Lane Quest",
+                description: "",
+                colloq: "",
+                plaintext: "",
+                specialRecipe: null,
+                from: [],
+                into: [],
+                image: {
+                    full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
+                    sprite: "",
+                    group: "",
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0
+                },
+                gold: {
+                    base: 0,
+                    purchasable: true,
+                    total: 0,
+                    sell: 0,
+                },
+                tags: [],
+                maps: {  },
+                stats: {
+                    "% Ability Power": 0.08,
+                    "% Bonus Attack Damage": 0.08
+                },
+                depth: 1,
+            },
+            {
+                name: "Adaptive Force Shards 1/2",
+                description: "",
+                colloq: "",
+                plaintext: "",
+                specialRecipe: null,
+                from: [],
+                into: [],
+                image: {
+                    full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+                    sprite: "",
+                    group: "",
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0
+                },
+                gold: {
+                    base: 0,
+                    purchasable: true,
+                    total: 0,
+                    sell: 0,
+                },
+                tags: [],
+                maps: {  },
+                stats: {
+                    "Ability Power": 9
+                },
+                depth: 1,
+            },
+            {
+                name: "Adaptive Force Shards 2/2",
+                description: "",
+                colloq: "",
+                plaintext: "",
+                specialRecipe: null,
+                from: [],
+                into: [],
+                image: {
+                    full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
+                    sprite: "",
+                    group: "",
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0
+                },
+                gold: {
+                    base: 0,
+                    purchasable: true,
+                    total: 0,
+                    sell: 0,
+                },
+                tags: [],
+                maps: {  },
+                stats: {
+                    "Ability Power": 18
+                },
+                depth: 1,
+            },
+            {
+                name: "Jack of All Trades 05/10",
+                description: "",
+                colloq: "",
+                plaintext: "",
+                specialRecipe: null,
+                from: [],
+                into: [],
+                image: {
+                    full: "https://wiki.leagueoflegends.com/en-us/images/Jack_of_All_Trades_rune.png",
+                    sprite: "",
+                    group: "",
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0
+                },
+                gold: {
+                    base: 0,
+                    purchasable: true,
+                    total: 0,
+                    sell: 0,
+                },
+                tags: [],
+                maps: {  },
+                stats: {
+                    "Ability Haste": 5,
+                    "Ability Power": 8
+                },
+                depth: 1,
+            },
+            {
+                name: "Jack of All Trades 10/10",
+                description: "",
+                colloq: "",
+                plaintext: "",
+                specialRecipe: null,
+                from: [],
+                into: [],
+                image: {
+                    full: "https://wiki.leagueoflegends.com/en-us/images/Jack_of_All_Trades_rune.png",
+                    sprite: "",
+                    group: "",
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0
+                },
+                gold: {
+                    base: 0,
+                    purchasable: true,
+                    total: 0,
+                    sell: 0,
+                },
+                tags: [],
+                maps: {  },
+                stats: {
+                    "Ability Haste": 10,
+                    "Ability Power": 20
+                },
+                depth: 1,
+            },
+        ];
+        /**/
+
+        return runeTrees//.filter(item => item == Item.nothing || item.stats.size > 0 || item.effectsPerRank.length > 0);
+    })();
+
+    static createRuneTree(runeTreeData: RuneTreeData): RuneTree {
+        const treeId = runeTreeData.id;
+        const treeName = runeTreeData.name;
+        const treeIcon = `dragontail-img/${runeTreeData.icon}`;
+        const tree = new RuneTree(treeId, treeName, treeIcon);
+        
+        runeTreeData.slots.forEach((slot, i) => {
+            let branch = i > 0 ? new RuneBranch<Runestone>(tree) : new RuneBranch<Keystone>(tree);
+            slot.runes.forEach(runeData => 
+                branch.runes.push(i > 0 ? new Runestone(runeData, branch) : new Keystone(runeData, branch))
+            );
+            tree.branches.push(branch);
+        });
+
+        return tree;
+    }
 }
 
 export class Champion implements Entity {
@@ -834,7 +1128,7 @@ export class Champion implements Entity {
 
     constructor(
         readonly name: string,
-        readonly iconURL: string,
+        readonly icon: string,
         readonly abilities: Ability[],
         baseStats: Iterable<readonly [StatType, number]>,
         statGrowthCoefficients: Iterable<readonly [StatType, number]>
@@ -944,13 +1238,13 @@ export class Champion implements Entity {
     } as const;
 }
 
-export class ItemSlotConfig {
+export class ItemSlot {
     item: Item;
     rank: number;
 
-    constructor(blueprint: ItemSlotConfig|null = null, newValues: Partial<ItemSlotConfig> = {}) {
+    constructor(blueprint: ItemSlot|null = null, newValues: Partial<ItemSlot> = {}) {
         let oldValues 
-        = blueprint instanceof ItemSlotConfig ? {
+        = blueprint instanceof ItemSlot ? {
             item: blueprint.item,
             rank: blueprint.rank
         } : {
@@ -963,48 +1257,134 @@ export class ItemSlotConfig {
     }
 }
 
-export type ItemSlotConfigSet
-= [ ItemSlotConfig, ItemSlotConfig, ItemSlotConfig, ItemSlotConfig, ItemSlotConfig, ItemSlotConfig ];
+export type ItemSet
+= [ ItemSlot, ItemSlot, ItemSlot, ItemSlot, ItemSlot, ItemSlot ];
+
+export class RuneSet {
+    #primaryTree = $state<RuneTree>(RuneTree.all[0]);
+    #secondaryTree = $state<RuneTree>(RuneTree.all[1]);
+    #primaryRunes = $state<[Rune, Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing]);
+    #secondaryRunes = $state<[Rune, Rune]>([Rune.nothing, Rune.nothing]);
+
+    get primaryRunes() { return this.#primaryRunes; }
+    set primaryRunes(runes: [Rune, Rune, Rune, Rune]) {
+        if (this.#primaryRunes === runes) {
+            return;
+        }
+
+        let trees = new Set(runes.map(rune => rune.branch?.tree ?? null)).values().filter(it => it != null).toArray();
+
+        if (trees.length > 1) {
+            throw new Error(`Runes are from multiple trees.`);
+        }
+        else {
+            if (trees.length == 1 && this.primaryTree != trees[0]) {
+                this.primaryTree = trees[0];
+            }
+                
+            this.#primaryRunes = runes;
+        }
+    }
+    
+    get secondaryRunes() { return this.#secondaryRunes; }
+    set secondaryRunes(runes: [Rune, Rune]) {
+        if (this.#secondaryRunes === runes) {
+            return;
+        }
+
+        let trees = new Set(runes.map(rune => rune.branch?.tree ?? null)).values().filter(it => it != null).toArray();
+
+        if (trees.length > 1) {
+            throw new Error(`Runes are from multiple trees.`);
+        }
+        else {
+            if (trees.length == 1 && this.secondaryTree != trees[0]) {
+                this.secondaryTree = trees[0];
+            }
+                
+            this.#secondaryRunes = runes;
+        }
+    }
+
+    get primaryTree() { return this.#primaryTree; }
+    set primaryTree(tree: RuneTree) {
+        if (tree === this.primaryTree) {
+            return;
+        }
+
+        this.primaryRunes = [Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing];
+        
+        if (tree === this.secondaryTree) {
+            const oldTree = this.#primaryTree;
+            this.#primaryTree = tree;
+            this.secondaryTree = oldTree;
+        }
+        else {
+            this.#primaryTree = tree;
+        }
+    }
+
+    get secondaryTree() { return this.#secondaryTree; }
+    set secondaryTree(tree: RuneTree) {
+        if (tree === this.secondaryTree) {
+            return;
+        }
+
+        this.secondaryRunes = [Rune.nothing, Rune.nothing];
+        
+        if (tree === this.primaryTree) {
+            const oldTree = this.#secondaryTree;
+            this.#secondaryTree = tree;
+            this.primaryTree = oldTree;
+        }
+        else {
+            this.#secondaryTree = tree;
+        }
+    }
+}
 
 export class BuildConfig {
-    itemSlots: ItemSlotConfigSet;
-    // runes: RuneSet;
+    itemSet: ItemSet;
+    runeSet: RuneSet;
     affectorQueue: Affector[];
     
     constructor(blueprint?: BuildConfig, newValues: Partial<BuildConfig> = {}) {
         let oldValues 
         = blueprint instanceof BuildConfig ? {
-            itemSlots: [
-                new ItemSlotConfig(blueprint.itemSlots[0]),
-                new ItemSlotConfig(blueprint.itemSlots[1]),
-                new ItemSlotConfig(blueprint.itemSlots[2]),
-                new ItemSlotConfig(blueprint.itemSlots[3]),
-                new ItemSlotConfig(blueprint.itemSlots[4]),
-                new ItemSlotConfig(blueprint.itemSlots[5])
-            ] as ItemSlotConfigSet,
+            itemSet: [
+                new ItemSlot(blueprint.itemSet[0]),
+                new ItemSlot(blueprint.itemSet[1]),
+                new ItemSlot(blueprint.itemSet[2]),
+                new ItemSlot(blueprint.itemSet[3]),
+                new ItemSlot(blueprint.itemSet[4]),
+                new ItemSlot(blueprint.itemSet[5])
+            ] as ItemSet,
+            runeSet: blueprint.runeSet,
             affectorQueue: blueprint.affectorQueue,
         } : {
-            itemSlots: [
-                new ItemSlotConfig(), 
-                new ItemSlotConfig(), 
-                new ItemSlotConfig(), 
-                new ItemSlotConfig(), 
-                new ItemSlotConfig(), 
-                new ItemSlotConfig()
-            ] as ItemSlotConfigSet,
+            itemSet: [
+                new ItemSlot(), 
+                new ItemSlot(), 
+                new ItemSlot(), 
+                new ItemSlot(), 
+                new ItemSlot(), 
+                new ItemSlot()
+            ] as ItemSet,
+            runeSet: new RuneSet(),
             affectorQueue: [],
         };
 
-        this.itemSlots = $state(newValues.itemSlots ?? oldValues.itemSlots);
+        this.itemSet = $state(newValues.itemSet ?? oldValues.itemSet);
+        this.runeSet = $state(newValues.runeSet ?? oldValues.runeSet);
         this.affectorQueue = $state([...(newValues.affectorQueue ?? oldValues.affectorQueue)]);
     }
 
     get items(): Item[] {
-        return this.itemSlots.map(itemConfig => itemConfig.item).filter(item => item != null);
+        return this.itemSet.map(itemConfig => itemConfig.item).filter(item => item != null);
     }
 
     get totalCost(): number {
-        return this.itemSlots.map(itemConfig => itemConfig.item.price).reduce((a,b) => a + b, 0);
+        return this.itemSet.map(itemConfig => itemConfig.item.price).reduce((a,b) => a + b, 0);
     }
 
     get buildStats(): DefiniteNumberMap<StatType> {
@@ -1195,7 +1575,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
                 let builtEffects 
                 = buildConfig.affectorQueue.flatMap((affector): Effect[] => 
                     affector instanceof Ability ? effectsPerAbility.get(affector) : 
-                    affector instanceof Item ? affector.effectsPerRank[buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0] : 
+                    affector instanceof Item ? affector.effectsPerRank[buildConfig.itemSet.find(itemConfig => itemConfig.item == affector)?.rank ?? 0] : 
                     affector.effectsPerRank[0]
                 );
 

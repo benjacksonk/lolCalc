@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { BuildConfig, GameConfig, Item, ItemSlotConfig } from "$lib/types.svelte";
+    import { BuildConfig, GameConfig, Item, ItemSlot } from "$lib/types.svelte";
     import UiAffectorIcon from "./UiAffectorIcon.svelte";
+    import UiRuneSpec from "./UiRuneSpec.svelte";
     import UiStatsTooltip from "./UiStatsTooltip.svelte";
 
     let {
@@ -17,8 +18,8 @@
 
     let statsTooltip = $state<UiStatsTooltip>();
 
-    function equipItem(itemConfig: ItemSlotConfig, item: Item) {
-        itemConfig.item = item;
+    function equipItem(itemSlot: ItemSlot, item: Item) {
+        itemSlot.item = item;
     }
 </script>
 
@@ -26,10 +27,10 @@
 
 <div class="UiBuildSpec">
     <div class="itemSlotGrid">
-        {#each buildConfig.itemSlots as itemConfig, i}
+        {#each buildConfig.itemSet as itemConfig, i}
         <UiAffectorIcon 
         affector={itemConfig.item} 
-        size="min" 
+        size={4}
         showNameOnHover={true} 
         showStatsOnHover={true} 
         popovertarget={`itemSelector-${buildIndex}-${i}`}
@@ -42,11 +43,15 @@
                 .sort((a, b) => a.price - b.price)
                 .sort((a, b) => a == Item.nothing ? -1 : b == Item.nothing ? 1 : 0) as item, j (item.name)
                 }
-                <UiAffectorIcon affector={item} size="min" showNameOnHover={true} showStatsOnHover={true} onmousedown={(e) => { e.preventDefault(); equipItem(itemConfig, item); }}/>
+                <UiAffectorIcon affector={item} size={4} showNameOnHover={true} showStatsOnHover={true} onmousedown={(e) => { e.preventDefault(); equipItem(itemConfig, item); }}/>
                 {/each}
             </div>
         </UiAffectorIcon>
         {/each}
+    </div>
+
+    <div class="runes">
+        <UiRuneSpec bind:buildConfig={buildConfig} {buildIndex}/>
     </div>
 
     <button class="price" interestfor={statsTooltip?.uid} {...priceButtonAttributes}>

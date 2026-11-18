@@ -26,7 +26,7 @@
 
 <div class="UiAffectorSequence">
     {#each affectorQueue as affector, i}
-    <UiAffectorIcon {affector} size="min" showNameOnHover={true} showStatsOnHover={false} 
+    <UiAffectorIcon {affector} size={4} showNameOnHover={true} showStatsOnHover={false} 
     onmousedown={(e) => { e.preventDefault(); removeAffectorApplication(i); }}
     />
     {/each}
@@ -36,7 +36,7 @@
         
         <div popover id={`addAffectorOptions-${uid}`} class="affectorOptions">
             {#each affectorOptions as affector, j (affector.name)}
-            <UiAffectorIcon {affector} size={"sub"} showNameOnHover={true} showStatsOnHover={false}
+            <UiAffectorIcon {affector} size={5} showNameOnHover={true} showStatsOnHover={false}
             onmousedown={(e) => { e.preventDefault(); appendAffectorApplication(affector); }}
             />
             {/each}
@@ -52,7 +52,7 @@
         border-radius: 5px;
         display: grid;
         grid-template-rows: repeat(2, minmax(0,1fr));
-        grid-template-columns: repeat(auto-fill, #{sizes.$icon-min});
+        grid-template-columns: repeat(auto-fill, #{sizes.$icon-4});
         grid-auto-rows: minmax(0,1fr);
         gap: 2px;
         // padding: 2px;
