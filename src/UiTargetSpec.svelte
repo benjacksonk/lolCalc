@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CalculateBaseStats, Champion, DefiniteNumberMap, StatType } from "$lib/types.svelte";
+    import { calculateBaseStats, Champion, DefiniteNumberMap, StatType } from "$lib/types.svelte";
 
     let {
         targetBaseStats = $bindable()
@@ -21,7 +21,7 @@
             return;
         }
         
-        targetBaseStats = CalculateBaseStats(targetChampProfile, targetLevel);
+        targetBaseStats = calculateBaseStats(targetChampProfile, targetLevel);
     }
 </script>
 

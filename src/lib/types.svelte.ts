@@ -4,21 +4,24 @@ import runeTreesJSON from '$lib/dragontail-data/en_US/runesReforged.json';
 
 export enum AbilityType { P="P", Q="Q", W="W", E="E", R="R" }
 
-export enum DamageType { True="True", Physical="Physical", Magic="Magic" }
+export enum AdaptiveType { Physical="Physical", Magic="Magic" }
+
+export enum DamageType { True="True", Physical="Physical", Magic="Magic", Adaptive="Adaptive" }
 
 export enum StatType {
     AbilityHaste                    = "Ability Haste",
     AbilityPower                    = "Ability Power",
     AbilityPowerAmpRatio            = "% Ability Power",
-    AttackDamageBase                = "Base Attack Damage",
+    AdaptiveForce                   = "Adaptive Force",
     Armor                           = "Armor",
     ArmorPenetrationFlat            = "Lethality",
     ArmorPenetrationRatio           = "% Armor Penetration",
     ArmorReductionDebuffFlat        = "Armor Reduction",
     ArmorReductionDebuffRatio       = "% Armor Reduction",
-    BaseAttackDamage                = "Base Attack Damage",
-    BonusAttackDamage               = "Attack Damage",
-    BonusAttackDamageAmpRatio       = "% Bonus Attack Damage",
+    AttackDamageBase                = "Base Attack Damage",
+    AttackDamageBonusFlat           = "Attack Damage",
+    AttackDamageBonusFlatAmpRatio   = "% Bonus Attack Damage",
+    AttackDamageTotal               = "Attack Damage Total",
     DamageMagicAmpRatio             = "% Magic Damage",
     DamagePhysicalAmpRatio          = "% Physical Damage",
     DamageTrueAmpRatio              = "% True Damage",
@@ -34,8 +37,10 @@ export enum StatType {
     Mana                            = "Mana",
     ManaRegenPer5sec                = "Mana Regeneration per 5 sec",
     ManaRegenRatio                  = "% Mana Regeneration",
-    MoveSpeedFlat                   = "Move Speed",
-    MoveSpeedRatio                  = "% Move Speed",
+    MoveSpeedAmpRatio               = "% Move Speed",
+    MoveSpeedBase                   = "Move Speed Base",
+    MoveSpeedBonusFlat              = "Move Speed",
+    MoveSpeedTotal                  = "Move Speed Total",
     Omnivamp                        = "% Omnivamp",
 }
 
@@ -115,14 +120,15 @@ export class Damage extends DefiniteNumberMap<DamageType> {
     }
 }
 
+type EffectImplement = (gameConfig: GameConfig, ...params: any[]) => GameConfig;
+
 export class Effect {
-    // implement/process
-    readonly implement: (gameConfig: GameConfig, ...params: any[]) => GameConfig;
+    readonly implement: EffectImplement; // implement/process
     readonly aftereffects: Effect[];
 
     constructor(
-        implementation: typeof this.implement,
-        ...aftereffects: typeof this.aftereffects
+        implementation: EffectImplement,
+        ...aftereffects: Effect[]
     ) {
         this.implement = implementation;
         this.aftereffects = aftereffects;
@@ -139,6 +145,20 @@ export class Effect {
                 let recentDamageAmountRaw: number
                 = ratios.map(stat_ratio => gameConfig.statsPostEval.get(stat_ratio[0]) * stat_ratio[1])
                 .reduce((a,b) => a + b, baseAmount);
+
+                if (damageType === DamageType.Adaptive) {
+                    switch (gameConfig.adaptiveType) {
+                        case AdaptiveType.Magic:
+                            damageType = DamageType.Magic;
+                            break;
+                        case AdaptiveType.Physical:
+                            damageType = DamageType.Physical;
+                            break;
+                        default:
+                            damageType = DamageType.True;
+                            break;
+                    }
+                }
                 
                 let recentDamage: Damage;
                 switch (damageType) {
@@ -183,14 +203,12 @@ export class Affector implements Entity {
     readonly icon: string;
     stats: DefiniteNumberMap<StatType>;
     effectsPerRank: Effect[][];
-    // singleStats or multiStats ?
-    // when stats are dynamic, maybe that can be a StatEffect?
 
     constructor(
-        name: typeof this.name, 
-        icon: typeof this.icon,
+        name: string, 
+        icon: string,
         stats: Iterable<readonly [StatType,number]> = [],
-        effectsPerRank: typeof this.effectsPerRank = []
+        effectsPerRank: Effect[][] = []
     ) {
         this.name = name;
         this.icon = icon == "" ? "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png" : icon;
@@ -205,8 +223,7 @@ export class Affector implements Entity {
                     DamageType.Physical, 
                     0,
                     [
-                        [StatType.BaseAttackDamage, 1],
-                        [StatType.BonusAttackDamage, 0],
+                        [StatType.AttackDamageTotal, 1],
                     ]
                 )
             ],
@@ -421,7 +438,7 @@ export class Item extends Affector {
                     itemMap["Immortal Path"].stats.set(StatType.DamagePhysicalAmpRatio, 0.04);
                     itemMap["Immortal Path"].stats.set(StatType.DamageTrueAmpRatio, 0.04);
                     
-                    itemMap["Swiftmarch"].stats.set(StatType.AbilityPower, 20); // practical estimate
+                    itemMap["Swiftmarch"].stats.set(StatType.AdaptiveForce, 20); // practical estimate
                     
                     itemMap["Actualizer"].effectsPerRank = [
                         [
@@ -458,7 +475,7 @@ export class Item extends Affector {
                     ];
 
                     itemMap["Dusk and Dawn"].effectsPerRank = [
-                        [Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.BaseAttackDamage,0.75],[StatType.AbilityPower,0.1]])]
+                        [Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.AttackDamageBase,0.75],[StatType.AbilityPower,0.1]])]
                     ];
 
                     itemMap["Hextech Gunblade"].effectsPerRank = [
@@ -495,7 +512,7 @@ export class Item extends Affector {
                     ];
 
                     itemMap["Lich Bane"].effectsPerRank = [
-                        [Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.AbilityPower,0.45],[StatType.BaseAttackDamage,0.75]])]
+                        [Effect.createDamageEffect(DamageType.Magic, 0, [[StatType.AbilityPower,0.45],[StatType.AttackDamageBase,0.75]])]
                     ];
 
                     itemMap["Luden's Echo"].effectsPerRank = [
@@ -655,7 +672,7 @@ export class Item extends Affector {
                     maps: {  },
                     stats: {
                         "Ability Haste": 5,
-                        "Ability Power": 8
+                        "Adaptive Force": 8
                     },
                     depth: 1,
                 },
@@ -686,7 +703,7 @@ export class Item extends Affector {
                     maps: {  },
                     stats: {
                         "Ability Haste": 10,
-                        "Ability Power": 20
+                        "Adaptive Force": 20
                     },
                     depth: 1,
                 },
@@ -726,7 +743,7 @@ export class Rune extends Affector {
     branch: RuneBranch|null;
 
     constructor(branch: RuneBranch|null, runeParams: RuneData|ConstructorParameters<typeof Affector>) {
-        if (Rune.#isRuneData(runeParams)) {
+        if (Rune.isRuneData(runeParams)) {
             super(runeParams.name, (runeParams.icon == "" ? "" : `dragontail-img/${runeParams.icon}`));
         }
         else {
@@ -743,7 +760,7 @@ export class Rune extends Affector {
         (["Nothing", ""] as ConstructorParameters<typeof Affector>)
     );
 
-    static #isRuneData(obj: any): obj is RuneData {
+    private static isRuneData(obj: any): obj is RuneData {
         const mockRuneData: RuneData = {
             id: 0,
             key: "",
@@ -802,7 +819,7 @@ export class RuneTree<T extends Rune = Rune> {
             new Shard(shardBranchA, [
                 "Adaptive Force +9", 
                 "", 
-                [[StatType.AbilityPower, 9]], 
+                [[StatType.AdaptiveForce, 9]], 
                 []
             ]),
             new Shard(shardBranchA, [
@@ -824,13 +841,13 @@ export class RuneTree<T extends Rune = Rune> {
             new Shard(shardBranchB, [
                 "Adaptive Force +9", 
                 "", 
-                [[StatType.AbilityPower, 9]], 
+                [[StatType.AdaptiveForce, 9]], 
                 []
             ]),
             new Shard(shardBranchB, [
                 "Move Speed +2.5%", 
                 "", 
-                [[StatType.MoveSpeedRatio, 0.025]], 
+                [[StatType.MoveSpeedAmpRatio, 0.025]], 
                 []
             ]),
             new Shard(shardBranchB, [
@@ -870,268 +887,145 @@ export class RuneTree<T extends Rune = Rune> {
 
     static readonly runestoneTrees: RuneTree[] = (() => {
         const runeTreeDatas: RuneTreeData[] = JSON.parse(JSON.stringify(runeTreesJSON));
-        
-        // let runeTreesDataEntries: [string, RuneTreeData][] 
-        // = Object.entries<RuneTreeData>(runeTreesObject["data"]);
+        const runeTrees: RuneTree[] = runeTreeDatas.map((runeTreeData: RuneTreeData) => RuneTree.createRunestoneTree(runeTreeData));
 
-        const runeTrees: RuneTree[] = (() => {
-            let trees = runeTreeDatas.map((runeTreeData: RuneTreeData) => RuneTree.createRunestoneTree(runeTreeData));
+        // Add unique rune stats/effects
+        try {
+            Rune.all.find(rune => rune.name == "Arcane Comet")?.effectsPerRank.push(
+                [
+                    new Effect((gameConfig: GameConfig): GameConfig => {
+                        const levelUps = gameConfig.statsPostEval.get(StatType.ChampionLevelUps);
+                        const bonusDamageFromAd = gameConfig.statsPostEval.get(StatType.AttackDamageBonusFlat) * 0.1;
+                        const bonusDamageFromAp = gameConfig.statsPostEval.get(StatType.AbilityPower) * 0.05;
+                        const damageType = bonusDamageFromAd > bonusDamageFromAp ? DamageType.Physical : DamageType.Magic;
+                        const damageMagnitude = 2 * (15 + ((100 - 15) * levelUps / 17) + bonusDamageFromAd + bonusDamageFromAp);
+            
+                        let damage: Damage;
+                        switch (damageType) {
+                            case DamageType.Magic:
+                                damage = new Damage(0, 0, damageMagnitude);
+                                break;
+                            case DamageType.Physical:
+                                damage = new Damage(0, damageMagnitude, 0);
+                                break;
+                            default:
+                                damage = new Damage(damageMagnitude, 0, 0);
+                                break;
+                        }
 
-            // Add unique rune stats/effects
-            try {
-                Rune.all.find(rune => rune.name == "Arcane Comet")?.effectsPerRank.push(
-                    [
-                        Effect.createDamageEffect(
-                            DamageType.Magic, 
-                            30,
-                            [
-                                [StatType.ChampionLevelUps, (130-30)/17],
-                                [StatType.BonusAttackDamage, 0.1],
-                                [StatType.AbilityPower, 0.05]
-                            ]
-                        )
-                    ],
-                );
-                
-                // still ought to work out adaptive damage
-                Rune.all.find(rune => rune.name == "Electrocute")?.effectsPerRank.push(
-                    [
-                        Effect.createDamageEffect(
-                            DamageType.Magic, 
-                            70,
-                            [
-                                [StatType.ChampionLevelUps, (240-70)/17],
-                                [StatType.BonusAttackDamage, 0.1],
-                                [StatType.AbilityPower, 0.05]
-                            ]
-                        )
-                    ]
-                );
+                        damage = Damage.multiply(
+                            damage, 
+                            new Damage(
+                                1 + gameConfig.statsPostEval.get(StatType.DamageTrueAmpRatio),
+                                1 + gameConfig.statsPostEval.get(StatType.DamagePhysicalAmpRatio),
+                                1 + gameConfig.statsPostEval.get(StatType.DamageMagicAmpRatio)
+                            )
+                        );
 
-                Rune.all.find(rune => rune.name == "Summon Aery")?.effectsPerRank.push(
-                    [
-                        Effect.createDamageEffect(
-                            DamageType.Magic, 
-                            10,
-                            [
-                                [StatType.ChampionLevelUps, (50-10)/17],
-                                [StatType.BonusAttackDamage, 0.1],
-                                [StatType.AbilityPower, 0.05]
-                            ]
-                        )
-                    ]
-                );
+                        damage = Damage.multiply(damage, gameConfig.defenseCoefficients);
 
-                Rune.all.find(rune => rune.name == "Scorch")?.effectsPerRank.push(
-                    [
-                        Effect.createDamageEffect(
-                            DamageType.Magic, 
-                            20,
-                            [
-                                [StatType.ChampionLevelUps, (40-20)/17],
-                            ]
-                        )
-                    ]
-                );
-            }
-            catch (error) {
-                console.error('Error adding unique rune stats/effects:', error);
-            }
+                        return new GameConfig(gameConfig, {
+                            damageAggregate: gameConfig.damageAggregate + damage.total
+                        });
+                    })
+                ],
+            );
+            
+            Rune.all.find(rune => rune.name == "Electrocute")?.effectsPerRank.push(
+                [
+                    new Effect((gameConfig: GameConfig): GameConfig => {
+                        const levelUps = gameConfig.statsPostEval.get(StatType.ChampionLevelUps);
+                        const bonusDamageFromAd = gameConfig.statsPostEval.get(StatType.AttackDamageBonusFlat) * 0.1;
+                        const bonusDamageFromAp = gameConfig.statsPostEval.get(StatType.AbilityPower) * 0.05;
+                        const damageType = bonusDamageFromAd > bonusDamageFromAp ? DamageType.Physical : DamageType.Magic;
+                        const damageMagnitude = 70 + (10 * levelUps) + bonusDamageFromAd + bonusDamageFromAp;
+            
+                        let damage: Damage;
+                        switch (damageType) {
+                            case DamageType.Magic:
+                                damage = new Damage(0, 0, damageMagnitude);
+                                break;
+                            case DamageType.Physical:
+                                damage = new Damage(0, damageMagnitude, 0);
+                                break;
+                            default:
+                                damage = new Damage(damageMagnitude, 0, 0);
+                                break;
+                        }
 
-            return trees;
-        })();
-        
-        /**
-        const runesData: ItemData[] = [
-            {
-                name: "1Shard + DRing + MidQuest",
-                description: "",
-                colloq: "",
-                plaintext: "",
-                specialRecipe: null,
-                from: [],
-                into: [],
-                image: {
-                    full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
-                    sprite: "",
-                    group: "",
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0
-                },
-                gold: {
-                    base: 0,
-                    purchasable: true,
-                    total: 400,
-                    sell: 0,
-                },
-                tags: [],
-                maps: {  },
-                stats: {
-                    "Ability Power": 27,
-                    "% Ability Power": 0.08,
-                    "% Bonus Attack Damage": 0.08
-                },
-                depth: 1,
-            },
-            {
-                name: "Mid Lane Quest",
-                description: "",
-                colloq: "",
-                plaintext: "",
-                specialRecipe: null,
-                from: [],
-                into: [],
-                image: {
-                    full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
-                    sprite: "",
-                    group: "",
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0
-                },
-                gold: {
-                    base: 0,
-                    purchasable: true,
-                    total: 0,
-                    sell: 0,
-                },
-                tags: [],
-                maps: {  },
-                stats: {
-                    "% Ability Power": 0.08,
-                    "% Bonus Attack Damage": 0.08
-                },
-                depth: 1,
-            },
-            {
-                name: "Adaptive Force Shards 1/2",
-                description: "",
-                colloq: "",
-                plaintext: "",
-                specialRecipe: null,
-                from: [],
-                into: [],
-                image: {
-                    full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-                    sprite: "",
-                    group: "",
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0
-                },
-                gold: {
-                    base: 0,
-                    purchasable: true,
-                    total: 0,
-                    sell: 0,
-                },
-                tags: [],
-                maps: {  },
-                stats: {
-                    "Ability Power": 9
-                },
-                depth: 1,
-            },
-            {
-                name: "Adaptive Force Shards 2/2",
-                description: "",
-                colloq: "",
-                plaintext: "",
-                specialRecipe: null,
-                from: [],
-                into: [],
-                image: {
-                    full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-                    sprite: "",
-                    group: "",
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0
-                },
-                gold: {
-                    base: 0,
-                    purchasable: true,
-                    total: 0,
-                    sell: 0,
-                },
-                tags: [],
-                maps: {  },
-                stats: {
-                    "Ability Power": 18
-                },
-                depth: 1,
-            },
-            {
-                name: "Jack of All Trades 05/10",
-                description: "",
-                colloq: "",
-                plaintext: "",
-                specialRecipe: null,
-                from: [],
-                into: [],
-                image: {
-                    full: "https://wiki.leagueoflegends.com/en-us/images/Jack_of_All_Trades_rune.png",
-                    sprite: "",
-                    group: "",
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0
-                },
-                gold: {
-                    base: 0,
-                    purchasable: true,
-                    total: 0,
-                    sell: 0,
-                },
-                tags: [],
-                maps: {  },
-                stats: {
-                    "Ability Haste": 5,
-                    "Ability Power": 8
-                },
-                depth: 1,
-            },
-            {
-                name: "Jack of All Trades 10/10",
-                description: "",
-                colloq: "",
-                plaintext: "",
-                specialRecipe: null,
-                from: [],
-                into: [],
-                image: {
-                    full: "https://wiki.leagueoflegends.com/en-us/images/Jack_of_All_Trades_rune.png",
-                    sprite: "",
-                    group: "",
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0
-                },
-                gold: {
-                    base: 0,
-                    purchasable: true,
-                    total: 0,
-                    sell: 0,
-                },
-                tags: [],
-                maps: {  },
-                stats: {
-                    "Ability Haste": 10,
-                    "Ability Power": 20
-                },
-                depth: 1,
-            },
-        ];
-        /**/
+                        damage = Damage.multiply(
+                            damage, 
+                            new Damage(
+                                1 + gameConfig.statsPostEval.get(StatType.DamageTrueAmpRatio),
+                                1 + gameConfig.statsPostEval.get(StatType.DamagePhysicalAmpRatio),
+                                1 + gameConfig.statsPostEval.get(StatType.DamageMagicAmpRatio)
+                            )
+                        );
 
-        return runeTrees//.filter(item => item == Item.nothing || item.stats.size > 0 || item.effectsPerRank.length > 0);
+                        damage = Damage.multiply(damage, gameConfig.defenseCoefficients);
+
+                        return new GameConfig(gameConfig, {
+                            damageAggregate: gameConfig.damageAggregate + damage.total
+                        });
+                    })
+                ],
+            );
+
+            Rune.all.find(rune => rune.name == "Summon Aery")?.effectsPerRank.push(
+                [
+                    new Effect((gameConfig: GameConfig): GameConfig => {
+                        const levelUps = gameConfig.statsPostEval.get(StatType.ChampionLevelUps);
+                        const bonusDamageFromAd = gameConfig.statsPostEval.get(StatType.AttackDamageBonusFlat) * 0.1;
+                        const bonusDamageFromAp = gameConfig.statsPostEval.get(StatType.AbilityPower) * 0.05;
+                        const damageType = bonusDamageFromAd > bonusDamageFromAp ? DamageType.Physical : DamageType.Magic;
+                        const damageMagnitude = 10 + (40 * levelUps / 17) + bonusDamageFromAd + bonusDamageFromAp;
+            
+                        let damage: Damage;
+                        switch (damageType) {
+                            case DamageType.Magic:
+                                damage = new Damage(0, 0, damageMagnitude);
+                                break;
+                            case DamageType.Physical:
+                                damage = new Damage(0, damageMagnitude, 0);
+                                break;
+                            default:
+                                damage = new Damage(damageMagnitude, 0, 0);
+                                break;
+                        }
+
+                        damage = Damage.multiply(
+                            damage, 
+                            new Damage(
+                                1 + gameConfig.statsPostEval.get(StatType.DamageTrueAmpRatio),
+                                1 + gameConfig.statsPostEval.get(StatType.DamagePhysicalAmpRatio),
+                                1 + gameConfig.statsPostEval.get(StatType.DamageMagicAmpRatio)
+                            )
+                        );
+
+                        damage = Damage.multiply(damage, gameConfig.defenseCoefficients);
+
+                        return new GameConfig(gameConfig, {
+                            damageAggregate: gameConfig.damageAggregate + damage.total
+                        });
+                    })
+                ],
+            );
+
+            Rune.all.find(rune => rune.name == "Scorch")?.effectsPerRank.push(
+                [
+                    Effect.createDamageEffect(
+                        DamageType.Magic, 
+                        20,
+                        [[StatType.ChampionLevelUps, (42.35 - 20) / 19]]
+                    )
+                ]
+            );
+        }
+        catch (error) {
+            console.error('Error adding unique rune stats/effects:', error);
+        }
+
+        return runeTrees;
     })();
 
     private static createRunestoneTree(runeTreeData: RuneTreeData): RuneTree {
@@ -1224,22 +1118,23 @@ export class Champion implements Entity {
                 ]),
             ], 
             [
+                [StatType.Armor, 21],
+                [StatType.AttackDamageBase, 53],
                 [StatType.Health, 590],
                 [StatType.HealthRegenPer5sec, 2.5],
+                [StatType.MoveSpeedBase, 330],
+                [StatType.MagicResistance, 30],
                 [StatType.Mana, 418],
                 [StatType.ManaRegenPer5sec, 8],
-                [StatType.Armor, 21],
-                [StatType.MagicResistance, 30],
-                [StatType.AttackDamageBase, 53]
             ], 
             [
+                [StatType.Armor, 4.2],
+                [StatType.AttackDamageBase, 3],
                 [StatType.Health, 104],
                 [StatType.HealthRegenPer5sec, 0.6],
+                [StatType.MagicResistance, 1.3],
                 [StatType.Mana, 25],
                 [StatType.ManaRegenPer5sec, 0.8],
-                [StatType.Armor, 4.2],
-                [StatType.MagicResistance, 1.3],
-                [StatType.AttackDamageBase, 3],
             ]
         ),
         Sylas: new Champion(
@@ -1247,22 +1142,23 @@ export class Champion implements Entity {
             "https://wiki.leagueoflegends.com/en-us/images/Sylas_OriginalSquare.png", 
             [], 
             [
+                [StatType.Armor, 29],
+                [StatType.AttackDamageBase, 61],
                 [StatType.Health, 600],
                 [StatType.HealthRegenPer5sec, 9],
+                [StatType.MagicResistance, 32],
+                [StatType.MoveSpeedBase, 340],
                 [StatType.Mana, 400],
                 [StatType.ManaRegenPer5sec, 8],
-                [StatType.Armor, 29],
-                [StatType.MagicResistance, 32],
-                [StatType.AttackDamageBase, 61]
             ], 
             [
+                [StatType.Armor, 5.2],
+                [StatType.AttackDamageBase, 3],
                 [StatType.Health, 122],
                 [StatType.HealthRegenPer5sec, 0.9],
                 [StatType.Mana, 70],
-                [StatType.ManaRegenPer5sec, 0.8],
-                [StatType.Armor, 5.2],
                 [StatType.MagicResistance, 2.55],
-                [StatType.AttackDamageBase, 3],
+                [StatType.ManaRegenPer5sec, 0.8],
             ]
         ),
     } as const;
@@ -1476,6 +1372,8 @@ export class GameConfig {
     readonly origin: GameOrigin;
     readonly champStatModifiers: DefiniteNumberMap<StatType>;
     readonly targetStatModifiers: DefiniteNumberMap<StatType>;
+    readonly adaptiveType: AdaptiveType;
+    readonly targetAdaptiveType: AdaptiveType;
     readonly damageAggregate: number;
 
     readonly statsPostEval: DefiniteNumberMap<StatType>;
@@ -1488,6 +1386,8 @@ export class GameConfig {
             originGameConfig: blueprint.origin,
             champStatModifiers: blueprint.champStatModifiers,
             targetStatModifiers: blueprint.targetStatModifiers,
+            adaptiveType: blueprint.adaptiveType,
+            targetAdaptiveType: blueprint.targetAdaptiveType,
             damageAggregate: blueprint.damageAggregate
         } : {
             originGameConfig: new GameOrigin(
@@ -1497,34 +1397,100 @@ export class GameConfig {
             ),
             champStatModifiers: new DefiniteNumberMap<StatType>(),
             targetStatModifiers: new DefiniteNumberMap<StatType>(),
+            adaptiveType: AdaptiveType.Physical,
+            targetAdaptiveType: AdaptiveType.Physical,
             damageAggregate: 0
         };
 
         this.origin = newValues.origin ?? oldValues.originGameConfig;
         this.champStatModifiers = newValues.champStatModifiers ?? oldValues.champStatModifiers;
         this.targetStatModifiers = newValues.targetStatModifiers ?? oldValues.targetStatModifiers;
+        this.adaptiveType = newValues.adaptiveType ?? oldValues.adaptiveType;
+        this.targetAdaptiveType = newValues.targetAdaptiveType ?? oldValues.targetAdaptiveType;
         this.damageAggregate = newValues.damageAggregate ?? oldValues.damageAggregate;
         
 
         this.statsPostEval 
-        = newValues.champStatModifiers || !blueprint ? 
+        = (newValues.champStatModifiers || !blueprint) ? 
         DefiniteNumberMap.sumPerKey(this.origin.champBaseStats, this.champStatModifiers, this.origin.build.buildStats) : 
         blueprint.statsPostEval;
         
         if (newValues.champStatModifiers || !blueprint) {
-            this.statsPostEval.set(StatType.AbilityPower, this.statsPostEval.get(StatType.AbilityPower) * (1 + this.statsPostEval.get(StatType.AbilityPowerAmpRatio)));
-            this.statsPostEval.set(StatType.BonusAttackDamage, this.statsPostEval.get(StatType.BonusAttackDamage) * (1 + this.statsPostEval.get(StatType.BonusAttackDamageAmpRatio)));
+            const apAmpRatio: number = this.statsPostEval.get(StatType.AbilityPowerAmpRatio);
+            let ap: number = this.statsPostEval.get(StatType.AbilityPower) * (1 + apAmpRatio);
+
+            const adBase: number = this.statsPostEval.get(StatType.AttackDamageBase);
+            const adBonusAmpRatio: number = this.statsPostEval.get(StatType.AttackDamageBonusFlatAmpRatio);
+            let adBonus: number = this.statsPostEval.get(StatType.AttackDamageBonusFlat) * (1 + adBonusAmpRatio);
+
+            const adaptiveForce: number = this.statsPostEval.get(StatType.AdaptiveForce);
+            
+            if (adBonus != ap) {
+                this.adaptiveType = adBonus > ap ? AdaptiveType.Physical : AdaptiveType.Magic;
+            }
+
+            if (this.adaptiveType === AdaptiveType.Magic) {
+                ap += adaptiveForce * (1 + apAmpRatio);
+            }
+            else {
+                adBonus += adaptiveForce * 0.6 * (1 + adBonusAmpRatio);
+            }
+
+            const speedBase: number = this.origin.champBaseStats.get(StatType.MoveSpeedBase);
+            const speedFlatBonus: number = this.statsPostEval.get(StatType.MoveSpeedBonusFlat);
+            const speedAmpRatio: number = this.statsPostEval.get(StatType.MoveSpeedAmpRatio);
+            let speedSubtotal: number = (speedBase + speedFlatBonus) * (1 + speedAmpRatio);
+            let speedComponentUncapped: number = Math.min(415, speedSubtotal);
+            let speedComponentCappedWeakly: number = 0.8 * (Math.max(0, Math.min(490, speedSubtotal) - 415));
+            let speedComponentCappedStrongly: number = 0.5 * Math.max(0, speedSubtotal - 490);
+            let speedTotal: number = speedComponentUncapped + speedComponentCappedWeakly + speedComponentCappedStrongly;
+
+            this.statsPostEval.set(StatType.AbilityPower, ap);
+            this.statsPostEval.set(StatType.AttackDamageBonusFlat, adBonus);
+            this.statsPostEval.set(StatType.AttackDamageTotal, adBase + adBonus);
+            this.statsPostEval.set(StatType.MoveSpeedTotal, speedTotal);
         }
 
 
         this.targetStatsPostEval 
-        = newValues.targetStatModifiers || !blueprint ?
+        = (newValues.targetStatModifiers || !blueprint) ?
         DefiniteNumberMap.sumPerKey(this.origin.targetBaseStats, this.targetStatModifiers) :
         blueprint.targetStatsPostEval;
         
         if (newValues.targetStatModifiers || !blueprint) {
-            this.targetStatsPostEval.set(StatType.AbilityPower, this.targetStatsPostEval.get(StatType.AbilityPower) * (1 + this.targetStatsPostEval.get(StatType.AbilityPowerAmpRatio)));
-            this.targetStatsPostEval.set(StatType.BonusAttackDamage, this.targetStatsPostEval.get(StatType.BonusAttackDamage) * (1 + this.targetStatsPostEval.get(StatType.BonusAttackDamageAmpRatio)));
+            const apAmpRatio: number = this.targetStatsPostEval.get(StatType.AbilityPowerAmpRatio);
+            let ap: number = this.targetStatsPostEval.get(StatType.AbilityPower) * (1 + apAmpRatio);
+
+            const adBase: number = this.targetStatsPostEval.get(StatType.AttackDamageBase);
+            const adBonusAmpRatio: number = this.targetStatsPostEval.get(StatType.AttackDamageBonusFlatAmpRatio);
+            let adBonus: number = this.targetStatsPostEval.get(StatType.AttackDamageBonusFlat) * (1 + adBonusAmpRatio);
+
+            const adaptiveForce: number = this.targetStatsPostEval.get(StatType.AdaptiveForce);
+            
+            if (adBonus != ap) {
+                this.targetAdaptiveType = adBonus > ap ? AdaptiveType.Physical : AdaptiveType.Magic;
+            }
+
+            if (this.targetAdaptiveType === AdaptiveType.Magic) {
+                ap += adaptiveForce * (1 + apAmpRatio);
+            }
+            else {
+                adBonus += adaptiveForce * 0.6 * (1 + adBonusAmpRatio);
+            }
+
+            const speedBase: number = this.origin.targetBaseStats.get(StatType.MoveSpeedBase);
+            const speedFlatBonus: number = this.targetStatsPostEval.get(StatType.MoveSpeedBonusFlat);
+            const speedAmpRatio: number = this.targetStatsPostEval.get(StatType.MoveSpeedAmpRatio);
+            let speedSubtotal: number = (speedBase + speedFlatBonus) * (1 + speedAmpRatio);
+            let speedComponentUncapped: number = Math.min(415, speedSubtotal);
+            let speedComponentCappedWeakly: number = 0.8 * (Math.max(0, Math.min(490, speedSubtotal) - 415));
+            let speedComponentCappedStrongly: number = 0.5 * Math.max(0, speedSubtotal - 490);
+            let speedTotal: number = speedComponentUncapped + speedComponentCappedWeakly + speedComponentCappedStrongly;
+
+            this.targetStatsPostEval.set(StatType.AbilityPower, ap);
+            this.targetStatsPostEval.set(StatType.AttackDamageBonusFlat, adBonus);
+            this.targetStatsPostEval.set(StatType.AttackDamageTotal, adBase + adBonus);
+            this.targetStatsPostEval.set(StatType.MoveSpeedTotal, speedTotal);
         }
 
 
@@ -1578,34 +1544,28 @@ export class DiffMap extends DefiniteMap<BuildConfig,GameDiff> {
         costDiff: 0,
         damageDiff: 0,
         damageDiff_ratio: 0,
-        // damage_perGold: 0,
         damageDiff_perGold: 0,
-        // relativeDamageDiff_perGold: 0,
     }
 
     readonly min_damage: number;
-    // readonly min_damage_perGold: number;
     readonly min_damageDiff_perGold: number;
-    // readonly min_relativeDamageDiff_perGold: number;
     
     constructor(entries: Iterable<readonly [BuildConfig, GameDiff]>) {
         super(DiffMap.zeroDiff, entries);
         
         let diffs = this.values().toArray();
 
-        this.min_damage = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.builtEndGameConfig.damageAggregate));
-        // this.min_damage_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damage_perGold));
-        this.min_damageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.damageDiff_perGold));
-        // this.min_relativeDamageDiff_perGold = DiffMap.#calculatePositiveMinOrZero(diffs.map(diff => diff.relativeDamageDiff_perGold));
+        this.min_damage = DiffMap.calculatePositiveMinOrZero(diffs.map(diff => diff.builtEndGameConfig.damageAggregate));
+        this.min_damageDiff_perGold = DiffMap.calculatePositiveMinOrZero(diffs.map(diff => diff.damageDiff_perGold));
     }
 
-    static #calculatePositiveMinOrZero(values: number[]) {
+    private static calculatePositiveMinOrZero(values: number[]) {
         let nonzeroValues = values.filter(value => value > 0);
         return nonzeroValues.length > 1 ? Math.min(...nonzeroValues) : (nonzeroValues[0] ?? 0);
     }
 }
 
-export function CalculateBaseStats(champ: Champion, level: number): DefiniteNumberMap<StatType> {
+export function calculateBaseStats(champ: Champion, level: number): DefiniteNumberMap<StatType> {
     let champLevelUps = Math.max(0, level - 1);
     let growthCoeffecient = champLevelUps * (0.7025 + (0.0175 * champLevelUps));
     
@@ -1631,7 +1591,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
         buildConfigs: BuildConfig[]
     ) {
         let champLevel = abilityRanks.values().reduce((a,b) => a+b, 0);
-        let champBaseStats = CalculateBaseStats(champ, champLevel);
+        let champBaseStats = calculateBaseStats(champ, champLevel);
         
         let effectsPerAbility 
         = new DefiniteMap<Ability,Effect[]>([], champ.abilities.map(

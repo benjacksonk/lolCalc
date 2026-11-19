@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BuildConfig, GameConfig, Item, ItemSlot } from "$lib/types.svelte";
+    import { BuildConfig, GameConfig, Item, ItemSlot, StatType } from "$lib/types.svelte";
     import UiAffectorIcon from "./UiAffectorIcon.svelte";
     import UiRuneSpec from "./UiRuneSpec.svelte";
     import UiStatsTooltip from "./UiStatsTooltip.svelte";
@@ -61,7 +61,20 @@
 
     <UiStatsTooltip
     bind:this={statsTooltip}
-    stats={derivedGameConfig.statsPostEval}
+    stats={
+        derivedGameConfig.statsPostEval.entries().filter(
+            ([statType, magnitude]: [StatType, number]) => 
+            ![
+                StatType.AttackDamageBase,
+                StatType.AttackDamageBonusFlat,
+                StatType.AttackDamageBonusFlatAmpRatio,
+                StatType.AbilityPowerAmpRatio, 
+                StatType.MoveSpeedBase,
+                StatType.MoveSpeedBonusFlat,
+                StatType.MoveSpeedAmpRatio,
+            ].includes(statType)
+        )
+    }
     edgeAlignment="left"
     header={"Initial Stat Totals"}
     positionPriorities={["bottom span-right", "top span-right", "right", "left"]}
