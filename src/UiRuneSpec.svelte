@@ -47,7 +47,7 @@
     </button>
     
     <div popover id={`build-${buildIndex}-runesSelector`} class="runeTreesSpec">
-        {#snippet runeTreeSpec(tree:"primary"|"secondary"|"shards")}
+        {#snippet runeTreeSpec(tree:"primary"|"secondary"|"shards", iconSize: 1|2|3|4|5|6|7|8|9)}
         <div class="runeTreeSpec">
             {#if tree != "shards"}
             <div class="treeSelector">
@@ -77,7 +77,7 @@
                     <UiIcon 
                     src={rune.icon}
                     alt={rune.name}
-                    size={4} 
+                    size={iconSize} 
                     header={rune.name}
                     caption={""}
                     background={"transparent"}
@@ -94,9 +94,9 @@
         </div>
         {/snippet}
 
-        {@render runeTreeSpec("primary")}
-        {@render runeTreeSpec("secondary")}
-        {@render runeTreeSpec("shards")}
+        {@render runeTreeSpec("primary", 4)}
+        {@render runeTreeSpec("secondary", 4)}
+        {@render runeTreeSpec("shards", 3)}
     </div>
 </div>
 

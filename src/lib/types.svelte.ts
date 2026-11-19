@@ -818,19 +818,19 @@ export class RuneTree<T extends Rune = Rune> {
         shardBranchA.runes.push(
             new Shard(shardBranchA, [
                 "Adaptive Force +9", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodsadaptiveforceicon.png", 
                 [[StatType.AdaptiveForce, 9]], 
                 []
             ]),
             new Shard(shardBranchA, [
                 "Attack Speed +10%", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodsattackspeedicon.png", 
                 [], 
                 []
             ]),
             new Shard(shardBranchA, [
                 "Ability Haste +8", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodscdrscalingicon.png", 
                 [[StatType.AbilityHaste, 8]], 
                 []
             ])
@@ -840,19 +840,19 @@ export class RuneTree<T extends Rune = Rune> {
         shardBranchB.runes.push(
             new Shard(shardBranchB, [
                 "Adaptive Force +9", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodsadaptiveforceicon.png", 
                 [[StatType.AdaptiveForce, 9]], 
                 []
             ]),
             new Shard(shardBranchB, [
                 "Move Speed +2.5%", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodsmovementspeedicon.png", 
                 [[StatType.MoveSpeedAmpRatio, 0.025]], 
                 []
             ]),
             new Shard(shardBranchB, [
                 "Health +10-200", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodshealthplusicon.png", 
                 [], 
                 []
             ])
@@ -862,19 +862,19 @@ export class RuneTree<T extends Rune = Rune> {
         shardBranchC.runes.push(
             new Shard(shardBranchC, [
                 "Health +65", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodshealthscalingicon.png", 
                 [[StatType.Health, 65]], 
                 []
             ]),
             new Shard(shardBranchC, [
                 "Tenacity & Slow Resist +15%", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodstenacityicon.png", 
                 [], 
                 []
             ]),
             new Shard(shardBranchC, [
                 "Health +10-200", 
-                "", 
+                "communitydragon-img/perkimages/statmods/statmodshealthplusicon.png", 
                 [], 
                 []
             ])
