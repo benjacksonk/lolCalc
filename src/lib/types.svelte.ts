@@ -566,7 +566,7 @@ export class Item extends Affector {
             
             const runesData: ItemData[] = [
                 {
-                    name: "1Shard + DRing + MidQuest",
+                    name: "DRing + MidQuest",
                     description: "",
                     colloq: "",
                     plaintext: "",
@@ -591,7 +591,7 @@ export class Item extends Affector {
                     tags: [],
                     maps: {  },
                     stats: {
-                        "Ability Power": 27,
+                        "Ability Power": 18,
                         "% Ability Power": 0.08,
                         "% Bonus Attack Damage": 0.08
                     },
@@ -625,66 +625,6 @@ export class Item extends Affector {
                     stats: {
                         "% Ability Power": 0.08,
                         "% Bonus Attack Damage": 0.08
-                    },
-                    depth: 1,
-                },
-                {
-                    name: "Adaptive Force Shards 1/2",
-                    description: "",
-                    colloq: "",
-                    plaintext: "",
-                    specialRecipe: null,
-                    from: [],
-                    into: [],
-                    image: {
-                        full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-                        sprite: "",
-                        group: "",
-                        x: 0,
-                        y: 0,
-                        w: 0,
-                        h: 0
-                    },
-                    gold: {
-                        base: 0,
-                        purchasable: true,
-                        total: 0,
-                        sell: 0,
-                    },
-                    tags: [],
-                    maps: {  },
-                    stats: {
-                        "Ability Power": 9
-                    },
-                    depth: 1,
-                },
-                {
-                    name: "Adaptive Force Shards 2/2",
-                    description: "",
-                    colloq: "",
-                    plaintext: "",
-                    specialRecipe: null,
-                    from: [],
-                    into: [],
-                    image: {
-                        full: "https://wiki.leagueoflegends.com/en-us/images/Rune_shard_Adaptive_Force.png",
-                        sprite: "",
-                        group: "",
-                        x: 0,
-                        y: 0,
-                        w: 0,
-                        h: 0
-                    },
-                    gold: {
-                        base: 0,
-                        purchasable: true,
-                        total: 0,
-                        sell: 0,
-                    },
-                    tags: [],
-                    maps: {  },
-                    stats: {
-                        "Ability Power": 18
                     },
                     depth: 1,
                 },
@@ -783,29 +723,42 @@ type RuneTreeData = {
 }
 
 export class Rune extends Affector {
-    branch: RuneBranch|null = null;
+    branch: RuneBranch|null;
 
-    constructor(runeParams: RuneData, branch: RuneBranch|null = null) {
-        super(runeParams.name, (runeParams.icon == "" ? "" : `dragontail-img/${runeParams.icon}`));
+    constructor(branch: RuneBranch|null, runeParams: RuneData|ConstructorParameters<typeof Affector>) {
+        if (Rune.#isRuneData(runeParams)) {
+            super(runeParams.name, (runeParams.icon == "" ? "" : `dragontail-img/${runeParams.icon}`));
+        }
+        else {
+            super(...runeParams);
+        }
+
         this.branch = branch;
         Rune.all.push(this);
     }
 
     static readonly all: Rune[] = [];
+    static readonly nothing = new Rune(
+        null, 
+        (["Nothing", ""] as ConstructorParameters<typeof Affector>)
+    );
 
-    static readonly nothing = new Rune({
-        id: -1,
-        key: "Nothing",
-        icon: "",
-        name: "Nothing",
-        shortDesc: "",
-        longDesc: "",
-    });
+    static #isRuneData(obj: any): obj is RuneData {
+        const mockRuneData: RuneData = {
+            id: 0,
+            key: "",
+            icon: "",
+            name: "",
+            shortDesc: "",
+            longDesc: "",
+        }
 
-    /**
-    static readonly runes = {
-    } as const;
-    /**/
+        const objKeys = Object.keys(obj);
+        const runeDataKeys: string[] = Object.keys(mockRuneData) as (keyof (typeof mockRuneData))[];
+        const isRuneData: boolean = runeDataKeys.every(runeDataKey => objKeys.includes(runeDataKey));
+
+        return isRuneData;
+    }
 }
 
 export class Runestone extends Rune {
@@ -818,34 +771,111 @@ export class Shard extends Rune {
 }
 
 export class RuneBranch<T extends Rune = Rune> {
-    readonly tree: RuneTree|null;
+    readonly tree: RuneTree;
     readonly runes: T[] = [];
 
-    constructor(tree: RuneTree|null = null) {
+    constructor(tree: RuneTree) {
         this.tree = tree;
     }
 }
 
-export class RuneTree {
+export class RuneTree<T extends Rune = Rune> {
     readonly id: number;
     readonly icon: string;
     readonly name: string;
     readonly branches: RuneBranch[] = [];
 
-    constructor(id: number = -1, name: string, icon: string) {
+    constructor(id: number, name: string, icon: string) {
         this.id = id;
         this.name = name;
         this.icon = icon;
+        RuneTree.all.push(this);
     }
 
-    static readonly all: RuneTree[] = (() => {
+    static readonly all: RuneTree[] = [];
+
+    static readonly shardTree: RuneTree = (() => {
+        const shardTree = new RuneTree<Shard>(-1, "Shards", "");
+
+        const shardBranchA = new RuneBranch<Shard>(shardTree);
+        shardBranchA.runes.push(
+            new Shard(shardBranchA, [
+                "Adaptive Force +9", 
+                "", 
+                [[StatType.AbilityPower, 9]], 
+                []
+            ]),
+            new Shard(shardBranchA, [
+                "Attack Speed +10%", 
+                "", 
+                [], 
+                []
+            ]),
+            new Shard(shardBranchA, [
+                "Ability Haste +8", 
+                "", 
+                [[StatType.AbilityHaste, 8]], 
+                []
+            ])
+        );
+
+        const shardBranchB = new RuneBranch<Shard>(shardTree);
+        shardBranchB.runes.push(
+            new Shard(shardBranchB, [
+                "Adaptive Force +9", 
+                "", 
+                [[StatType.AbilityPower, 9]], 
+                []
+            ]),
+            new Shard(shardBranchB, [
+                "Move Speed +2.5%", 
+                "", 
+                [[StatType.MoveSpeedRatio, 0.025]], 
+                []
+            ]),
+            new Shard(shardBranchB, [
+                "Health +10-200", 
+                "", 
+                [], 
+                []
+            ])
+        );
+
+        const shardBranchC = new RuneBranch<Shard>(shardTree);
+        shardBranchC.runes.push(
+            new Shard(shardBranchC, [
+                "Health +65", 
+                "", 
+                [[StatType.Health, 65]], 
+                []
+            ]),
+            new Shard(shardBranchC, [
+                "Tenacity & Slow Resist +15%", 
+                "", 
+                [], 
+                []
+            ]),
+            new Shard(shardBranchC, [
+                "Health +10-200", 
+                "", 
+                [], 
+                []
+            ])
+        );
+
+        shardTree.branches.push(shardBranchA, shardBranchB, shardBranchC);
+
+        return shardTree;
+    })();
+
+    static readonly runestoneTrees: RuneTree[] = (() => {
         const runeTreeDatas: RuneTreeData[] = JSON.parse(JSON.stringify(runeTreesJSON));
         
         // let runeTreesDataEntries: [string, RuneTreeData][] 
         // = Object.entries<RuneTreeData>(runeTreesObject["data"]);
 
         const runeTrees: RuneTree[] = (() => {
-            let trees = runeTreeDatas.map((runeTreeData: RuneTreeData) => RuneTree.createRuneTree(runeTreeData));
+            let trees = runeTreeDatas.map((runeTreeData: RuneTreeData) => RuneTree.createRunestoneTree(runeTreeData));
 
             // Add unique rune stats/effects
             try {
@@ -1104,16 +1134,16 @@ export class RuneTree {
         return runeTrees//.filter(item => item == Item.nothing || item.stats.size > 0 || item.effectsPerRank.length > 0);
     })();
 
-    static createRuneTree(runeTreeData: RuneTreeData): RuneTree {
+    private static createRunestoneTree(runeTreeData: RuneTreeData): RuneTree {
         const treeId = runeTreeData.id;
         const treeName = runeTreeData.name;
         const treeIcon = `dragontail-img/${runeTreeData.icon}`;
-        const tree = new RuneTree(treeId, treeName, treeIcon);
+        const tree = new RuneTree<Runestone>(treeId, treeName, treeIcon);
         
         runeTreeData.slots.forEach((slot, i) => {
             let branch = i > 0 ? new RuneBranch<Runestone>(tree) : new RuneBranch<Keystone>(tree);
             slot.runes.forEach(runeData => 
-                branch.runes.push(i > 0 ? new Runestone(runeData, branch) : new Keystone(runeData, branch))
+                branch.runes.push(i > 0 ? new Runestone(branch, runeData) : new Keystone(branch, runeData))
             );
             tree.branches.push(branch);
         });
@@ -1265,44 +1295,76 @@ export class RuneSet {
     #secondaryTree = $state<RuneTree>(RuneTree.all[1]);
     #primaryRunes = $state<[Rune, Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing]);
     #secondaryRunes = $state<[Rune, Rune]>([Rune.nothing, Rune.nothing]);
+    #shards = $state<[Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing]);
 
-    get primaryRunes() { return this.#primaryRunes; }
-    set primaryRunes(runes: [Rune, Rune, Rune, Rune]) {
-        if (this.#primaryRunes === runes) {
+    get primaryRunes(): ReadonlyArray<Runestone> { return this.#primaryRunes; }
+    
+    togglePrimaryRune(rune: Runestone) {
+        const targetTree = rune.branch?.tree;
+
+        if (!targetTree) {
             return;
         }
 
-        let trees = new Set(runes.map(rune => rune.branch?.tree ?? null)).values().filter(it => it != null).toArray();
-
-        if (trees.length > 1) {
-            throw new Error(`Runes are from multiple trees.`);
+        if (this.primaryTree != targetTree) {
+            this.primaryTree = targetTree;
+        }
+        
+        if (this.#primaryRunes.includes(rune)) {
+            this.#primaryRunes[this.#primaryRunes.indexOf(rune)] = Rune.nothing;
         }
         else {
-            if (trees.length == 1 && this.primaryTree != trees[0]) {
-                this.primaryTree = trees[0];
-            }
-                
-            this.#primaryRunes = runes;
+            this.#primaryRunes[targetTree.branches.findIndex(branch => branch.runes.includes(rune))] = rune;
         }
     }
     
-    get secondaryRunes() { return this.#secondaryRunes; }
-    set secondaryRunes(runes: [Rune, Rune]) {
-        if (this.#secondaryRunes === runes) {
+    get secondaryRunes(): ReadonlyArray<Runestone> { return this.#secondaryRunes; }
+    
+    toggleSecondaryRune(rune: Runestone) {
+        const targetTree = rune.branch?.tree;
+
+        if (!targetTree) {
             return;
         }
 
-        let trees = new Set(runes.map(rune => rune.branch?.tree ?? null)).values().filter(it => it != null).toArray();
-
-        if (trees.length > 1) {
-            throw new Error(`Runes are from multiple trees.`);
+        if (this.secondaryTree != targetTree) {
+            this.secondaryTree = targetTree;
+        }
+        
+        if (this.#secondaryRunes.includes(rune)) {
+            this.#secondaryRunes[this.#secondaryRunes.indexOf(rune)] = Rune.nothing;
         }
         else {
-            if (trees.length == 1 && this.secondaryTree != trees[0]) {
-                this.secondaryTree = trees[0];
+            let validSlotIndex = this.#secondaryRunes.findIndex(sibling => sibling.branch == rune.branch);
+
+            if (validSlotIndex == -1) {
+                validSlotIndex = this.#secondaryRunes.findIndex(slot => slot == Rune.nothing);
             }
-                
-            this.#secondaryRunes = runes;
+
+            if (validSlotIndex != -1) {
+                this.#secondaryRunes[validSlotIndex] = rune;
+            }
+
+            this.#secondaryRunes.sort(rune => 
+                rune.branch ? rune.branch.tree.branches.findIndex(branch => branch == rune.branch) : 1
+            );
+        }
+    }
+
+    get shards(): ReadonlyArray<Rune> { return this.#shards; }
+
+    toggleShard(shard: Shard) {
+        const targetTree = shard.branch?.tree;
+
+        if (!targetTree) {
+            return;
+        }
+        
+        if (this.#shards.includes(shard)) {
+            this.#shards[this.#shards.indexOf(shard)] = Rune.nothing;
+        }
+        else {
+            this.#shards[targetTree.branches.findIndex(branch => branch.runes.includes(shard))] = shard;
         }
     }
 
@@ -1312,7 +1374,7 @@ export class RuneSet {
             return;
         }
 
-        this.primaryRunes = [Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing];
+        this.#primaryRunes = [Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing];
         
         if (tree === this.secondaryTree) {
             const oldTree = this.#primaryTree;
@@ -1330,7 +1392,7 @@ export class RuneSet {
             return;
         }
 
-        this.secondaryRunes = [Rune.nothing, Rune.nothing];
+        this.#secondaryRunes = [Rune.nothing, Rune.nothing];
         
         if (tree === this.primaryTree) {
             const oldTree = this.#secondaryTree;

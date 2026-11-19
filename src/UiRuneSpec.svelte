@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BuildConfig, Rune, RuneTree } from "$lib/types.svelte";
+    import { BuildConfig, Rune, Runestone, RuneTree } from "$lib/types.svelte";
     import UiIcon from "./UiIcon.svelte";
 
     let {
@@ -9,35 +9,6 @@
         buildConfig: BuildConfig,
         buildIndex: number,
     } = $props();
-
-    function handleClickPrimaryRune(rune: Rune) {
-        if (!rune.branch) {
-            return;
-        }
-
-        const branchIndex = buildConfig.runeSet.primaryTree.branches.indexOf(rune.branch);
-        const hasRuneEquipped = buildConfig.runeSet.primaryRunes.includes(rune);
-        buildConfig.runeSet.primaryRunes[branchIndex] = hasRuneEquipped ? Rune.nothing : rune;
-    }
-
-    function handleClickSecondaryRune(rune: Rune) {
-        if (!rune.branch) {
-            return;
-        }
-        const hasRuneEquipped = buildConfig.runeSet.secondaryRunes.includes(rune);
-
-        if (hasRuneEquipped) {
-            const runeSlotIndex = buildConfig.runeSet.secondaryRunes.indexOf(rune);
-            buildConfig.runeSet.secondaryRunes[runeSlotIndex] = Rune.nothing;
-        }
-        else {
-            const validSlotIndices = buildConfig.runeSet.secondaryRunes.map<[number, boolean]>((slot, i) => [i, slot == Rune.nothing || slot.branch == rune.branch]).filter(it => it[1]).map(it => it[0]);
-            
-            if (validSlotIndices.length > 0) {
-                buildConfig.runeSet.secondaryRunes[validSlotIndices[0]] = rune;
-            }
-        }
-    }
 </script>
 
 
@@ -63,13 +34,24 @@
                 <img src={Rune.nothing.icon} alt={"No secondary runes"} class="icon size-0">
             {/if}
         </div>
+
+        <div class="shardIcons">
+            {#if buildConfig.runeSet.shards.filter(rune => rune != Rune.nothing).length > 0}
+                {#each buildConfig.runeSet.shards.filter(rune => rune !== Rune.nothing) as rune}
+                <img src={rune.icon} alt={rune.name} class="icon size-0">
+                {/each}
+            {:else}
+                <img src={Rune.nothing.icon} alt={"No shards"} class="icon size-0">
+            {/if}
+        </div>
     </button>
     
     <div popover id={`build-${buildIndex}-runesSelector`} class="runeTreesSpec">
-        {#snippet runeTreeSpec(tree:"primary"|"secondary")}
+        {#snippet runeTreeSpec(tree:"primary"|"secondary"|"shards")}
         <div class="runeTreeSpec">
+            {#if tree != "shards"}
             <div class="treeSelector">
-                {#each RuneTree.all as runeTree}
+                {#each RuneTree.all.filter(tree => (tree.branches[0].runes[0] instanceof Runestone)) as runeTree}
                 <div class="treeSlot" class:equipped={(tree == "primary" ? buildConfig.runeSet.primaryTree : buildConfig.runeSet.secondaryTree) == runeTree}>
                     <UiIcon 
                     src={runeTree.icon}
@@ -86,11 +68,12 @@
                 </div>
                 {/each}
             </div>
+            {/if}
 
-            {#each (tree == "primary" ? buildConfig.runeSet.primaryTree.branches : buildConfig.runeSet.secondaryTree.branches.slice(1)) as branch, branchIndex}
+            {#each (tree == "primary" ? buildConfig.runeSet.primaryTree.branches : tree == "secondary" ? buildConfig.runeSet.secondaryTree.branches.slice(1) : RuneTree.shardTree.branches) as branch, branchIndex}
             <div class="runeSelector">
-                {#each (tree == "primary" ? buildConfig.runeSet.primaryTree : buildConfig.runeSet.secondaryTree).branches[branchIndex + (tree == "primary" ? 0 : 1)].runes as rune, runeIndex}
-                <div class="runeSlot round" class:equipped={(tree == "primary" ? buildConfig.runeSet.primaryRunes : buildConfig.runeSet.secondaryRunes).includes(rune)}>
+                {#each (tree == "primary" ? buildConfig.runeSet.primaryTree : tree == "secondary" ? buildConfig.runeSet.secondaryTree : RuneTree.shardTree).branches[branchIndex + (tree == "primary" || tree == "shards" ? 0 : 1)].runes as rune, runeIndex}
+                <div class="runeSlot round" class:equipped={(tree == "primary" ? buildConfig.runeSet.primaryRunes : tree == "secondary" ? buildConfig.runeSet.secondaryRunes : buildConfig.runeSet.shards).includes(rune)}>
                     <UiIcon 
                     src={rune.icon}
                     alt={rune.name}
@@ -101,7 +84,7 @@
                     round={true}
                     onmousedown={(e) => {
                         e.preventDefault();
-                        tree == "primary" ? handleClickPrimaryRune(rune) : handleClickSecondaryRune(rune);
+                        tree == "primary" ? buildConfig.runeSet.togglePrimaryRune(rune) : tree == "secondary" ? buildConfig.runeSet.toggleSecondaryRune(rune) : buildConfig.runeSet.toggleShard(rune);
                     }}
                     />
                 </div>
@@ -113,6 +96,7 @@
 
         {@render runeTreeSpec("primary")}
         {@render runeTreeSpec("secondary")}
+        {@render runeTreeSpec("shards")}
     </div>
 </div>
 
@@ -141,7 +125,7 @@
         gap: 4px;
     }
 
-    .primaryRuneIcons, .secondaryRuneIcons {
+    .primaryRuneIcons, .secondaryRuneIcons, .shardIcons {
         height: stretch;
         width: max-content;
         display: flex;
