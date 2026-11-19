@@ -1297,6 +1297,16 @@ export class RuneSet {
     #secondaryRunes = $state<[Rune, Rune]>([Rune.nothing, Rune.nothing]);
     #shards = $state<[Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing]);
 
+    constructor(blueprint: RuneSet|null = null) {
+        if (!blueprint) {
+            return;
+        }
+
+        blueprint.#primaryRunes.forEach(rune => this.togglePrimaryRune(rune));
+        blueprint.#secondaryRunes.forEach(rune => this.toggleSecondaryRune(rune));
+        blueprint.#shards.forEach(rune => this.toggleShard(rune));
+    }
+
     get primaryRunes(): ReadonlyArray<Runestone> { return this.#primaryRunes; }
     
     togglePrimaryRune(rune: Runestone) {
@@ -1421,7 +1431,7 @@ export class BuildConfig {
                 new ItemSlot(blueprint.itemSet[4]),
                 new ItemSlot(blueprint.itemSet[5])
             ] as ItemSet,
-            runeSet: blueprint.runeSet,
+            runeSet: new RuneSet(blueprint.runeSet),
             affectorQueue: blueprint.affectorQueue,
         } : {
             itemSet: [
@@ -1450,7 +1460,7 @@ export class BuildConfig {
     }
 
     get buildStats(): DefiniteNumberMap<StatType> {
-        return DefiniteNumberMap.sumPerKey(...this.items.map(item => item.stats));
+        return DefiniteNumberMap.sumPerKey(...[this.items, this.runeSet.primaryRunes, this.runeSet.secondaryRunes, this.runeSet.shards].flat().map(affector => affector.stats));
     }
 }
 
