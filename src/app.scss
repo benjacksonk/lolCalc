@@ -46,16 +46,16 @@ img {
     &.icon {
         aspect-ratio: 1;
 
-        &.size-0 { width: #{sizes.$icon-0}; }
-        &.size-1 { width: #{sizes.$icon-1}; }
-        &.size-2 { width: #{sizes.$icon-2}; }
-        &.size-3 { width: #{sizes.$icon-3}; }
-        &.size-4 { width: #{sizes.$icon-4}; }
-        &.size-5 { width: #{sizes.$icon-5}; }
-        &.size-6 { width: #{sizes.$icon-6}; }
-        &.size-7 { width: #{sizes.$icon-7}; }
-        &.size-8 { width: #{sizes.$icon-8}; }
-        &.size-9 { width: #{sizes.$icon-9}; }
+        &.size-0 { --size: #{sizes.$icon-0}; width: var(--size); }
+        &.size-1 { --size: #{sizes.$icon-1}; width: var(--size); }
+        &.size-2 { --size: #{sizes.$icon-2}; width: var(--size); }
+        &.size-3 { --size: #{sizes.$icon-3}; width: var(--size); }
+        &.size-4 { --size: #{sizes.$icon-4}; width: var(--size); }
+        &.size-5 { --size: #{sizes.$icon-5}; width: var(--size); }
+        &.size-6 { --size: #{sizes.$icon-6}; width: var(--size); }
+        &.size-7 { --size: #{sizes.$icon-7}; width: var(--size); }
+        &.size-8 { --size: #{sizes.$icon-8}; width: var(--size); }
+        &.size-9 { --size: #{sizes.$icon-9}; width: var(--size); }
     }
 }
 span > img {
@@ -66,27 +66,25 @@ input[type="number"] {
     background: linear-gradient(in oklab to bottom, white 50%, #eee 81%, white);
     color: #111;
     border: none;
-    // border-top: 1px solid white;
-    box-shadow: inset 0px 1px 1px 1px #f6f6f6;
-    padding: 1px 3px;
+    padding: 4px 3px 1px;
     
-    background: #eee; // H=28 C=phi^5 Lr=100sqrt(0.5)
+    background: #ddd; // H=28 C=phi^5 Lr=100sqrt(0.5)
     box-shadow: inset 0 0 0 2px #ddd,  // H=28 C=phi^4 Lr=100cbrt(0.5)
-                inset 0 1px 3px 2px #0004;
+                inset 0 1px 3px 2px #0003;
 
     &:disabled {
         filter: contrast(50%);
     }
     &:hover {
-        background: white;
+        background: #eee;
         box-shadow: inset 0 0 0 2px #fff,
-                    inset 0 1px 3px 2px #0004;
+                    inset 0 1px 3px 2px #0003;
     }
     &:active,
     &:focus {
-        background: white;
+        background: #fff;
         box-shadow: inset 0 0 0 2px #fff,
-                    inset 0 1px 3px 2px #0004;
+                    inset 0 1px 3px 2px #0003;
     }
 }
 

@@ -28,22 +28,24 @@
 
 
 <div class="UiTargetSpec">
-    <button popovertarget="targetSelectorOptions" id="targetSelector" class="semiround lightSheerBorder">
-        <div class="iconWrapper targetSelectorIconWrapper">
+    <button popovertarget="targetSelectorOptions" id="targetSelector">
+        <div class="iconWrapper targetSelectorIconWrapper semiround lightSheerBorder">
             <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon size-9 targetChampIcon">
         </div>
     </button>
 
     <div popover id="targetSelectorOptions">
         {#each [undefined, ...Champion.all] as champ}
-        <button class="iconWrapper champOption"
+        <button class="champOption"
         onclick={(event) => {
             event.preventDefault();
             targetChampProfile = champ;
             UpdateTargetProfileStats();
         }}
         >
-            <img class:targetChampIconOverlay={!champ} src={champ?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon size-8 targetChampIcon">
+            <div class="iconWrapper semiround">
+                <img class:targetChampIconOverlay={!champ} src={champ?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon size-8 targetChampIcon">
+            </div>
         </button>
         {/each}
     </div>
@@ -100,38 +102,24 @@
         align-items: center;
     }
 
-    .targetSelectorIconWrapper {
-        overflow: hidden;
-    }
-
     .iconWrapper {
+        position: relative;
         width: max-content;
         height: max-content;
-        border: none;
+        overflow: hidden;
 
         &:has(> .targetChampIconOverlay)::before {
             contain: strict;
             content: '';
             position: absolute;
-            inset: 0;
-            box-shadow: inset 0 0 6px 6px black;
-            overflow: hidden;
-            border-radius: inherit;
+            inset: -1px;
+            box-shadow: inset 0 0 6px 7px black;
         }
-    }
-
-    .targetChampIcon {
-        background: black;
     }
 
     #targetSelector {
-        overflow: hidden;
         background: none;
-
-        & .icon {
-            overflow: hidden;
-            // border-radius: 50%;
-        }
+        border: none;
     }
 
     #targetSelectorOptions {
@@ -152,6 +140,8 @@
 
     .champOption {
         border-radius: 0;
+        border: none;
+        background: black;
     }
 
     .targetSpecControls {
@@ -166,6 +156,7 @@
         grid-column: span 2;
         display: grid;
         gap: 0.5em;
+        align-items: center;
         
         grid-template-columns: subgrid;
     }

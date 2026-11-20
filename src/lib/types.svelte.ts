@@ -222,9 +222,7 @@ export class Affector implements Entity {
                 Effect.createDamageEffect(
                     DamageType.Physical, 
                     0,
-                    [
-                        [StatType.AttackDamageTotal, 1],
-                    ]
+                    [[StatType.AttackDamageTotal, 1]]
                 )
             ],
         ]),
@@ -887,7 +885,30 @@ export class RuneTree<T extends Rune = Rune> {
 
     static readonly runestoneTrees: RuneTree[] = (() => {
         const runeTreeDatas: RuneTreeData[] = JSON.parse(JSON.stringify(runeTreesJSON));
-        const runeTrees: RuneTree[] = runeTreeDatas.map((runeTreeData: RuneTreeData) => RuneTree.createRunestoneTree(runeTreeData));
+        const runeTrees: RuneTree[] = runeTreeDatas
+        .sort((treeDataA, treeDataB) => {
+            const getTreeValue = (treeData: RuneTreeData): number => {
+                switch (treeData.name) {
+                    case "Precision":
+                        return 9;
+                    case "Domination":
+                        return 8;
+                    case "Sorcery":
+                        return 7;
+                    case "Resolve":
+                        return 6;
+                    case "Inspiration":
+                        return 5;
+                    case "Shards":
+                        return 4;
+                    default:
+                        return 0;
+                }
+            };
+
+            return getTreeValue(treeDataB) - getTreeValue(treeDataA);
+        })
+        .map((runeTreeData: RuneTreeData) => RuneTree.createRunestoneTree(runeTreeData));
 
         // Add unique rune stats/effects
         try {
@@ -1187,8 +1208,8 @@ export type ItemSet
 = [ ItemSlot, ItemSlot, ItemSlot, ItemSlot, ItemSlot, ItemSlot ];
 
 export class RuneSet {
-    #primaryTree = $state<RuneTree>(RuneTree.all[0]);
-    #secondaryTree = $state<RuneTree>(RuneTree.all[1]);
+    #primaryTree = $state<RuneTree>(RuneTree.all[1]);
+    #secondaryTree = $state<RuneTree>(RuneTree.all[2]);
     #primaryRunes = $state<[Rune, Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing]);
     #secondaryRunes = $state<[Rune, Rune]>([Rune.nothing, Rune.nothing]);
     #shards = $state<[Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing]);
