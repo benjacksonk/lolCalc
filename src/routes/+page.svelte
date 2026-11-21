@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Ability, BuildConfig, DefiniteNumberMap, StatType, type GameDiff, Champion, DiffAtlas, Affector, Rune, DiffMap } from "$lib/types.svelte";
+    import { Ability, BuildConfig, DefiniteNumberMap, StatType, type GameDiff, Champion, DiffAtlas, Affector, DiffMap } from "$lib/types.svelte";
     import { SvelteSet } from "svelte/reactivity";
     import UiAffectorSequence from "../UiAffectorSequence.svelte";
     import UiBuildSpec from "../UiBuildSpec.svelte";
@@ -71,7 +71,7 @@
 
         <div class="diffTable"
         style:grid-template-rows={`max-content repeat(${buildConfigs.length}, max-content)`}
-        style:grid-template-columns={`max-content max-content repeat(${champ.abilities.length + 1}, max-content) auto`}
+        style:grid-template-columns={`max-content max-content max-content max-content repeat(${champ.abilities.length + 1}, max-content) auto`}
         >
             <div class="toggle damageSwitchControl">
                 <span class="damageSwitchText" class:active={!inPercentages}>Damage</span>
@@ -94,7 +94,7 @@
                     disabled={buildConfigs.length <= 1}
                     >𐌢</button>
                     
-                    <div class="buildConfigAndDiffs" style:grid-column={`span ${1 + (champ.abilities.length + 1)}`}>
+                    <div class="buildConfigAndDiffs" style:grid-column={`span ${3 + champ.abilities.length + 1}`}>
                         <UiBuildSpec 
                         bind:buildConfig={buildConfigs[i]} buildIndex={i}
                         derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtInitialGameConfig}
@@ -168,8 +168,8 @@
                     affectorOptions={[
                         ...champ.abilities, 
                         ...Affector.allBasicAffectors, 
-                        ...buildConfig.runeSet.primaryRunes, 
-                        ...buildConfig.runeSet.secondaryRunes,
+                        ...buildConfig.runeSet.primaries, 
+                        ...buildConfig.runeSet.secondaries,
                         ...buildConfig.items
                     ].filter(affector => affector.effectsPerRank.length > 0)}
                     />
@@ -282,13 +282,13 @@
     }
 
     .damageSwitchControl {
-        grid-column: span 2;
+        grid-column: 2 / span 3;
         align-self: center;
-        justify-self: center;
+        justify-self: start;
         color: #fff;
+        gap: 0 0.6em;
 
         .damageSwitchText {
-            padding: 0 0.5em;
 
             :first-of-type {
                 text-align: end;
@@ -393,7 +393,7 @@
     }
 
     .abilities {
-        grid-column: 3 / -1;
+        grid-column: 5 / -1;
         display: grid;
 
         grid-auto-flow: column;

@@ -211,7 +211,7 @@ export class Affector implements Entity {
         effectsPerRank: Effect[][] = []
     ) {
         this.name = name;
-        this.icon = icon == "" ? "https://wiki.leagueoflegends.com/en-us/images/Enemy_Missing_ping.png" : icon;
+        this.icon = icon == "" ? "communitydragon-img/missing.png" : icon;
         this.stats = new DefiniteNumberMap(stats);
         this.effectsPerRank = effectsPerRank;
     }
@@ -816,19 +816,19 @@ export class RuneTree<T extends Rune = Rune> {
         shardBranchA.runes.push(
             new Shard(shardBranchA, [
                 "Adaptive Force +9", 
-                "communitydragon-img/perkimages/statmods/statmodsadaptiveforceicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsAdaptiveForceIcon.png", 
                 [[StatType.AdaptiveForce, 9]], 
                 []
             ]),
             new Shard(shardBranchA, [
                 "Attack Speed +10%", 
-                "communitydragon-img/perkimages/statmods/statmodsattackspeedicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsAttackSpeedIcon.png", 
                 [], 
                 []
             ]),
             new Shard(shardBranchA, [
                 "Ability Haste +8", 
-                "communitydragon-img/perkimages/statmods/statmodscdrscalingicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsCDRScalingIcon.png", 
                 [[StatType.AbilityHaste, 8]], 
                 []
             ])
@@ -838,19 +838,19 @@ export class RuneTree<T extends Rune = Rune> {
         shardBranchB.runes.push(
             new Shard(shardBranchB, [
                 "Adaptive Force +9", 
-                "communitydragon-img/perkimages/statmods/statmodsadaptiveforceicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsAdaptiveForceIcon.png", 
                 [[StatType.AdaptiveForce, 9]], 
                 []
             ]),
             new Shard(shardBranchB, [
                 "Move Speed +2.5%", 
-                "communitydragon-img/perkimages/statmods/statmodsmovementspeedicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsMovementSpeedIcon.png", 
                 [[StatType.MoveSpeedAmpRatio, 0.025]], 
                 []
             ]),
             new Shard(shardBranchB, [
                 "Health +10-200", 
-                "communitydragon-img/perkimages/statmods/statmodshealthplusicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsHealthPlusIcon.png", 
                 [], 
                 []
             ])
@@ -860,19 +860,19 @@ export class RuneTree<T extends Rune = Rune> {
         shardBranchC.runes.push(
             new Shard(shardBranchC, [
                 "Health +65", 
-                "communitydragon-img/perkimages/statmods/statmodshealthscalingicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsHealthScalingIcon.png", 
                 [[StatType.Health, 65]], 
                 []
             ]),
             new Shard(shardBranchC, [
                 "Tenacity & Slow Resist +15%", 
-                "communitydragon-img/perkimages/statmods/statmodstenacityicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsTenacityIcon.png", 
                 [], 
                 []
             ]),
             new Shard(shardBranchC, [
                 "Health +10-200", 
-                "communitydragon-img/perkimages/statmods/statmodshealthplusicon.png", 
+                "dragontail-img/perk-images/StatMods/StatModsHealthPlusIcon.png", 
                 [], 
                 []
             ])
@@ -1089,9 +1089,9 @@ export class Champion implements Entity {
     static readonly champs = {
         Ahri: new Champion(
             "Ahri", 
-            "https://wiki.leagueoflegends.com/en-us/images/Ahri_OriginalSquare.png", 
+            "dragontail-img/champion/Ahri.png", 
             [
-                new Ability("Orb of Deception", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Orb_of_Deception_HD.png", [], [
+                new Ability("Orb of Deception", "dragontail-img/spell/AhriQ.png", [], [
                     [
                         Effect.createDamageEffect(DamageType.Magic, 35, [[StatType.AbilityPower, 0.5]], 
                             Effect.createDamageEffect(DamageType.True, 35, [[StatType.AbilityPower, 0.5]])
@@ -1118,21 +1118,21 @@ export class Champion implements Entity {
                         )
                     ]
                 ]),
-                new Ability("Fox-Fire", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Fox-Fire_HD.png", [], [
+                new Ability("Fox-Fire", "dragontail-img/spell/AhriW.png", [], [
                     [ Effect.createDamageEffect(DamageType.Magic, 64, [[StatType.AbilityPower, 0.72]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 96, [[StatType.AbilityPower, 0.72]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 128, [[StatType.AbilityPower, 0.72]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.72]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 192, [[StatType.AbilityPower, 0.72]]) ]
                 ]),
-                new Ability("Charm", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Charm_HD.png", [], [
+                new Ability("Charm", "dragontail-img/spell/AhriE.png", [], [
                     [ Effect.createDamageEffect(DamageType.Magic, 80, [[StatType.AbilityPower, 0.85]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 120, [[StatType.AbilityPower, 0.85]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 160, [[StatType.AbilityPower, 0.85]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 200, [[StatType.AbilityPower, 0.85]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 240, [[StatType.AbilityPower, 0.85]]) ]
                 ]),
-                new Ability("Spirit Rush", "https://wiki.leagueoflegends.com/en-us/images/Ahri_Spirit_Rush_HD.png", [], [
+                new Ability("Spirit Rush", "dragontail-img/spell/AhriR.png", [], [
                     [ Effect.createDamageEffect(DamageType.Magic, 75, [[StatType.AbilityPower, 0.35]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 125, [[StatType.AbilityPower, 0.35]]) ],
                     [ Effect.createDamageEffect(DamageType.Magic, 175, [[StatType.AbilityPower, 0.35]]) ]
@@ -1160,7 +1160,7 @@ export class Champion implements Entity {
         ),
         Sylas: new Champion(
             "Sylas", 
-            "https://wiki.leagueoflegends.com/en-us/images/Sylas_OriginalSquare.png", 
+            "dragontail-img/champion/Sylas.png", 
             [], 
             [
                 [StatType.Armor, 29],
@@ -1210,8 +1210,8 @@ export type ItemSet
 export class RuneSet {
     #primaryTree = $state<RuneTree>(RuneTree.all[1]);
     #secondaryTree = $state<RuneTree>(RuneTree.all[2]);
-    #primaryRunes = $state<[Rune, Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing]);
-    #secondaryRunes = $state<[Rune, Rune]>([Rune.nothing, Rune.nothing]);
+    #primaries = $state<[Rune, Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing]);
+    #secondaries = $state<[Rune, Rune]>([Rune.nothing, Rune.nothing]);
     #shards = $state<[Rune, Rune, Rune]>([Rune.nothing, Rune.nothing, Rune.nothing]);
 
     constructor(blueprint: RuneSet|null = null) {
@@ -1219,12 +1219,14 @@ export class RuneSet {
             return;
         }
 
-        blueprint.#primaryRunes.forEach(rune => this.togglePrimaryRune(rune));
-        blueprint.#secondaryRunes.forEach(rune => this.toggleSecondaryRune(rune));
+        blueprint.#primaries.forEach(rune => this.togglePrimaryRune(rune));
+        blueprint.#secondaries.forEach(rune => this.toggleSecondaryRune(rune));
         blueprint.#shards.forEach(rune => this.toggleShard(rune));
     }
 
-    get primaryRunes(): ReadonlyArray<Runestone> { return this.#primaryRunes; }
+    get runes(): ReadonlyArray<Rune> { return [this.#primaries, this.#secondaries, this.#shards].flat(); }
+
+    get primaries(): ReadonlyArray<Runestone> { return this.#primaries; }
     
     togglePrimaryRune(rune: Runestone) {
         const targetTree = rune.branch?.tree;
@@ -1237,15 +1239,15 @@ export class RuneSet {
             this.primaryTree = targetTree;
         }
         
-        if (this.#primaryRunes.includes(rune)) {
-            this.#primaryRunes[this.#primaryRunes.indexOf(rune)] = Rune.nothing;
+        if (this.#primaries.includes(rune)) {
+            this.#primaries[this.#primaries.indexOf(rune)] = Rune.nothing;
         }
         else {
-            this.#primaryRunes[targetTree.branches.findIndex(branch => branch.runes.includes(rune))] = rune;
+            this.#primaries[targetTree.branches.findIndex(branch => branch.runes.includes(rune))] = rune;
         }
     }
     
-    get secondaryRunes(): ReadonlyArray<Runestone> { return this.#secondaryRunes; }
+    get secondaries(): ReadonlyArray<Runestone> { return this.#secondaries; }
     
     toggleSecondaryRune(rune: Runestone) {
         const targetTree = rune.branch?.tree;
@@ -1258,21 +1260,21 @@ export class RuneSet {
             this.secondaryTree = targetTree;
         }
         
-        if (this.#secondaryRunes.includes(rune)) {
-            this.#secondaryRunes[this.#secondaryRunes.indexOf(rune)] = Rune.nothing;
+        if (this.#secondaries.includes(rune)) {
+            this.#secondaries[this.#secondaries.indexOf(rune)] = Rune.nothing;
         }
         else {
-            let validSlotIndex = this.#secondaryRunes.findIndex(sibling => sibling.branch == rune.branch);
+            let validSlotIndex = this.#secondaries.findIndex(sibling => sibling.branch == rune.branch);
 
             if (validSlotIndex == -1) {
-                validSlotIndex = this.#secondaryRunes.findIndex(slot => slot == Rune.nothing);
+                validSlotIndex = this.#secondaries.findIndex(slot => slot == Rune.nothing);
             }
 
             if (validSlotIndex != -1) {
-                this.#secondaryRunes[validSlotIndex] = rune;
+                this.#secondaries[validSlotIndex] = rune;
             }
 
-            this.#secondaryRunes.sort(rune => 
+            this.#secondaries.sort(rune => 
                 rune.branch ? rune.branch.tree.branches.findIndex(branch => branch == rune.branch) : 1
             );
         }
@@ -1301,7 +1303,7 @@ export class RuneSet {
             return;
         }
 
-        this.#primaryRunes = [Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing];
+        this.#primaries = [Rune.nothing, Rune.nothing, Rune.nothing, Rune.nothing];
         
         if (tree === this.secondaryTree) {
             const oldTree = this.#primaryTree;
@@ -1319,7 +1321,7 @@ export class RuneSet {
             return;
         }
 
-        this.#secondaryRunes = [Rune.nothing, Rune.nothing];
+        this.#secondaries = [Rune.nothing, Rune.nothing];
         
         if (tree === this.primaryTree) {
             const oldTree = this.#secondaryTree;
@@ -1377,7 +1379,7 @@ export class BuildConfig {
     }
 
     get buildStats(): DefiniteNumberMap<StatType> {
-        return DefiniteNumberMap.sumPerKey(...[this.items, this.runeSet.primaryRunes, this.runeSet.secondaryRunes, this.runeSet.shards].flat().map(affector => affector.stats));
+        return DefiniteNumberMap.sumPerKey(...[this.items, this.runeSet.primaries, this.runeSet.secondaries, this.runeSet.shards].flat().map(affector => affector.stats));
     }
 }
 
