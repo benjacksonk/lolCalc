@@ -103,7 +103,7 @@
                         
                         <div class="buildDiffs" style:grid-column={`span ${champ.abilities.length + 1}`}>
                             {#snippet damageDiff(diffMap: DiffMap, diff: GameDiff, showUnits: boolean)}
-                            <button class="effectOutcome"
+                            <button class="effectOutcome unround"
                             class:absolute={absoluteDiffsToShow.has(diff)}
                             onmouseenter={(e) => { e.preventDefault(); setAbsoluteDiffs(diffMap, diff); }}
                             onmouseleave={(e) => { e.preventDefault(); clearAbsoluteDiffs(); }}
@@ -488,7 +488,6 @@
         width: 100%;
         display: grid;
         padding: 0 1em;
-        border-radius: 0;
         border: none;
         color: colors.hcl("aqua", 1, 45);
         background: linear-gradient(in oklab to bottom,

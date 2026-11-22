@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Item, type Affector } from "$lib/types.svelte";
-    import UiStatsTooltip from "./UiStatsTooltip.svelte";
+    import UiNamedValueList from "./UiNamedValueList.svelte";
+    import UiTooltip from "./UiTooltip.svelte";
 
     let {
         children,
@@ -15,29 +16,38 @@
         size: 0|1|2|3|4|5|6|7|8|9,
         showNameOnHover: boolean,
         showStatsOnHover: boolean,
-        buttonAttributes?: any
+        buttonAttributes?: any,
     } = $props();
 
-    let statsTooltip = $state<UiStatsTooltip>();
+    let tooltip = $state<UiTooltip>();
+
+    let statEntries = $derived([
+        (affector instanceof Item ? [["Gold", affector.price]] : []),
+        (showStatsOnHover ? affector.stats.entries() : [])
+    ] as [Iterable<[string, number]>, Iterable<[string, number]>]);
+
+    let hasStats = $derived(statEntries.flat().length > 0);
 </script>
 
 
 
 <div class="UiAffectorIcon">
-    <button class="iconButton" interestfor={statsTooltip?.uid} {...buttonAttributes}>
+    <button class="iconButton unround" interestfor={tooltip?.uid} {...buttonAttributes}>
         <img src={affector.icon} alt={affector.name} class={`icon size-${size}`}>
     </button>
 
     {@render children?.()}
 
-    {#if showNameOnHover || showStatsOnHover}
-    <UiStatsTooltip
-    bind:this={statsTooltip}
-    header={showNameOnHover ? affector.name : undefined} 
-    leaders={affector instanceof Item ? [["Gold", affector.price.toFixed(0)]] : []}
-    stats={showStatsOnHover ? affector.stats : []}
+    {#if showNameOnHover || (showStatsOnHover && hasStats)}
+    <UiTooltip
+    bind:this={tooltip}
+    header={showNameOnHover ? affector.name : ""} 
     positionPriorities={["bottom", "top", "left", "right"]}
-    />
+    >
+        {#if hasStats}
+        <UiNamedValueList entries={statEntries}/>
+        {/if}
+    </UiTooltip>
     {/if}
 </div>
 
@@ -52,7 +62,6 @@
 
     .iconButton {
         border: none;
-        border-radius: 0;
         display: grid;
         height: max-content;
         width: max-content;

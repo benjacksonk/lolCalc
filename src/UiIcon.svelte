@@ -15,7 +15,7 @@
         children: any,
         src: string,
         alt: string,
-        size: 0|1|2|3|4|5|6|7|8|9,
+        size: number,
         header: string,
         caption: string,
         background?: string,
@@ -23,16 +23,16 @@
         buttonAttributes?: any
     } = $props();
 
-    let statsTooltip = $state<UiTooltip>();
+    let tooltip = $state<UiTooltip>();
 </script>
 
 
 
 <div class="UiIcon">
-    <button class="iconButton" 
+    <button class="iconButton unround" 
     class:round={round == true} 
     class:semiround={round == undefined} 
-    interestfor={statsTooltip?.uid} {...buttonAttributes}
+    interestfor={tooltip?.uid} {...buttonAttributes}
     >
         {#if background}
         <img {src} {alt} class={`icon size-${size}`} style:background={background}>
@@ -45,11 +45,14 @@
 
     {#if header != "" || caption != ""}
     <UiTooltip
-    bind:this={statsTooltip}
+    bind:this={tooltip}
     header={header} 
-    caption={caption}
     positionPriorities={["bottom", "top", "left", "right"]}
-    />
+    >
+        {#if caption != ""}
+        {caption}
+        {/if}
+    </UiTooltip>
     {/if}
 </div>
 
@@ -69,10 +72,6 @@
         width: max-content;
         background: transparent;
         --zoom: 1.125;
-
-        &:not(.round):not(.semiround) {
-            border-radius: 0;
-        }
 
         > .icon {
             &.defaultBG {

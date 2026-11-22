@@ -1,14 +1,12 @@
 <script lang="ts">
     let {
-        caption = "",
-        edgeAlignment,
         header = "",
-        positionPriorities
+        positionPriorities,
+        children,
     } : {
-        caption: string,
-        edgeAlignment?: "left"|"right",
         header: string,
-        positionPriorities: string[]
+        positionPriorities: string[],
+        children: any,
     } = $props();
 
     export const uid = $props.id();
@@ -20,16 +18,18 @@
 
 
 <div popover="hint" id={uid} class="UiTooltip"
-class:alignLeftEdge={edgeAlignment == "left"}
-class:alignRightEdge={edgeAlignment == "right"}
 style:position-area={positionArea}
 style:position-try-fallbacks={positionTryFallbacks}
 >
-    {#if header}
+    {#if header != ""}
     <strong class="tooltipHeader">{header}</strong>
     {/if}
 
-    <span class="caption">{caption}</span>
+    {#if children}
+    <div class="caption">
+        {@render children?.()}
+    </div>
+    {/if}
 </div>
 
 
@@ -55,53 +55,24 @@ style:position-try-fallbacks={positionTryFallbacks}
         &:popover-open {
             display: grid;
         }
-
-        &X::before, 
-        &X::after {
-            content: "";
-            position: absolute;
-            position-anchor: inherit;
-            position-area: top;
-            // left: 50%;
-            // translate: -50%;
-            rotate: 45deg;
-            width: 12px;
-            height: 12px;
-        }
-        &X::before {
-            top: calc((-12px * (1 / 2)) - 2px);
-            background: colors.hcl("honey", 5, 40);
-        }
-        &X::after {
-            top: calc((-12px * (1 / 2)) + (2px * (sqrt(2) - 1)));
-            background: colors.hcl("honey", 5, 49);
-        }
+    }
+    .UiTooltip:has(.tooltipHeader + .caption:empty) {
+        padding: #{sizes.$cap-3} #{sizes.$cap-4};
     }
 
     .tooltipHeader {
         grid-column: span 2;
+        display: grid;
+        padding-top: 0.25em;
+        text-align: center;
         color: colors.hcl("honey", 5, 50);
+    }
+    .tooltipHeader:has(+ .caption:not(:empty)) {
         padding-bottom: 0.5em;
         border-bottom: 1px solid colors.hcl("aqua", 5, 34);
-        text-align: center;
-        display: grid;
-    }
-    .tooltipHeader,
-    .itemStat {
-    }
-    .itemStat {
-        font-weight: 600;
-        color: colors.hcl("honey", 5, 44);
     }
 
     .caption {
-        grid-column: span 2;
-        display: grid;
-        gap: 20px;
-        
-        grid-template-columns: subgrid;
-        grid-template-rows: subgrid;
-        align-items: baseline;
-        text-align: left;
+        display: flex;
     }
 </style>

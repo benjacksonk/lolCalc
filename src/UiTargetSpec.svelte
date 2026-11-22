@@ -36,7 +36,7 @@
 
     <div popover id="targetSelectorOptions">
         {#each [undefined, ...Champion.all] as champ}
-        <button class="champOption"
+        <button class="champOption unround"
         onclick={(event) => {
             event.preventDefault();
             targetChampProfile = champ;
@@ -139,7 +139,6 @@
     }
 
     .champOption {
-        border-radius: 0;
         border: none;
         background: black;
     }

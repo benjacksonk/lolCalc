@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Affector } from "$lib/types.svelte";
-    import { preventDefault } from "svelte/legacy";
     import UiAffectorIcon from "./UiAffectorIcon.svelte";
 
     let {

@@ -58,7 +58,7 @@ $_okclimits: ();
 
 @function hcl($hue, $c-index, $l-index) {
     $l: list.nth($_okls, 1 + $l-index);
-    $c: math.div(list.nth($_okclimits, 1 + $l-index) * (1 + $c-index), $_c-subdivisions);
+    $c: math.div(list.nth($_okclimits, 1 + $l-index) * (1 + $c-index), $_c-subdivisions - 1);
     $h: if(
         sass(meta.type-of($hue) == number): $hue; 
         sass(map.has-key($hues, $hue)): map.get($hues, $hue);
