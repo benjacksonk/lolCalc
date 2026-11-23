@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BuildConfig, GameConfig, Item, ItemSlot, Keystone, Rune, Runestone, RuneTree, StatType } from "$lib/types.svelte";
+    import { BuildConfig, GameConfig, Item, Keystone, Rune, Runestone, RuneTree, Shard, StatType } from "$lib/types.svelte";
     import UiAffectorIcon from "./UiAffectorIcon.svelte";
     import UiIcon from "./UiIcon.svelte";
     import UiNamedValueList from "./UiNamedValueList.svelte";
@@ -18,10 +18,6 @@
     } = $props();
 
     let tooltip = $state<UiTooltip>();
-
-    function equipItem(itemSlot: ItemSlot, item: Item) {
-        itemSlot.item = item;
-    }
 </script>
 
 
@@ -34,9 +30,9 @@
         size={4}
         showNameOnHover={true} 
         showStatsOnHover={true} 
-        popovertarget={`itemSelector-${buildIndex}-${i}`}
+        popovertarget={`build-${buildIndex}-itemSelector-${i}`}
         >
-            <div popover id={`itemSelector-${buildIndex}-${i}`} class="itemSelector">
+            <div popover id={`build-${buildIndex}-itemSelector-${i}`} class="itemSelector">
                 {#each Item.all
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .sort((a, b) => a.specialRecipe == b.id || a.from.includes(b.id) || b.into.includes(a.id) ? 1 : b.specialRecipe == a.id || b.from.includes(a.id) || a.into.includes(b.id) ? -1 : 0)
@@ -44,7 +40,7 @@
                 .sort((a, b) => a.price - b.price)
                 .sort((a, b) => a == Item.nothing ? -1 : b == Item.nothing ? 1 : 0) as item, j (item.name)
                 }
-                <UiAffectorIcon affector={item} size={4} showNameOnHover={true} showStatsOnHover={true} onmousedown={(e) => { e.preventDefault(); equipItem(itemConfig, item); }}/>
+                <UiAffectorIcon affector={item} size={4} showNameOnHover={true} showStatsOnHover={true} onmousedown={(e) => { e.preventDefault(); itemConfig.item = item; }}/>
                 {/each}
             </div>
         </UiAffectorIcon>
@@ -140,7 +136,11 @@
                     {#each (tree == "primary" ? buildConfig.runeSet.primaryTree.branches : tree == "secondary" ? buildConfig.runeSet.secondaryTree.branches.slice(1) : RuneTree.shardTree.branches) as branch, branchIndex}
                     <div class={`runeSelector ${branch.tree.name.toLowerCase()}`} class:keystoneSelector={branch.runes.some(rune => rune instanceof Keystone)}>
                         {#each (tree == "primary" ? buildConfig.runeSet.primaryTree : tree == "secondary" ? buildConfig.runeSet.secondaryTree : RuneTree.shardTree).branches[branchIndex + (tree == "primary" || tree == "shards" ? 0 : 1)].runes as rune, runeIndex}
-                        <div class="runeSlot round" class:equipped={(tree == "primary" ? buildConfig.runeSet.primaries : tree == "secondary" ? buildConfig.runeSet.secondaries : buildConfig.runeSet.shards).includes(rune)}>
+                        <div class="runeSlot round" 
+                        class:keystoneSlot={rune instanceof Keystone}
+                        class:shardSlot={rune instanceof Shard}
+                        class:equipped={(tree == "primary" ? buildConfig.runeSet.primaries : tree == "secondary" ? buildConfig.runeSet.secondaries : buildConfig.runeSet.shards).includes(rune)}
+                        >
                             <div class="slotIconWrapper">
                                 <UiIcon 
                                 src={rune.icon}
@@ -298,42 +298,60 @@
             border-right: 2px solid colors.gray(12);
         }
     }
-
-    .precision {
-        $-hue-precision: 108;
-        $-color-precision: colors.hcl(108, 2, 2);
-        --rune-color: $-color-precision;
-    }
-    .domination {
-        $-hue-domination: 28;
-        // --rune-color: colors.hcl($-hue-domination, 2, 2);
-    }
-    .sorcery {
-        $-hue-sorcery: 268;
-        // --rune-color: colors.hcl($-hue-sorcery, 2, 2);
-    }
-    .resolve {
-        $-hue-resolve: 148;
-        // --rune-color: colors.hcl($-hue-resolve, 2, 2);
-    }
-    .inspiration {
-        $-hue-inspiration: 208;
-        // --rune-color: colors.hcl($-hue-inspiration, 2, 2);
-    }
-    .precision,
-    .domination,
-    .sorcery,
-    .resolve,
-    .inspiration {
+    
+    .treeSlot, .runeSelectors {
+        &.precision {
+            background: radial-gradient(in oklab, 
+                colors.hcl(68, 5, 6) 40%,
+                colors.hcl(88, 3, 2),
+            );
+            border-color: colors.hcl(68, 5, 6);
+        }
+        &.domination {
+            background: radial-gradient(in oklab, 
+                colors.hcl(28, 5, 6) 40%,
+                colors.hcl(08, 3, 2),
+            );
+            border-color: colors.hcl(28, 5, 6);
+        }
+        &.sorcery {
+            background: radial-gradient(in oklab, 
+                colors.hcl(268, 5, 6) 40%,
+                colors.hcl(248, 3, 2),
+            );
+            border-color: colors.hcl(268, 5, 6);
+        }
+        &.resolve {
+            background: radial-gradient(in oklab, 
+                colors.hcl(148, 5, 6) 40%,
+                colors.hcl(168, 3, 2),
+            );
+            border-color: colors.hcl(148, 5, 6);
+        }
+        &.inspiration {
+            background: radial-gradient(in oklab, 
+                colors.hcl(208, 5, 6) 40%,
+                colors.hcl(188, 3, 2),
+            );
+            border-color: colors.hcl(208, 5, 6);
+        }
+        &.shards {
+            background: radial-gradient(in oklab, 
+                colors.gray(3) 40%,
+                colors.gray(1),
+            );
+            border-color: colors.gray(6);
+        }
     }
 
     .runeSelectors {
         display: flex;
         flex-flow: column nowrap;
+        justify-content: center;
         height: stretch;
         width: stretch;
+        padding: 6px 0px 12px;
         gap: 8px;
-        // justify-content: center;
     }
 
     .treeSelector, .runeSelector {
@@ -356,11 +374,11 @@
 
         &:not(.equipped) {
             .slotIconWrapper {
-                filter: opacity(74%);
+                filter: opacity(81%);
             }
 
             &:hover .slotIconWrapper {
-                filter: opacity(86%);
+                filter: opacity(90%);
             }
         }
     }
@@ -370,35 +388,34 @@
         height: stretch;
         justify-items: center;
         padding: 8px 8px;
-        // border: 2px solid transparent;
-        // margin: 0 -4px;
-
-        &.equipped {
-            // border-color: #7771;
-        }
+        border-width: 2px;
+        border-style: solid;
 
         &:not(&.equipped) {
-            background: colors.gray(2);
+            background: colors.gray(1);
+            border-color: transparent;
         }
     }
 
     .runeSelector {
         width: stretch;
         // justify-content: space-evenly;
-        // background: colors.gray(2);
-
-        &.precision, &.domination, &.sorcery, &.resolve, &.inspiration {
-            background: var(--rune-color);
-        }
+        background: transparent;
 
         .runeSlot {
             width: max-content;
             height: max-content;
-            border: 2px solid transparent;
+            border: 3px solid #0002;
             margin: 0 4px;
 
             &.equipped {
                 border-color: #dca;
+            }
+
+            &.keystoneSlot, &.shardSlot {
+                &:not(&.equipped) {
+                    border-color: transparent;
+                }
             }
         }
 

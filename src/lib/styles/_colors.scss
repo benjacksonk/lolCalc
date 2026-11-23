@@ -36,14 +36,14 @@ $_chroma-b: log($_anchor-cr, math.div($_anchor-lr, $_lr-vertex));
     @return $chroma-limit;
 }
 
-$_l-subdivisions: 51; // lightness index ranges 0 through (n - 1) indicate points between (but not including) white and black
+$_l-index-max: 50; // lightness is indexed from 0 to n, darkest to lightest (between but not including black & white).
 
 $_oklrs: ();
-@for $i from 1 through $_l-subdivisions {
-    $_oklrs: list.append($_oklrs, calculate-lr(math.div($i, $_l-subdivisions + 1)));
+@for $i from 1 through (1 + $_l-index-max) {
+    $_oklrs: list.append($_oklrs, calculate-lr(math.div($i, 1 + $_l-index-max)));
 }
 
-$_c-subdivisions: 6; // chroma index ranges 0 through (n - 1)
+$_c-index-max: 5; // chroma is indexed from 0 to n, barely to maximally saturated.
 
 $_okls: ();
 $_okclimits: ();
@@ -58,7 +58,7 @@ $_okclimits: ();
 
 @function hcl($hue, $c-index, $l-index) {
     $l: list.nth($_okls, 1 + $l-index);
-    $c: math.div(list.nth($_okclimits, 1 + $l-index) * (1 + $c-index), $_c-subdivisions - 1);
+    $c: math.div(list.nth($_okclimits, 1 + $l-index) * (1 + $c-index), 1 + $_c-index-max);
     $h: if(
         sass(meta.type-of($hue) == number): $hue; 
         sass(map.has-key($hues, $hue)): map.get($hues, $hue);
@@ -73,7 +73,12 @@ $hues: (
     "honey": 78.625,
     "green": 134.25,
     "aqua": 230.8125,
-    "blue": 245.5
+    "blue": 245.5,
+    "precision": 88,
+    "domination": 28,
+    "sorcery": 268,
+    "resolve": 148,
+    "inspiration": 208,
 );
 
 $lol-darkness: #1a1c21;
