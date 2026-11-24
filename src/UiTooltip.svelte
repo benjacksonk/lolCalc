@@ -6,7 +6,7 @@
     } : {
         header: string,
         positionPriorities: string[],
-        children: any,
+        children?: any,
     } = $props();
 
     export const uid = $props.id();

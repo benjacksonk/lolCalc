@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Affector } from "$lib/types.svelte";
-    import UiAffectorIcon from "./UiAffectorIcon.svelte";
+    import UiAffectorPopTipButton from "./UiAffectorPopTipButton.svelte";
 
     let {
         affectorQueue = $bindable(),
@@ -25,7 +25,7 @@
 
 <div class="UiAffectorSequence">
     {#each affectorQueue as affector, i}
-    <UiAffectorIcon {affector} size={4} showNameOnHover={true} showStatsOnHover={false} 
+    <UiAffectorPopTipButton {affector} size={4} nameTooltip={true} showTooltip={false} 
     onmousedown={(e) => { e.preventDefault(); removeAffectorApplication(i); }}
     />
     {/each}
@@ -35,7 +35,7 @@
         
         <div popover id={`addAffectorOptions-${uid}`} class="affectorOptions">
             {#each affectorOptions as affector, j (affector.name)}
-            <UiAffectorIcon {affector} size={5} showNameOnHover={true} showStatsOnHover={false}
+            <UiAffectorPopTipButton {affector} size={5} nameTooltip={true} showTooltip={false}
             onmousedown={(e) => { e.preventDefault(); appendAffectorApplication(affector); }}
             />
             {/each}

@@ -1204,7 +1204,7 @@ export class ItemSlot {
     }
 }
 
-export type ItemSet
+export type ItemSlotSet
 = [ ItemSlot, ItemSlot, ItemSlot, ItemSlot, ItemSlot, ItemSlot ];
 
 export class RuneSet {
@@ -1335,7 +1335,7 @@ export class RuneSet {
 }
 
 export class BuildConfig {
-    itemSet: ItemSet;
+    itemSlots: ItemSlotSet;
     runeSet: RuneSet;
     affectorQueue: Affector[];
     
@@ -1343,13 +1343,13 @@ export class BuildConfig {
         let oldValues 
         = blueprint instanceof BuildConfig ? {
             itemSet: [
-                new ItemSlot(blueprint.itemSet[0]),
-                new ItemSlot(blueprint.itemSet[1]),
-                new ItemSlot(blueprint.itemSet[2]),
-                new ItemSlot(blueprint.itemSet[3]),
-                new ItemSlot(blueprint.itemSet[4]),
-                new ItemSlot(blueprint.itemSet[5])
-            ] as ItemSet,
+                new ItemSlot(blueprint.itemSlots[0]),
+                new ItemSlot(blueprint.itemSlots[1]),
+                new ItemSlot(blueprint.itemSlots[2]),
+                new ItemSlot(blueprint.itemSlots[3]),
+                new ItemSlot(blueprint.itemSlots[4]),
+                new ItemSlot(blueprint.itemSlots[5])
+            ] as ItemSlotSet,
             runeSet: new RuneSet(blueprint.runeSet),
             affectorQueue: blueprint.affectorQueue,
         } : {
@@ -1360,22 +1360,22 @@ export class BuildConfig {
                 new ItemSlot(), 
                 new ItemSlot(), 
                 new ItemSlot()
-            ] as ItemSet,
+            ] as ItemSlotSet,
             runeSet: new RuneSet(),
             affectorQueue: [],
         };
 
-        this.itemSet = $state(newValues.itemSet ?? oldValues.itemSet);
+        this.itemSlots = $state(newValues.itemSlots ?? oldValues.itemSet);
         this.runeSet = $state(newValues.runeSet ?? oldValues.runeSet);
         this.affectorQueue = $state([...(newValues.affectorQueue ?? oldValues.affectorQueue)]);
     }
 
     get items(): Item[] {
-        return this.itemSet.map(itemConfig => itemConfig.item).filter(item => item != null);
+        return this.itemSlots.map(itemConfig => itemConfig.item).filter(item => item != null);
     }
 
     get totalCost(): number {
-        return this.itemSet.map(itemConfig => itemConfig.item.price).reduce((a,b) => a + b, 0);
+        return this.itemSlots.map(itemConfig => itemConfig.item.price).reduce((a,b) => a + b, 0);
     }
 
     get buildStats(): DefiniteNumberMap<StatType> {
@@ -1630,7 +1630,7 @@ export class DiffAtlas extends DefiniteMap<Affector|null, DiffMap> {
                 let builtEffects 
                 = buildConfig.affectorQueue.flatMap((affector): Effect[] => 
                     affector instanceof Ability ? effectsPerAbility.get(affector) : 
-                    affector instanceof Item ? affector.effectsPerRank[buildConfig.itemSet.find(itemConfig => itemConfig.item == affector)?.rank ?? 0] : 
+                    affector instanceof Item ? affector.effectsPerRank[buildConfig.itemSlots.find(itemConfig => itemConfig.item == affector)?.rank ?? 0] : 
                     affector.effectsPerRank[0]
                 );
 

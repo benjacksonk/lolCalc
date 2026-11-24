@@ -1,58 +1,29 @@
 <script lang="ts">
-    import UiTooltip from "./UiTooltip.svelte";
+    import type { HTMLImgAttributes } from "svelte/elements";
+
+    interface UiIconProps extends HTMLImgAttributes {
+        size: number;
+        round?: boolean;
+        background?: string;
+    }
 
     let {
-        children,
-        src,
-        alt = "",
         size,
-        header = "",
-        caption = "",
-        background = undefined,
         round = undefined,
-        ...buttonAttributes
-    } : {
-        children: any,
-        src: string,
-        alt: string,
-        size: number,
-        header: string,
-        caption: string,
-        background?: string,
-        round?: boolean,
-        buttonAttributes?: any
-    } = $props();
+        background = undefined,
+        ...rest
+    }: UiIconProps = $props();
 
-    let tooltip = $state<UiTooltip>();
+    let roundness = $derived(round == undefined ? "semiround" : round ? "round" : "unround");
 </script>
 
 
 
-<div class="UiIcon">
-    <button class="iconButton unround" 
-    class:round={round == true} 
-    class:semiround={round == undefined} 
-    interestfor={tooltip?.uid} {...buttonAttributes}
-    >
-        {#if background}
-        <img {src} {alt} class={`icon size-${size}`} style:background={background}>
-        {:else}
-        <img {src} {alt} class={`icon size-${size} defaultBG`}>
-        {/if}
-    </button>
-
-    {@render children?.()}
-
-    {#if header != "" || caption != ""}
-    <UiTooltip
-    bind:this={tooltip}
-    header={header} 
-    positionPriorities={["bottom", "top", "left", "right"]}
-    >
-        {#if caption != ""}
-        {caption}
-        {/if}
-    </UiTooltip>
+<div class={`UiIcon ${roundness}`}>
+    {#if background}
+    <img class={`icon size-${size}`} style:background={background} {...rest}>
+    {:else}
+    <img class={`icon size-${size} ${roundness} defaultBG`} {...rest}>
     {/if}
 </div>
 
@@ -65,18 +36,9 @@
         width: max-content;
     }
 
-    .iconButton {
-        border: none;
-        display: grid;
-        height: max-content;
-        width: max-content;
-        background: transparent;
-        --zoom: 1.125;
-
-        > .icon {
-            &.defaultBG {
-                background: linear-gradient(in oklab to bottom, colors.hcl("aqua", 0, 5), colors.hcl("blue", 0, 4));
-            }
+    .icon {
+        &.defaultBG {
+            background: linear-gradient(in oklab to bottom, colors.hcl("aqua", 0, 5), colors.hcl("blue", 0, 4));
         }
     }
 </style>

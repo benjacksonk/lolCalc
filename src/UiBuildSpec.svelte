@@ -1,8 +1,9 @@
 <script lang="ts">
     import { BuildConfig, GameConfig, Item, Keystone, Rune, Runestone, RuneTree, Shard, StatType } from "$lib/types.svelte";
-    import UiAffectorIcon from "./UiAffectorIcon.svelte";
+    import UiAffectorPopTipButton from "./UiAffectorPopTipButton.svelte";
     import UiIcon from "./UiIcon.svelte";
     import UiNamedValueList from "./UiNamedValueList.svelte";
+    import UiPopTipButton from "./UiPopTipButton.svelte";
     import UiTooltip from "./UiTooltip.svelte";
 
     let {
@@ -18,32 +19,26 @@
     } = $props();
 
     let tooltip = $state<UiTooltip>();
+
+    let merchItems = $derived(Item.all
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .sort((a, b) => a.specialRecipe == b.id || a.from.includes(b.id) || b.into.includes(a.id) ? 1 : b.specialRecipe == a.id || b.from.includes(a.id) || a.into.includes(b.id) ? -1 : 0)
+        .sort((a, b) => a.depth() - b.depth())
+        .sort((a, b) => a.price - b.price)
+        .sort((a, b) => a == Item.nothing ? -1 : b == Item.nothing ? 1 : 0)
+    );
 </script>
 
 
 
 <div class="UiBuildSpec">
     <div class="itemSlotGrid">
-        {#each buildConfig.itemSet as itemConfig, i}
-        <UiAffectorIcon 
-        affector={itemConfig.item} 
-        size={4}
-        showNameOnHover={true} 
-        showStatsOnHover={true} 
-        popovertarget={`build-${buildIndex}-itemSelector-${i}`}
-        >
-            <div popover id={`build-${buildIndex}-itemSelector-${i}`} class="itemSelector">
-                {#each Item.all
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .sort((a, b) => a.specialRecipe == b.id || a.from.includes(b.id) || b.into.includes(a.id) ? 1 : b.specialRecipe == a.id || b.from.includes(a.id) || a.into.includes(b.id) ? -1 : 0)
-                .sort((a, b) => a.depth() - b.depth())
-                .sort((a, b) => a.price - b.price)
-                .sort((a, b) => a == Item.nothing ? -1 : b == Item.nothing ? 1 : 0) as item, j (item.name)
-                }
-                <UiAffectorIcon affector={item} size={4} showNameOnHover={true} showStatsOnHover={true} onmousedown={(e) => { e.preventDefault(); itemConfig.item = item; }}/>
-                {/each}
-            </div>
-        </UiAffectorIcon>
+        {#each buildConfig.itemSlots as itemSlot, i}
+        <UiAffectorPopTipButton affector={itemSlot.item} size={4}>
+            {#each merchItems as merchItem, j (merchItem.name)}
+            <UiAffectorPopTipButton affector={merchItem} size={4} onmousedown={(e) => { e.preventDefault(); itemSlot.item = merchItem; }}/>
+            {/each}
+        </UiAffectorPopTipButton>
         {/each}
     </div>
     
@@ -114,18 +109,13 @@
                     class:equipped={(tree == "primary" ? buildConfig.runeSet.primaryTree : buildConfig.runeSet.secondaryTree) == runeTree}
                     >
                         <div class="slotIconWrapper">
-                            <UiIcon 
-                            src={runeTree.icon}
-                            alt={runeTree.name}
-                            size={1} 
-                            header={runeTree.name}
-                            caption={""}
-                            background={"transparent"}
-                            onmousedown={(e) => {
+                            <UiPopTipButton plain={true} round={false} tooltipHeader={runeTree.name} onmousedown={(e) => {
                                 e.preventDefault();
                                 tree == "primary" ? (buildConfig.runeSet.primaryTree = runeTree) : (buildConfig.runeSet.secondaryTree = runeTree);
                             }}
-                            />
+                            >
+                                <UiIcon size={1} src={runeTree.icon} alt={runeTree.name} background={"transparent"}/>
+                            </UiPopTipButton>
                         </div>
                     </div>
                     {/each}
@@ -142,19 +132,17 @@
                         class:equipped={(tree == "primary" ? buildConfig.runeSet.primaries : tree == "secondary" ? buildConfig.runeSet.secondaries : buildConfig.runeSet.shards).includes(rune)}
                         >
                             <div class="slotIconWrapper">
-                                <UiIcon 
-                                src={rune.icon}
-                                alt={rune.name}
-                                size={(rune instanceof Keystone ? Math.min(9, iconSize + 2) : iconSize)} 
-                                header={rune.name}
-                                caption={""}
-                                background={"transparent"}
-                                round={true}
-                                onmousedown={(e) => {
+                                <UiPopTipButton plain={true} round={true} tooltipHeader={rune.name} onmousedown={(e) => {
                                     e.preventDefault();
                                     tree == "primary" ? buildConfig.runeSet.togglePrimaryRune(rune) : tree == "secondary" ? buildConfig.runeSet.toggleSecondaryRune(rune) : buildConfig.runeSet.toggleShard(rune);
                                 }}
-                                />
+                                >
+                                    <UiIcon 
+                                    size={(rune instanceof Keystone ? Math.min(9, iconSize + 2) : iconSize)} 
+                                    src={rune.icon} alt={rune.name} background={"transparent"}
+                                    round={true}
+                                    />
+                                </UiPopTipButton>
                             </div>
                         </div>
                         {/each}
@@ -221,23 +209,6 @@
     .affectorButton {
         display: flex;
 		transform-origin: bottom center;
-    }
-
-    .itemSelector {
-		box-shadow:	shadows.$box-shadow-sup;
-        background: colors.gray(2);
-        border: 2px solid colors.gray(12);
-        border-radius: 3px;
-        grid-auto-rows: max-content;
-        grid-template-columns: repeat(11, max-content);
-        gap: 2px;
-        overflow: visible;
-        position-area: bottom span-right;
-        position-try-fallbacks: top span-right, right, left;
-
-        &:popover-open {
-            display: grid;
-        }
     }
     
     .runesSpec {
