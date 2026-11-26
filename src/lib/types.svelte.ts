@@ -249,6 +249,25 @@ export class Ability extends Affector {
     }
 }
 
+export class Quest extends Affector {
+    constructor(...params: ConstructorParameters<typeof Affector>) {
+        super(...params);
+        Quest.all.push(this);
+    }
+
+    static readonly all: Quest[] = [];
+    static readonly nothing = new Quest("Nothing", "", []);
+    static readonly top = new Quest("Top Lane", "https://wiki.leagueoflegends.com/en-us/images/Top_icon.png", []);
+    static readonly jungle = new Quest("Jungle", "https://wiki.leagueoflegends.com/en-us/images/Jungle_icon.png", []);
+    static readonly mid = new Quest(
+        "Mid Lane", 
+        "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png", 
+        [[StatType.AbilityPowerAmpRatio, 0.08], [StatType.AttackDamageBonusFlatAmpRatio, 0.08]]
+    );
+    static readonly bot = new Quest("Bot Lane", "https://wiki.leagueoflegends.com/en-us/images/Bottom_icon.png", []);
+    static readonly support = new Quest("Support", "https://wiki.leagueoflegends.com/en-us/images/Support_icon.png", []);
+}
+
 type ItemData = {
     name: string,
     description: string,
@@ -580,69 +599,6 @@ export class Item extends Affector {
             })();
             
             const runesData: ItemData[] = [
-                {
-                    name: "DRing + MidQuest",
-                    description: "",
-                    colloq: "",
-                    plaintext: "",
-                    specialRecipe: null,
-                    from: [],
-                    into: [],
-                    image: {
-                        full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
-                        sprite: "",
-                        group: "",
-                        x: 0,
-                        y: 0,
-                        w: 0,
-                        h: 0
-                    },
-                    gold: {
-                        base: 0,
-                        purchasable: true,
-                        total: 400,
-                        sell: 0,
-                    },
-                    tags: [],
-                    maps: {  },
-                    stats: {
-                        "Ability Power": 18,
-                        "% Ability Power": 0.08,
-                        "% Bonus Attack Damage": 0.08
-                    },
-                    depth: 1,
-                },
-                {
-                    name: "Mid Lane Quest",
-                    description: "",
-                    colloq: "",
-                    plaintext: "",
-                    specialRecipe: null,
-                    from: [],
-                    into: [],
-                    image: {
-                        full: "https://wiki.leagueoflegends.com/en-us/images/Middle_icon.png",
-                        sprite: "",
-                        group: "",
-                        x: 0,
-                        y: 0,
-                        w: 0,
-                        h: 0
-                    },
-                    gold: {
-                        base: 0,
-                        purchasable: true,
-                        total: 0,
-                        sell: 0,
-                    },
-                    tags: [],
-                    maps: {  },
-                    stats: {
-                        "% Ability Power": 0.08,
-                        "% Bonus Attack Damage": 0.08
-                    },
-                    depth: 1,
-                },
                 {
                     name: "Jack of All Trades 05/10",
                     description: "",
@@ -1337,6 +1293,7 @@ export class RuneSet {
 export class BuildConfig {
     itemSlots: ItemSlotSet;
     runeSet: RuneSet;
+    quest: Quest;
     affectorQueue: Affector[];
     
     constructor(blueprint?: BuildConfig, newValues: Partial<BuildConfig> = {}) {
@@ -1352,6 +1309,7 @@ export class BuildConfig {
             ] as ItemSlotSet,
             runeSet: new RuneSet(blueprint.runeSet),
             affectorQueue: blueprint.affectorQueue,
+            quest: blueprint.quest,
         } : {
             itemSet: [
                 new ItemSlot(), 
@@ -1363,10 +1321,12 @@ export class BuildConfig {
             ] as ItemSlotSet,
             runeSet: new RuneSet(),
             affectorQueue: [],
+            quest: Quest.nothing,
         };
 
         this.itemSlots = $state(newValues.itemSlots ?? oldValues.itemSet);
         this.runeSet = $state(newValues.runeSet ?? oldValues.runeSet);
+        this.quest = $state(newValues.quest ?? oldValues.quest);
         this.affectorQueue = $state([...(newValues.affectorQueue ?? oldValues.affectorQueue)]);
     }
 
@@ -1379,7 +1339,7 @@ export class BuildConfig {
     }
 
     get buildStats(): DefiniteNumberMap<StatType> {
-        return DefiniteNumberMap.sumPerKey(...[this.items, this.runeSet.primaries, this.runeSet.secondaries, this.runeSet.shards].flat().map(affector => affector.stats));
+        return DefiniteNumberMap.sumPerKey(...[this.items, this.runeSet.equippedRunes, this.quest].flat().map(affector => affector.stats));
     }
 }
 

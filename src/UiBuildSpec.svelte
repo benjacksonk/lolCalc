@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BuildConfig, GameConfig, Item, Keystone, Rune, Runestone, RuneTree, Shard, StatType } from "$lib/types.svelte";
+    import { BuildConfig, GameConfig, Item, Keystone, Quest, Rune, Runestone, RuneTree, Shard, StatType } from "$lib/types.svelte";
     import UiAffectorPopTipButton from "./UiAffectorPopTipButton.svelte";
     import UiIcon from "./UiIcon.svelte";
     import UiNamedValueList from "./UiNamedValueList.svelte";
@@ -111,7 +111,23 @@
         <div class="runeTreesSpec display-row size-max">
             {#snippet runeTreeSpec(tree:"primary"|"secondary"|"shards", iconSize: 0|1|2|3|4|5|6|7|8|9)}
             <div class="runeTreeSpec display-column width-max height-stretch">
-                {#if tree != "shards"}
+                {#if tree == "shards"}
+                <div class="questSelector display-row width-stretch height-max">
+                    {#each Quest.all.filter(quest => quest != Quest.nothing) as quest}
+                    <UiPopTipButton tooltipHeader={quest.name}>
+                        {#snippet trigger({ props })}
+                        <button {...props}
+                        class={`questSlot background-none border-none unround size-stretch ${quest.name.toLowerCase()}`}
+                        class:equipped={quest == buildConfig.quest}
+                        onmousedown={(e) => buildConfig.quest = (buildConfig.quest == quest ? Quest.nothing : quest)}
+                        >
+                            <UiIcon size={2} src={quest.icon} alt={quest.name} background={"transparent"}/>
+                        </button>
+                        {/snippet}
+                    </UiPopTipButton>
+                    {/each}
+                </div>
+                {:else}
                 <div class="treeSelector display-row width-stretch height-max">
                     {#each RuneTree.all.filter(tree => (tree.branches[0].runes[0] instanceof Runestone)) as runeTree}
                     <UiPopTipButton tooltipHeader={runeTree.name}>
@@ -160,7 +176,7 @@
 
             {@render runeTreeSpec("primary", 4)}
             {@render runeTreeSpec("secondary", 4)}
-            {@render runeTreeSpec("shards", 3)}
+            {@render runeTreeSpec("shards", 4)}
         </div>
         {/snippet}
 
@@ -290,6 +306,14 @@
             border-color: colors.gray(6);
         }
     }
+    
+    .questSlot {
+        background: radial-gradient(in oklab, 
+            colors.hcl(98, 5, 4) 40%,
+            colors.hcl(78, 3, 2),
+        );
+        border-color: colors.hcl(98, 5, 6);
+    }
 
     .runeSelectors {
         display: flex;
@@ -301,11 +325,11 @@
         gap: 8px;
     }
 
-    .treeSelector, .runeSelector {
+    .treeSelector, .questSelector, .runeSelector {
         justify-content: center;
     }
 
-    .runeSlot, .treeSlot {
+    .runeSlot, .questSlot, .treeSlot {
         transition: ease-out 0.09s;
 
         &.keystoneSlot {
@@ -321,7 +345,7 @@
         }
     }
 
-    .treeSlot {
+    .treeSlot, .questSlot {
         padding: 8px;
         border-width: 2px;
         border-style: solid;
