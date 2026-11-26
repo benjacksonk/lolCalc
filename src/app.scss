@@ -39,24 +39,9 @@ input[type="number"], .text-math
 img {
     max-width: 100%;
     max-height: 100%;
+    box-sizing: content-box;
     object-fit: contain;
     display: block;
-    box-sizing: content-box;
-
-    &.icon {
-        aspect-ratio: 1;
-
-        &.size-0 { --size: #{sizes.$icon-0}; width: var(--size); }
-        &.size-1 { --size: #{sizes.$icon-1}; width: var(--size); }
-        &.size-2 { --size: #{sizes.$icon-2}; width: var(--size); }
-        &.size-3 { --size: #{sizes.$icon-3}; width: var(--size); }
-        &.size-4 { --size: #{sizes.$icon-4}; width: var(--size); }
-        &.size-5 { --size: #{sizes.$icon-5}; width: var(--size); }
-        &.size-6 { --size: #{sizes.$icon-6}; width: var(--size); }
-        &.size-7 { --size: #{sizes.$icon-7}; width: var(--size); }
-        &.size-8 { --size: #{sizes.$icon-8}; width: var(--size); }
-        &.size-9 { --size: #{sizes.$icon-9}; width: var(--size); }
-    }
 }
 span > img {
     display: inline-block;
@@ -101,7 +86,7 @@ button {
 }
 button:not([disabled]) {
     position: relative;
-    transition: 0s ease-out;
+    transition: 0.0s ease-out;
     cursor: pointer;
 }
 
@@ -112,10 +97,11 @@ button[interestfor] {
     interest-delay: 0s;
 }
 
-.plain {
-    padding: 0;
-    margin: 0;
+.background-none {
     background: none;
+}
+
+.border-none {
     border: none;
 }
 
@@ -191,6 +177,10 @@ button:not([disabled]),
     }
 }
 
+.invisible {
+    visibility: hidden;
+}
+
 .unround {
     border-radius: 0;
 }
@@ -201,6 +191,45 @@ button:not([disabled]),
     border-radius: 9999px;
 }
 
-.invisible {
-    visibility: hidden;
+.display-column {
+    display: flex;
+    flex-flow: column nowrap;
+}
+.display-columns {
+    display: flex;
+    flex-flow: column wrap;
+}
+.display-row {
+    display: flex;
+    flex-flow: row nowrap;
+}
+.display-rows {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.width-stretch, .size-stretch {
+    width: stretch;
+}
+.width-fit, .size-fit {
+    width: fit-content;
+}
+.width-min, .size-min {
+    width: min-content;
+}
+.width-max, .size-max {
+    width: max-content;
+}
+
+.height-stretch, .size-stretch {
+    height: stretch;
+}
+.height-fit, .size-fit {
+    height: fit-content;
+}
+.height-min, .size-min {
+    height: min-content;
+}
+.height-max, .size-max {
+    height: max-content;
 }

@@ -1,32 +1,35 @@
 <script lang="ts">
+    type NamedValuePair = [string, number];
+
     let {
         entries,
     } : {
-        entries: [Iterable<[string, number]>, Iterable<[string, number]>],
+        entries: [ArrayLike<NamedValuePair>, ArrayLike<NamedValuePair>],
     } = $props();
 </script>
 
 
 
-<div class="UiNamedValueList">
-    {#snippet tableEntry(isPriority: boolean, [name, value]: [string, number], isPercent: boolean = false)}
-    <span class="entry" class:prominentEntry={isPriority}>
-        <span class="entryValue text-math">
-            {#if isPercent}
-                {parseFloat((value * 100).toFixed(2))}%
-            {:else}
-                {parseFloat((value).toFixed(2))}
-            {/if}
-        </span>
-
-        {#if isPriority}
-            <b class="entryName">{name}</b>
+{#snippet tableEntry(isPriority: boolean, [name, value]: [string, number], isPercent: boolean = false)}
+<span class="entry" class:prominentEntry={isPriority}>
+    <span class="entryValue text-math">
+        {#if isPercent}
+            {parseFloat((value * 100).toFixed(2))}%
         {:else}
-            <span class="entryName text-passage">{name}</span>
+            {parseFloat((value).toFixed(2))}
         {/if}
     </span>
-    {/snippet}
 
+    {#if isPriority}
+        <b class="entryName">{name}</b>
+    {:else}
+        <span class="entryName text-passage">{name}</span>
+    {/if}
+</span>
+{/snippet}
+
+{#if entries.flat().length > 0}
+<div class="UiNamedValueList">
     {#each entries[0] as priorityEntry}
     {@render tableEntry(true, priorityEntry, priorityEntry[0].includes("%"))}
     {/each}
@@ -35,6 +38,7 @@
     {@render tableEntry(false, nonpriorityEntry, nonpriorityEntry[0].includes("%"))}
     {/each}
 </div>
+{/if}
 
 
 

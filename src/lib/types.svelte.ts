@@ -1224,7 +1224,7 @@ export class RuneSet {
         blueprint.#shards.forEach(rune => this.toggleShard(rune));
     }
 
-    get runes(): ReadonlyArray<Rune> { return [this.#primaries, this.#secondaries, this.#shards].flat(); }
+    get equippedRunes(): ReadonlyArray<Rune> { return [this.#primaries, this.#secondaries, this.#shards].flat().filter(rune => rune != Rune.nothing); }
 
     get primaries(): ReadonlyArray<Runestone> { return this.#primaries; }
     

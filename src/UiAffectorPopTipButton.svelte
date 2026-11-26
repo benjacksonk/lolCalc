@@ -4,38 +4,47 @@
     import UiNamedValueList from "./UiNamedValueList.svelte";
     import UiPopTipButton from "./UiPopTipButton.svelte";
     import UiIcon from "./UiIcon.svelte";
+    import type { Snippet } from "svelte";
     
-    interface UiAffectorIconProps extends HTMLButtonAttributes {
+    interface Props extends HTMLButtonAttributes {
+        zoom?: number;
         affector: Affector;
         size: 0|1|2|3|4|5|6|7|8|9;
-        children?: any;
+        classes?: string;
+        children?: Snippet;
     }
 
     let {
+        zoom = 1.125,
         affector,
         size,
+        classes = "",
         children,
         ...rest
-    }: UiAffectorIconProps = $props();
+    }: Props = $props();
 
-    let statEntries = $derived([
+    let statEntries = $derived<[ArrayLike<[string, number]>, ArrayLike<[string, number]>]>([
         (affector instanceof Item ? [["Gold", affector.price]] : []),
-        affector.stats.entries()
-    ] as [Iterable<[string, number]>, Iterable<[string, number]>]);
+        affector.stats.entries().toArray()
+    ]);
 </script>
 
 
 
-<UiPopTipButton plain={true} round={false} tooltipHeader={affector.name} {...rest}>
-    <UiIcon {size} round={false} src={affector.icon} alt={affector.name}/>
+<UiPopTipButton tooltipHeader={affector.name}>
+    {#snippet trigger({ props })}
+    <button style:--zoom={zoom} { ...props } class={classes} {...rest}>
+        <UiIcon {size} src={affector.icon} alt={affector.name} classes={"unround"}/>
+    </button>
+    {/snippet}
 
     {#snippet popoverContent()}
     {@render children?.()}
     {/snippet}
 
-    {#if statEntries.flat().length > 0}
     {#snippet tooltipContent()}
+    {#if statEntries.flat().length > 0}
     <UiNamedValueList entries={statEntries}/>
-    {/snippet}
     {/if}
+    {/snippet}
 </UiPopTipButton>

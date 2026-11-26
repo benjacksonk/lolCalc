@@ -1,29 +1,30 @@
 <script lang="ts">
-    import type { HTMLImgAttributes } from "svelte/elements";
-
-    interface UiIconProps extends HTMLImgAttributes {
-        size: number;
-        round?: boolean;
+    interface Props {
+        size?: number;
+        boxSizing?: "content-box"|"border-box"|"inherit"|"initial"|"revert"|"revert-layer"|"unset";
+        src: string;
+        alt?: string;
+        classes?: string;
         background?: string;
     }
 
     let {
         size,
-        round = undefined,
+        boxSizing = "content-box",
+        src,
+        alt = "",
+        classes = "",
         background = undefined,
-        ...rest
-    }: UiIconProps = $props();
-
-    let roundness = $derived(round == undefined ? "semiround" : round ? "round" : "unround");
+    }: Props = $props();
 </script>
 
 
 
-<div class={`UiIcon ${roundness}`}>
+<div class={`${size != undefined ? `UiIcon UiIcon-size-${size}` : "UiIcon"} ${classes}`} style:box-sizing={boxSizing}>
     {#if background}
-    <img class={`icon size-${size}`} style:background={background} {...rest}>
+    <img {src} {alt} style:background={background}>
     {:else}
-    <img class={`icon size-${size} ${roundness} defaultBG`} {...rest}>
+    <img {src} {alt} class={`UiIcon-defaultBG`}>
     {/if}
 </div>
 
@@ -31,14 +32,23 @@
 
 <style lang="scss">
     .UiIcon {
-        display: grid;
-        height: max-content;
-        width: max-content;
-    }
+        display: flex;
+        aspect-ratio: 1;
+        overflow: hidden;
 
-    .icon {
-        &.defaultBG {
-            background: linear-gradient(in oklab to bottom, colors.hcl("aqua", 0, 5), colors.hcl("blue", 0, 4));
-        }
+        &.UiIcon-size-0 { --size: #{sizes.$icon-0}; width: var(--size); }
+        &.UiIcon-size-1 { --size: #{sizes.$icon-1}; width: var(--size); }
+        &.UiIcon-size-2 { --size: #{sizes.$icon-2}; width: var(--size); }
+        &.UiIcon-size-3 { --size: #{sizes.$icon-3}; width: var(--size); }
+        &.UiIcon-size-4 { --size: #{sizes.$icon-4}; width: var(--size); }
+        &.UiIcon-size-5 { --size: #{sizes.$icon-5}; width: var(--size); }
+        &.UiIcon-size-6 { --size: #{sizes.$icon-6}; width: var(--size); }
+        &.UiIcon-size-7 { --size: #{sizes.$icon-7}; width: var(--size); }
+        &.UiIcon-size-8 { --size: #{sizes.$icon-8}; width: var(--size); }
+        &.UiIcon-size-9 { --size: #{sizes.$icon-9}; width: var(--size); }
+    }
+    
+    .UiIcon-defaultBG {
+        background: linear-gradient(in oklab to bottom, colors.hcl("aqua", 0, 5), colors.hcl("blue", 0, 4));
     }
 </style>

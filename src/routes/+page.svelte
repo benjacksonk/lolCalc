@@ -5,6 +5,7 @@
     import UiBuildSpec from "../UiBuildSpec.svelte";
     import UiChampSpec from "../UiChampSpec.svelte";
     import UiTargetSpec from "../UiTargetSpec.svelte";
+    import UiIcon from "../UiIcon.svelte";
 
     let champ: Champion 
     = $state(Champion.all[0]);
@@ -26,10 +27,6 @@
     
     let inPercentages: boolean 
     = $state(false);
-
-    function duplicateBuild(insertionIndex: number,buildConfig: BuildConfig) {
-        buildConfigs.splice(insertionIndex, 0, new BuildConfig(buildConfig));
-    }
 
     function deleteBuild(lastBuild: BuildConfig) {
         buildConfigs.splice(buildConfigs.indexOf(lastBuild), 1);
@@ -60,18 +57,16 @@
         <div class="bg-noisy-luminosity"></div>
     </div>
 
-    <div class="content">
+    <div class="content display-column">
         <div class="champSpecs">
             <UiChampSpec bind:champ bind:abilityRanks/>
-            <div class="vsBox">
-                <div>vs</div>
-            </div>
+            <span>vs</span>
             <UiTargetSpec bind:targetBaseStats/>
         </div>
 
-        <div class="diffTable"
-        style:grid-template-rows={`max-content repeat(${buildConfigs.length}, max-content)`}
-        style:grid-template-columns={`max-content max-content max-content max-content repeat(${champ.abilities.length + 1}, max-content) auto`}
+        <div class="diffTable height-stretch"
+        style:grid-template-rows={`repeat(${1 + buildConfigs.length}, max-content)`}
+        style:grid-template-columns={`repeat(${4 + champ.abilities.length + 1}, max-content) auto`}
         >
             <div class="toggle damageSwitchControl">
                 <span class="damageSwitchText" class:active={!inPercentages}>Damage</span>
@@ -82,7 +77,7 @@
 
             <div class="abilities">
                 {#each champ.abilities as ability, i (ability.name)}
-                <img src={ability.icon} alt={ability.name} class="icon size-4 semiround lightSheerBorder">
+                <UiIcon size={4} src={ability.icon} alt={ability.name} classes="semiround lightSheerBorder"/>
                 {/each}
             </div>
 
@@ -96,9 +91,10 @@
                     
                     <div class="buildConfigAndDiffs" style:grid-column={`span ${3 + champ.abilities.length + 1}`}>
                         <UiBuildSpec 
-                        bind:buildConfig={buildConfigs[i]} buildIndex={i}
+                        bind:buildConfigs={buildConfigs}
+                        bind:buildConfig={buildConfigs[i]} 
+                        buildIndex={i}
                         derivedGameConfig={diffAtlas.get(null).get(buildConfig).builtInitialGameConfig}
-                        onclick={(e) => { e.preventDefault(); duplicateBuild(i, buildConfig)}}
                         />
                         
                         <div class="buildDiffs" style:grid-column={`span ${champ.abilities.length + 1}`}>
@@ -262,9 +258,6 @@
     }
     
     .content {
-        display: flex;
-
-        flex-flow: column nowrap;
         overflow: hidden hidden;
     }
 
@@ -380,7 +373,6 @@
     }
     
     .diffTable {
-        height: stretch;
         overflow: hidden auto;
         padding: 10px 10px;
         background: linear-gradient(in oklab to top, colors.hcl("blue", 4, 1), transparent);

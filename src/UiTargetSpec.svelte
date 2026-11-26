@@ -1,5 +1,7 @@
 <script lang="ts">
     import { calculateBaseStats, Champion, DefiniteNumberMap, StatType } from "$lib/types.svelte";
+    import UiIcon from "./UiIcon.svelte";
+    import UiPopTipButton from "./UiPopTipButton.svelte";
 
     let {
         targetBaseStats = $bindable()
@@ -16,6 +18,8 @@
     let usesCustomProfile: boolean
     = $derived(targetChampProfile == null);
 
+    const customTargetChampName = "Custom Target";
+
     function UpdateTargetProfileStats() {
         if (targetChampProfile == null) {
             return;
@@ -28,27 +32,43 @@
 
 
 <div class="UiTargetSpec">
-    <button popovertarget="targetSelectorOptions" id="targetSelector">
-        <div class="iconWrapper targetSelectorIconWrapper semiround lightSheerBorder">
-            <img class:targetChampIconOverlay={usesCustomProfile} src={targetChampProfile?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon size-9 targetChampIcon">
-        </div>
-    </button>
-
-    <div popover id="targetSelectorOptions">
-        {#each [undefined, ...Champion.all] as champ}
-        <button class="champOption unround"
-        onclick={(event) => {
-            event.preventDefault();
-            targetChampProfile = champ;
-            UpdateTargetProfileStats();
-        }}
-        >
-            <div class="iconWrapper semiround">
-                <img class:targetChampIconOverlay={!champ} src={champ?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} alt={targetChampProfile?.name ?? "Target Dummy"} class="icon size-8 targetChampIcon">
+    <UiPopTipButton tooltipHeader={targetChampProfile?.name ?? customTargetChampName}>
+        {#snippet trigger({ props })}
+        <button { ...props } class="champButton background-none border-none semiround lightSheerBorder">
+            <div class="champIconWrapper" class:targetChampIconOverlay={usesCustomProfile}>
+                <UiIcon size={9} 
+                src={targetChampProfile?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} 
+                alt={targetChampProfile?.name ?? customTargetChampName}
+                />
             </div>
         </button>
-        {/each}
-    </div>
+        {/snippet}
+
+        {#snippet popoverContent()}
+            {#each [undefined, ...Champion.all] as champ}
+            <UiPopTipButton tooltipHeader={champ?.name ?? customTargetChampName}>
+                {#snippet trigger({ props })}
+                <button {...props}
+                class="champButton border-none unround"
+                style:background="black"
+                onclick={(event) => {
+                    event.preventDefault();
+                    targetChampProfile = champ;
+                    UpdateTargetProfileStats();
+                }}>
+                    <div class="champIconWrapper" class:targetChampIconOverlay={!champ}>
+                        <UiIcon 
+                        size={8}
+                        src={champ?.icon ?? "https://wiki.leagueoflegends.com/en-us/images/On_Duty%21.png"} 
+                        alt={targetChampProfile?.name ?? customTargetChampName} 
+                        />
+                    </div>
+                </button>
+                {/snippet}
+            </UiPopTipButton>
+            {/each}
+        {/snippet}
+    </UiPopTipButton>
 
     <div class="targetSpecControls">
         <label class="control">
@@ -102,21 +122,6 @@
         align-items: center;
     }
 
-    .iconWrapper {
-        position: relative;
-        width: max-content;
-        height: max-content;
-        overflow: hidden;
-
-        &:has(> .targetChampIconOverlay)::before {
-            contain: strict;
-            content: '';
-            position: absolute;
-            inset: -1px;
-            box-shadow: inset 0 0 6px 7px black;
-        }
-    }
-
     #targetSelector {
         background: none;
         border: none;
@@ -138,9 +143,19 @@
         }
     }
 
-    .champOption {
-        border: none;
-        background: black;
+    .champIconWrapper {
+        overflow: hidden;
+        border-radius: inherit;
+
+        &.targetChampIconOverlay::before {
+            contain: strict;
+            content: '';
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 6px 6px black;
+            overflow: hidden;
+            border-radius: inherit;
+        }
     }
 
     .targetSpecControls {

@@ -4,21 +4,20 @@
     import UiIcon from "./UiIcon.svelte";
     import UiNamedValueList from "./UiNamedValueList.svelte";
     import UiPopTipButton from "./UiPopTipButton.svelte";
-    import UiTooltip from "./UiTooltip.svelte";
+    
+    interface Props {
+        buildConfigs: BuildConfig[];
+        buildConfig: BuildConfig;
+        buildIndex: number;
+        derivedGameConfig: GameConfig;
+    }
 
     let {
+        buildConfigs = $bindable(),
         buildConfig = $bindable(),
         buildIndex,
         derivedGameConfig,
-        ...priceButtonAttributes
-    } : {
-        buildConfig: BuildConfig,
-        buildIndex: number,
-        derivedGameConfig: GameConfig,
-        priceButtonAttributes: any
-    } = $props();
-
-    let tooltip = $state<UiTooltip>();
+    }: Props = $props();
 
     let merchItems = $derived(Item.all
         .sort((a, b) => a.name.localeCompare(b.name))
@@ -27,6 +26,22 @@
         .sort((a, b) => a.price - b.price)
         .sort((a, b) => a == Item.nothing ? -1 : b == Item.nothing ? 1 : 0)
     );
+
+    let initialStats = $derived<[ArrayLike<[string, number]>, ArrayLike<[string, number]>]>([
+        new Array<[string, number]>(),
+        derivedGameConfig.statsPostEval.entries().filter(
+            ([statType, magnitude]: [StatType, number]) => 
+            ![
+                StatType.AttackDamageBase,
+                StatType.AttackDamageBonusFlat,
+                StatType.AttackDamageBonusFlatAmpRatio,
+                StatType.AbilityPowerAmpRatio, 
+                StatType.MoveSpeedBase,
+                StatType.MoveSpeedBonusFlat,
+                StatType.MoveSpeedAmpRatio,
+            ].includes(statType)
+        ).toArray()
+    ]);
 </script>
 
 
@@ -34,117 +49,108 @@
 <div class="UiBuildSpec">
     <div class="itemSlotGrid">
         {#each buildConfig.itemSlots as itemSlot, i}
-        <UiAffectorPopTipButton affector={itemSlot.item} size={4}>
-            {#each merchItems as merchItem, j (merchItem.name)}
-            <UiAffectorPopTipButton affector={merchItem} size={4} onmousedown={(e) => { e.preventDefault(); itemSlot.item = merchItem; }}/>
-            {/each}
+        <UiAffectorPopTipButton affector={itemSlot.item} size={4} classes={"background-none border-none unround"}>
+            <div class="merchItems">
+                {#each merchItems as merchItem, j (merchItem.name)}
+                <UiAffectorPopTipButton affector={merchItem} size={4} classes={"background-none border-none unround"} onmousedown={(e) => itemSlot.item = merchItem }/>
+                {/each}
+            </div>
         </UiAffectorPopTipButton>
         {/each}
     </div>
     
     {#snippet runeIconList(runes: ReadonlyArray<Rune>, size: 0|1|2|3|4|5|6|7|8|9)}
     {#if runes.length > 0}
-    <div class="runeIconList">
+    <div class="runeIconList height-stretch width-max display-column">
         {#each runes as rune}
-        <img src={rune.icon} alt={rune.name} class={`icon size-${size}`}>
+        <UiIcon {size} src={rune.icon} alt={rune.name} background={"transparent"}/>
         {/each}
     </div>
     {/if}
     {/snippet}
 
-    <button class="keystoneAndPriceButton unround" interestfor={tooltip?.uid} {...priceButtonAttributes}>
-        {#if buildConfig.runeSet.primaries[0] != Rune.nothing}
-        {@render runeIconList([buildConfig.runeSet.primaries[0]], 7)}
-        {/if}
+    <UiPopTipButton tooltipHeader={"Initial Stat Totals"}>
+        {#snippet trigger({ props })}
+        <button { ...props }
+        style:--zoom={1} 
+        class="background-none border-none unround display-column size-stretch" 
+        onclick={ (e) => buildConfigs.splice(buildIndex, 0, new BuildConfig(buildConfig)) }
+        >
+            {#if buildConfig.runeSet.primaries[0] != Rune.nothing}
+            {@render runeIconList([buildConfig.runeSet.primaries[0]], 7)}
+            {/if}
 
-        <span class="price">
-            <span class="amount text-math">{buildConfig.totalCost.toFixed(0)}</span>
-            <span class="unit">g</span>
-        </span>
-    </button>
+            <span class="price">
+                <span class="amount text-math">{buildConfig.totalCost.toFixed(0)}</span>
+                <span class="unit">g</span>
+            </span>
+        </button>
+        {/snippet}
 
-    <UiTooltip
-    bind:this={tooltip}
-    header={"Initial Stat Totals"}
-    positionPriorities={["bottom span-right", "top span-right", "right", "left"]}
-    >
-        <UiNamedValueList entries={[
-            [],
-            derivedGameConfig.statsPostEval.entries().filter(
-                ([statType, magnitude]: [StatType, number]) => 
-                ![
-                    StatType.AttackDamageBase,
-                    StatType.AttackDamageBonusFlat,
-                    StatType.AttackDamageBonusFlatAmpRatio,
-                    StatType.AbilityPowerAmpRatio, 
-                    StatType.MoveSpeedBase,
-                    StatType.MoveSpeedBonusFlat,
-                    StatType.MoveSpeedAmpRatio,
-                ].includes(statType)
-            )
-        ]}
-        />
-    </UiTooltip>
+        {#snippet tooltipContent()}
+        <UiNamedValueList entries={initialStats}/>
+        {/snippet}
+    </UiPopTipButton>
 
-    <div class="runesSpec">
-        <button class="runeSpecButton unround" popovertarget={`build-${buildIndex}-runesSelector`}>
-            {#if buildConfig.runeSet.runes.filter(rune => rune != Rune.nothing && !(rune instanceof Keystone)).length > 0}
+    <UiPopTipButton tooltipHeader={"Runes"}>
+        {#snippet trigger({ props })}
+        <button { ...props }
+        style:--zoom={1}
+        class={"runeSpecButtonContents display-row background-none border-none unround"}>
+            {#if buildConfig.runeSet.equippedRunes.filter(rune => rune != Rune.nothing && !(rune instanceof Keystone)).length > 0}
                 {@render runeIconList(buildConfig.runeSet.primaries.slice(1).filter(rune => rune !== Rune.nothing), 1)}
                 {@render runeIconList(buildConfig.runeSet.secondaries.filter(rune => rune !== Rune.nothing), 1)}
                 {@render runeIconList(buildConfig.runeSet.shards.filter(rune => rune !== Rune.nothing), 1)}
             {:else}
-                <div class="genericRuneIconWrapper">
-                    <img src={"dragontail-img/perk-images/Styles/RunesIcon.png"} alt={"No runes"} class="icon size-0">
-                </div>
+                <UiIcon size={1} src={"dragontail-img/perk-images/Styles/RunesIcon.png"} alt={"No runes"} background={"transparent"}/>
             {/if}
         </button>
+        {/snippet}
         
-        <div popover id={`build-${buildIndex}-runesSelector`} class="runeTreesSpec">
+        {#snippet popoverContent()}
+        <div class="runeTreesSpec display-row size-max">
             {#snippet runeTreeSpec(tree:"primary"|"secondary"|"shards", iconSize: 0|1|2|3|4|5|6|7|8|9)}
-            <div class="runeTreeSpec">
+            <div class="runeTreeSpec display-column width-max height-stretch">
                 {#if tree != "shards"}
-                <div class="treeSelector">
+                <div class="treeSelector display-row width-stretch height-max">
                     {#each RuneTree.all.filter(tree => (tree.branches[0].runes[0] instanceof Runestone)) as runeTree}
-                    <div class={`treeSlot ${(tree == "primary" ? buildConfig.runeSet.primaryTree : tree == "secondary" ? buildConfig.runeSet.secondaryTree : RuneTree.shardTree).name.toLowerCase()}`}
-                    class:equipped={(tree == "primary" ? buildConfig.runeSet.primaryTree : buildConfig.runeSet.secondaryTree) == runeTree}
-                    >
-                        <div class="slotIconWrapper">
-                            <UiPopTipButton plain={true} round={false} tooltipHeader={runeTree.name} onmousedown={(e) => {
-                                e.preventDefault();
-                                tree == "primary" ? (buildConfig.runeSet.primaryTree = runeTree) : (buildConfig.runeSet.secondaryTree = runeTree);
-                            }}
-                            >
-                                <UiIcon size={1} src={runeTree.icon} alt={runeTree.name} background={"transparent"}/>
-                            </UiPopTipButton>
-                        </div>
-                    </div>
+                    <UiPopTipButton tooltipHeader={runeTree.name}>
+                        {#snippet trigger({ props })}
+                        <button {...props}
+                        class={`treeSlot background-none border-none unround size-stretch ${runeTree.name.toLowerCase()}`}
+                        class:equipped={runeTree == (tree == "primary" ? buildConfig.runeSet.primaryTree : buildConfig.runeSet.secondaryTree)}
+                        onmousedown={(e) => (tree == "primary" ? (buildConfig.runeSet.primaryTree = runeTree) : (buildConfig.runeSet.secondaryTree = runeTree))}
+                        >
+                            <UiIcon size={2} src={runeTree.icon} alt={runeTree.name} background={"transparent"}/>
+                        </button>
+                        {/snippet}
+                    </UiPopTipButton>
                     {/each}
                 </div>
                 {/if}
 
                 <div class={`runeSelectors ${(tree == "primary" ? buildConfig.runeSet.primaryTree : tree == "secondary" ? buildConfig.runeSet.secondaryTree : RuneTree.shardTree).name.toLowerCase()}`}>
                     {#each (tree == "primary" ? buildConfig.runeSet.primaryTree.branches : tree == "secondary" ? buildConfig.runeSet.secondaryTree.branches.slice(1) : RuneTree.shardTree.branches) as branch, branchIndex}
-                    <div class={`runeSelector ${branch.tree.name.toLowerCase()}`} class:keystoneSelector={branch.runes.some(rune => rune instanceof Keystone)}>
+                    <div class={`runeSelector display-row width-stretch height-max ${branch.tree.name.toLowerCase()}`} class:keystoneSelector={branch.runes.some(rune => rune instanceof Keystone)}>
                         {#each (tree == "primary" ? buildConfig.runeSet.primaryTree : tree == "secondary" ? buildConfig.runeSet.secondaryTree : RuneTree.shardTree).branches[branchIndex + (tree == "primary" || tree == "shards" ? 0 : 1)].runes as rune, runeIndex}
-                        <div class="runeSlot round" 
-                        class:keystoneSlot={rune instanceof Keystone}
-                        class:shardSlot={rune instanceof Shard}
-                        class:equipped={(tree == "primary" ? buildConfig.runeSet.primaries : tree == "secondary" ? buildConfig.runeSet.secondaries : buildConfig.runeSet.shards).includes(rune)}
-                        >
-                            <div class="slotIconWrapper">
-                                <UiPopTipButton plain={true} round={true} tooltipHeader={rune.name} onmousedown={(e) => {
-                                    e.preventDefault();
-                                    tree == "primary" ? buildConfig.runeSet.togglePrimaryRune(rune) : tree == "secondary" ? buildConfig.runeSet.toggleSecondaryRune(rune) : buildConfig.runeSet.toggleShard(rune);
-                                }}
-                                >
-                                    <UiIcon 
-                                    size={(rune instanceof Keystone ? Math.min(9, iconSize + 2) : iconSize)} 
-                                    src={rune.icon} alt={rune.name} background={"transparent"}
-                                    round={true}
-                                    />
-                                </UiPopTipButton>
-                            </div>
-                        </div>
+                        <UiPopTipButton tooltipHeader={rune.name}>
+                            {#snippet trigger({ props })}
+                            <button { ...props }
+                            class={`runeSlot background-none border-none round`}
+                            class:keystoneSlot={rune instanceof Keystone}
+                            class:shardSlot={rune instanceof Shard}
+                            class:equipped={(tree == "primary" ? buildConfig.runeSet.primaries : tree == "secondary" ? buildConfig.runeSet.secondaries : buildConfig.runeSet.shards).includes(rune)}
+                            onmousedown={(e) => tree == "primary" ? buildConfig.runeSet.togglePrimaryRune(rune) : tree == "secondary" ? buildConfig.runeSet.toggleSecondaryRune(rune) : buildConfig.runeSet.toggleShard(rune) }>
+                                <UiIcon 
+                                size={(rune instanceof Keystone ? Math.min(9, iconSize + 2) : iconSize)} 
+                                src={rune.icon} 
+                                alt={rune.name} 
+                                background={"transparent"}
+                                classes={`round`}
+                                />
+                            </button>
+                            {/snippet}
+                        </UiPopTipButton>
                         {/each}
                     </div>
                     {/each}
@@ -156,7 +162,18 @@
             {@render runeTreeSpec("secondary", 4)}
             {@render runeTreeSpec("shards", 3)}
         </div>
-    </div>
+        {/snippet}
+
+        {#snippet tooltipContent()}
+        {#if buildConfig.runeSet.equippedRunes.length > 0}
+        <div class="display-column">
+        {#each buildConfig.runeSet.equippedRunes as rune}
+            <span>{rune.name}</span>
+        {/each}
+        </div>
+        {/if}
+        {/snippet}
+    </UiPopTipButton>
 </div>
 
 
@@ -172,15 +189,6 @@
         grid-template: 1fr / subgrid;
         align-content: center;
     }
-
-    .keystoneAndPriceButton {
-        width: stretch;
-        height: stretch;
-        background: none;
-        border: none;
-        display: flex;
-        flex-flow: column nowrap;
-    }
     
     .price {
         height: stretch;
@@ -192,8 +200,6 @@
         justify-content: center;
         text-align: right;
         padding: 0 0.5em;
-        border: none;
-        background: none;
         gap: 0 0.125em;
         color: colors.hcl("honey", 5, 42);
         font-weight: 500;
@@ -205,66 +211,36 @@
         grid-template: repeat(2, minmax(0,1fr)) / repeat(3, minmax(0,1fr));
         gap: 2px;
     }
-
-    .affectorButton {
-        display: flex;
-		transform-origin: bottom center;
-    }
     
-    .runesSpec {
+    .merchItems {
+        background: colors.gray(2);
+        padding: 1px;
         display: grid;
+        grid-auto-rows: max-content;
+        grid-template-columns: repeat(11, max-content);
+        gap: 2px;
     }
 
-    .runeSpecButton {
-        display: flex;
-        flex-flow: row nowrap;
+    .runeSpecButtonContents {
         justify-content: stretch;
-        background: none;
-        border: none;
         padding: 0 6px;
         gap: 0 8px;
     }
 
-    .genericRuneIconWrapper {
-        width: stretch;
-        height: stretch;
-        display: grid;
-        align-content: center;
-        justify-content: center;
-    }
-
     .runeIconList {
-        height: stretch;
-        width: max-content;
-        display: flex;
-        flex-flow: column nowrap;
         justify-content: space-evenly;
         pointer-events: none;
     }
 
     .runeTreesSpec {
-        width: max-content;
-        height: max-content;
-        flex-flow: row nowrap;
         overflow: visible;
 		box-shadow:	shadows.$box-shadow-sup;
         background: colors.gray(2);
         border: 2px solid colors.gray(12);
         border-radius: 3px;
-        position-area: bottom span-right;
-        position-try-fallbacks: top span-right, right, left;
-
-        &:popover-open {
-            display: flex;
-        }
     }
 
     .runeTreeSpec {
-        display: flex;
-        flex-flow: column nowrap;
-        width: max-content;
-        height: stretch;
-
         &:not(&:last-of-type) {
             border-right: 2px solid colors.gray(12);
         }
@@ -326,39 +302,27 @@
     }
 
     .treeSelector, .runeSelector {
-        width: stretch;
-        height: max-content;
-        display: flex;
-        flex-flow: row nowrap;
         justify-content: center;
     }
 
-    .treeSelector {
-    }
-
     .runeSlot, .treeSlot {
-        .slotIconWrapper {
-            width: max-content;
-            height: max-content;
-            display: flex;
+        transition: ease-out 0.09s;
+
+        &.keystoneSlot {
+            filter: drop-shadow(0 0 3px #0004);
         }
 
-        &:not(.equipped) {
-            .slotIconWrapper {
-                filter: opacity(81%);
-            }
+        &:not(.equipped):not(&:hover) {
+            filter: opacity(84%);
+        }
 
-            &:hover .slotIconWrapper {
-                filter: opacity(90%);
-            }
+        &.equipped:hover {
+            filter: brightness(109%);
         }
     }
 
     .treeSlot {
-        width: stretch;
-        height: stretch;
-        justify-items: center;
-        padding: 8px 8px;
+        padding: 8px;
         border-width: 2px;
         border-style: solid;
 

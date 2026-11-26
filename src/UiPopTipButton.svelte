@@ -1,38 +1,37 @@
 <script lang="ts">
     import type { HTMLButtonAttributes } from "svelte/elements";
     import UiTooltip from "./UiTooltip.svelte";
+    import type { Snippet } from "svelte";
 
-    interface UiPopoverTipButtonProps extends HTMLButtonAttributes {
-        plain: boolean;
-        round?: boolean;
-        popoverContent?: any;
-        tooltipContent?: any;
-        tooltipHeader: string;
-        children?: any;
+    interface Props {
+        trigger: Snippet<[{ props: HTMLButtonAttributes }]>;
+        tooltipHeader?: string;
+        tooltipContent?: Snippet;
+        popoverContent?: Snippet;
     }
 
     let {
-        plain = false,
-        round = undefined,
-        popoverContent,
-        tooltipContent,
+        trigger,
         tooltipHeader = "",
-        children,
-        ...rest
-    }: UiPopoverTipButtonProps = $props();
+        tooltipContent,
+        popoverContent,
+    }: Props = $props();
 
     export const uid = $props.id();
-    let popoverId = $derived(`UiIcon-${uid}-popover`);
+    const popoverId = $derived(`UiPopTipButton-${uid}-popover`);
     let tooltip = $state<UiTooltip>();
-    let roundness = $derived(round == undefined ? "semiround" : round ? "round" : "unround");
+    let triggerProps = $derived({
+        // type: "button",
+        popovertarget: popoverId,
+        interestfor: tooltip?.uid,
+        ...trigger
+    });
 </script>
 
 
 
-<div class="UiPopoverTipButton round">
-    <button interestfor={tooltip?.uid} popovertarget={popoverId} class={`${roundness}`} class:plain {...rest}>
-        {@render children?.()}
-    </button>
+{#if trigger}
+    {@render trigger({ props: triggerProps })}
 
     {#if popoverContent}
     <div popover id={popoverId}>
@@ -45,34 +44,23 @@
         {@render tooltipContent?.()}
     </UiTooltip>
     {/if}
-</div>
+{/if}
 
 
 
 <style lang="scss">
-    .UiPopoverTipButton {
-        display: flex;
-    }
-
-    button {
-        display: flex;
-        --zoom: 1.125;
-    }
-    
     [popover] {
-		box-shadow:	shadows.$box-shadow-sup;
-        background: colors.gray(2);
-        border: 2px solid colors.gray(12);
+        background: colors.gray(12);
+        padding: 2px;
+        border: none;
         border-radius: 3px;
-        grid-auto-rows: max-content;
-        grid-template-columns: repeat(11, max-content);
-        gap: 2px;
+		box-shadow:	shadows.$box-shadow-sup;
         overflow: visible;
         position-area: bottom span-right;
         position-try-fallbacks: top span-right, right, left;
 
         &:popover-open {
-            display: grid;
+            display: flex;
         }
     }
 </style>

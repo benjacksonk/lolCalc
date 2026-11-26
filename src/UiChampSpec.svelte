@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Ability, Champion, DefiniteNumberMap } from "$lib/types.svelte";
+    import UiIcon from "./UiIcon.svelte";
 
     let {
         champ = $bindable(),
@@ -23,12 +24,13 @@
                 <span>Level {level}</span>
             </div>
         </div>
-        <img src={champ.icon} alt="" class="icon size-9 semiround lightSheerBorder">
+        
+        <UiIcon size={9} src={champ.icon} alt="" classes="semiround lightSheerBorder"/>
     </div>
     <div class="abilityControls">
         {#each champ.abilities as ability, i}
         <div class="abilityControl">
-            <img src={ability.icon ?? ""} alt="" class="icon size-5 semiround lightSheerBorder">
+            <UiIcon size={5} src={ability.icon ?? ""} alt="" classes="semiround lightSheerBorder"/>
             
             <input class="levelControl abilityLevelControl semiround" 
             type="number" min="0" max="5" step="1" defaultValue="0"

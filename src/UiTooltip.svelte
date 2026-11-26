@@ -1,4 +1,6 @@
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     let {
         header = "",
         positionPriorities,
@@ -6,7 +8,7 @@
     } : {
         header: string,
         positionPriorities: string[],
-        children?: any,
+        children?: Snippet,
     } = $props();
 
     export const uid = $props.id();
