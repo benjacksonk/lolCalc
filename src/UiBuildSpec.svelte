@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BuildConfig, GameConfig, Item, Keystone, Quest, Rune, Runestone, RuneTree, Shard, StatType } from "$lib/types.svelte";
+    import { Affector, BuildConfig, GameConfig, Item, Keystone, Quest, Rune, Runestone, RuneTree, Shard, StatType } from "$lib/types.svelte";
     import UiAffectorPopTipButton from "./UiAffectorPopTipButton.svelte";
     import UiIcon from "./UiIcon.svelte";
     import UiNamedValueList from "./UiNamedValueList.svelte";
@@ -42,6 +42,8 @@
             ].includes(statType)
         ).toArray()
     ]);
+
+    let keystone = $derived(buildConfig.runeSet.equippedRunes.find(rune => rune instanceof Keystone));
 </script>
 
 
@@ -59,11 +61,11 @@
         {/each}
     </div>
     
-    {#snippet runeIconList(runes: ReadonlyArray<Rune>, size: 0|1|2|3|4|5|6|7|8|9)}
-    {#if runes.length > 0}
-    <div class="runeIconList height-stretch width-max display-column">
-        {#each runes as rune}
-        <UiIcon {size} src={rune.icon} alt={rune.name} background={"transparent"}/>
+    {#snippet affectorIconList(affectors: ReadonlyArray<Affector>, size: 0|1|2|3|4|5|6|7|8|9)}
+    {#if affectors.length > 0}
+    <div class="affectorIconList height-stretch width-stretch display-column">
+        {#each affectors as affector}
+        <UiIcon {size} src={affector.icon} alt={affector.name} background={"transparent"}/>
         {/each}
     </div>
     {/if}
@@ -73,17 +75,24 @@
         {#snippet trigger({ props })}
         <button { ...props }
         style:--zoom={1} 
+        style:padding={"0 8px"}
         class="background-none border-none unround display-column size-stretch" 
         onclick={ (e) => buildConfigs.splice(buildIndex, 0, new BuildConfig(buildConfig)) }
         >
-            {#if buildConfig.runeSet.primaries[0] != Rune.nothing}
-            {@render runeIconList([buildConfig.runeSet.primaries[0]], 7)}
-            {/if}
+            <div class="affectorIconList height-stretch width-stretch display-column">
+                {#if buildConfig.quest != Quest.nothing}
+                <UiIcon size={1} src={buildConfig.quest.icon} alt={buildConfig.quest.name} background={"transparent"}/>
+                {/if}
 
-            <span class="price">
-                <span class="amount text-math">{buildConfig.totalCost.toFixed(0)}</span>
-                <span class="unit">g</span>
-            </span>
+                {#if keystone}
+                <UiIcon size={4} src={keystone.icon} alt={keystone.name} background={"transparent"}/>
+                {/if}
+
+                <span class="price display-row">
+                    <span class="text-math">{buildConfig.totalCost.toFixed(0)}</span>
+                    <span>g</span>
+                </span>
+            </div>
         </button>
         {/snippet}
 
@@ -98,9 +107,9 @@
         style:--zoom={1}
         class={"runeSpecButtonContents display-row background-none border-none unround"}>
             {#if buildConfig.runeSet.equippedRunes.filter(rune => rune != Rune.nothing && !(rune instanceof Keystone)).length > 0}
-                {@render runeIconList(buildConfig.runeSet.primaries.slice(1).filter(rune => rune !== Rune.nothing), 1)}
-                {@render runeIconList(buildConfig.runeSet.secondaries.filter(rune => rune !== Rune.nothing), 1)}
-                {@render runeIconList(buildConfig.runeSet.shards.filter(rune => rune !== Rune.nothing), 1)}
+                {@render affectorIconList(buildConfig.runeSet.primaries.slice(1).filter(rune => rune !== Rune.nothing), 1)}
+                {@render affectorIconList(buildConfig.runeSet.secondaries.filter(rune => rune !== Rune.nothing), 1)}
+                {@render affectorIconList(buildConfig.runeSet.shards.filter(rune => rune !== Rune.nothing), 1)}
             {:else}
                 <UiIcon size={1} src={"dragontail-img/perk-images/Styles/RunesIcon.png"} alt={"No runes"} background={"transparent"}/>
             {/if}
@@ -207,15 +216,10 @@
     }
     
     .price {
-        height: stretch;
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-columns: auto;
-        grid-auto-columns: max-content;
         align-content: center;
         justify-content: center;
         text-align: right;
-        padding: 0 0.5em;
+        // padding: 0 0.5em;
         gap: 0 0.125em;
         color: colors.hcl("honey", 5, 42);
         font-weight: 500;
@@ -243,8 +247,9 @@
         gap: 0 8px;
     }
 
-    .runeIconList {
+    .affectorIconList {
         justify-content: space-evenly;
+        align-items: center;
         pointer-events: none;
     }
 
