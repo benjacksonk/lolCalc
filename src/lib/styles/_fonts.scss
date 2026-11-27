@@ -1,7 +1,6 @@
 // @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Quando&display=swap');
 
 @mixin font-face($family, $style, $weight, $src, $features: normal, $unicode-range: U+0-10FFFF, $display: swap) {
     font-family: $family;
@@ -50,7 +49,7 @@ $_inter-features: 'liga', 'calt', 'ss01', 'cv05', 'cv08';
 
 $passage: 'Overpass', sans-serif;
 $significant: 'Bree Serif', serif;
-$heading: 'Quando', $significant;
+$heading: $significant;
 $mono: monospace;
 $math: 'Overpass', /**'InterVariable', 'Inter var', 'Inter',/**/ $mono;
 
@@ -60,7 +59,7 @@ $math: 'Overpass', /**'InterVariable', 'Inter var', 'Inter',/**/ $mono;
 }
 @mixin text-heading($size) {
     font-family: $heading;
-    font-weight: bold;
+    font-weight: normal;
     font-size: $size;
 }
 @mixin text-significant($size) {

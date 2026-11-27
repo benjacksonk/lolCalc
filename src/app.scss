@@ -25,7 +25,7 @@ h5 { @include fonts.text-heading(#{sizes.$rem-5}); }
 h6 { @include fonts.text-heading(#{sizes.$rem-6}); }
 
 strong
-{ @include fonts.text-heading(11.5pt); }
+{ @include fonts.text-heading(13.5pt); }
 
 b
 { @include fonts.text-significant(12.5pt); }
